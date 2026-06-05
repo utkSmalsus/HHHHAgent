@@ -1,0 +1,30 @@
+services:
+  qdrant:
+    image: qdrant/qdrant
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_storage:/qdrant/storage
+
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      QDRANT_URL: http://qdrant:6333
+      PORT: 3000
+      OLLAMA_BASE_URL: http://host.docker.internal:11434
+      TRANSFORMERS_CACHE: /app/.cache/transformers
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - transformers_cache:/app/.cache
+    depends_on:
+      - qdrant
+    restart: unless-stopped
+
+volumes:
+  qdrant_storage:
+  transformers_cache:
