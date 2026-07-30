@@ -123,6 +123,18 @@ export function buildIngestSources(sites) {
     };
   }
 
+  if (process.env.SP_MEETINGS) {
+    const meetingsAlias = process.env.SP_MEETINGS_SITE || 'DEFAULT';
+    sources.meetings = {
+      listKey: 'meetings',
+      listId: process.env.SP_MEETINGS,
+      envVar: 'SP_MEETINGS',
+      type: 'meeting',
+      siteAlias: meetingsAlias,
+      siteId: resolveSiteId(sites, meetingsAlias),
+    };
+  }
+
   return sources;
 }
 
@@ -211,4 +223,11 @@ export function getSharePointConfigSummary(sites, ingestSources) {
   };
 }
 
-export const INGEST_LIST_KEYS = ['portfolio', 'projects', 'tasks', 'timeentries'];
+// meetings only joins the full ingest once SP_MEETINGS is configured (else /all would fail on it).
+export const INGEST_LIST_KEYS = [
+  'portfolio',
+  'projects',
+  'tasks',
+  'timeentries',
+  ...(process.env.SP_MEETINGS ? ['meetings'] : []),
+];

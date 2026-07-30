@@ -59,7 +59,11 @@ router.get('/progress/ui', (_req, res) => {
     #lists { margin-top: 1.5rem; }
     .list-row { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid #f3f4f6; }
     .done { color: #059669; } .running { color: #2563eb; } .pending { color: #9ca3af; }
-    button { margin-top: 1rem; padding: 0.5rem 1rem; cursor: pointer; }
+    button { margin: 1rem 0.5rem 0 0; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
+    button:hover { background: #f1f5f9; }
+    button.full { background: #2563eb; color: #fff; border-color: #2563eb; }
+    button:disabled { opacity: 0.5; cursor: default; }
+    #buttons { display: flex; flex-wrap: wrap; }
   </style>
 </head>
 <body>
@@ -69,7 +73,14 @@ router.get('/progress/ui', (_req, res) => {
   <div id="msg">Connecting…</div>
   <div id="meta"></div>
   <div id="lists"></div>
-  <button onclick="startIngest()">Start full ingest</button>
+  <div id="buttons">
+    <button onclick="ingest('portfolio', this)">Portfolio</button>
+    <button onclick="ingest('projects', this)">Projects</button>
+    <button onclick="ingest('tasks', this)">Tasks</button>
+    <button onclick="ingest('timeentries', this)">Time Entries</button>
+    <button onclick="ingest('meetings', this)">Meetings + Transcripts</button>
+    <button class="full" onclick="ingest('all', this)">Full ingest</button>
+  </div>
   <script>
     const es = new EventSource('/api/ingest/progress/stream');
     es.onmessage = (e) => update(JSON.parse(e.data));
@@ -79,14 +90,22 @@ router.get('/progress/ui', (_req, res) => {
       document.getElementById('msg').textContent = p.message || '';
       document.getElementById('meta').textContent =
         (p.status === 'running' ? p.processed + '/' + p.total + ' items · ' + p.elapsedSec + 's' : p.status);
+      const running = p.status === 'running';
+      document.querySelectorAll('#buttons button').forEach((b) => { b.disabled = running; });
       const lists = Object.entries(p.lists || {}).map(([k,v]) =>
         '<div class="list-row ' + v.status + '"><span>' + k + '</span><span>' +
         (v.ingested || 0) + '/' + (v.fetched || '?') + ' (' + (v.percent||0) + '%)</span></div>'
       ).join('');
       document.getElementById('lists').innerHTML = lists ? '<h3>Lists</h3>' + lists : '';
     }
-    async function startIngest() {
-      await fetch('/api/ingest/all', { method: 'POST' });
+    async function ingest(key, btn) {
+      btn.disabled = true;
+      const res = await fetch('/api/ingest/' + key, { method: 'POST' });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        document.getElementById('msg').textContent = 'Error: ' + (err.error || res.status);
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
@@ -98,6 +117,7 @@ const TYPE_MAP = {
   projects: 'project',
   tasks: 'task',
   timeentries: 'timeentry',
+  meetings: 'meeting',
 };
 
 async function handleIngest(req, res, listKey) {
@@ -143,6 +163,7 @@ router.post('/portfolio', (req, res) => handleIngest(req, res, 'portfolio'));
 router.post('/projects', (req, res) => handleIngest(req, res, 'projects'));
 router.post('/tasks', (req, res) => handleIngest(req, res, 'tasks'));
 router.post('/timeentries', (req, res) => handleIngest(req, res, 'timeentries'));
+router.post('/meetings', (req, res) => handleIngest(req, res, 'meetings'));
 
 router.post('/all', async (req, res) => {
   try {

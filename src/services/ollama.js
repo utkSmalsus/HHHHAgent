@@ -123,10 +123,14 @@ export async function generateAnswer(promptOrMessages) {
     ? String(promptOrMessages.user || '').slice(0, config.ollama.maxPromptChars)
     : String(promptOrMessages || '').slice(0, config.ollama.maxPromptChars);
 
+  // qwen3 "thinking" mode is very slow; /no_think disables it (much faster, still good quality).
+  const isQwen3 = /qwen3/i.test(config.ollama.chatModel);
+  const sysContent = isQwen3 ? `${system}\n/no_think` : system;
+
   const data = await ollamaFetch('/api/chat', {
     model: config.ollama.chatModel,
     messages: [
-      { role: 'system', content: system },
+      { role: 'system', content: sysContent },
       { role: 'user', content: user },
     ],
     stream: false,
@@ -137,6 +141,8 @@ export async function generateAnswer(promptOrMessages) {
   });
 
   let answer = data.message?.content?.trim();
+  // Strip reasoning blocks emitted by "thinking" models (e.g. qwen3): <think>...</think>.
+  if (answer) answer = answer.replace(/<think>[\s\S]*?<\/think>/gi, '').replace(/^<\/?think>/gi, '').trim();
   if (!answer) {
     throw new Error('Ollama returned empty chat response');
   }

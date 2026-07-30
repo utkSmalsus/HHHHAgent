@@ -79,12 +79,44 @@ function lookupId(fields, baseName) {
   const direct = fields[`${baseName}LookupId`];
   if (direct != null && direct !== '') return Number(direct);
   const val = fields[baseName];
+  if (Array.isArray(val)) {
+    for (const entry of val) {
+      const id = entry?.LookupId ?? entry?.Id ?? entry?.id;
+      if (id != null && id !== '') return Number(id);
+    }
+  }
   if (typeof val === 'number') return val;
   if (val && typeof val === 'object') {
     const id = val.LookupId ?? val.Id ?? val.id;
     if (id != null) return Number(id);
   }
   return null;
+}
+
+function firstLookupId(fields, baseNames) {
+  for (const baseName of baseNames) {
+    const id = lookupId(fields, baseName);
+    if (Number.isFinite(id) && id > 0) return id;
+  }
+  return null;
+}
+
+function resolveTaskProjectId(fields) {
+  return firstLookupId(fields, [
+    'Project',
+    // Graph exposes the SPFx Project/Id lookup projection under this internal name.
+    'Project_x003a_ID',
+  ]);
+}
+
+function resolveTaskPortfolioId(fields) {
+  return firstLookupId(fields, [
+    'Portfolio',
+    // Graph exposes the SPFx Portfolio/Id lookup projection under this internal name.
+    'Portfolio_x003a_ID',
+    'Component',
+    'RelevantPortfolio',
+  ]);
 }
 
 export function isPortfolioMasterItem(fields) {
@@ -287,8 +319,8 @@ export function taskItemToKnowledge(row, source, masterById) {
   const completion = formatPercent(fields.PercentComplete);
   const description = firstField(fields, ['Body', 'FeedBack', 'Description', 'Comments']);
   const taskCode = fields.TaskID != null ? String(fields.TaskID) : null;
-  const projectId = lookupId(fields, 'Project');
-  const portfolioId = lookupId(fields, 'Portfolio');
+  const projectId = resolveTaskProjectId(fields);
+  const portfolioId = resolveTaskPortfolioId(fields);
   const projectRow = projectId ? masterById.get(projectId) : null;
   const projectName = projectRow ? masterTitle(projectRow) : firstField(fields, ['Project']);
   const portfolioRow = portfolioId

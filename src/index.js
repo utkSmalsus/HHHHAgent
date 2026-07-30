@@ -6,6 +6,7 @@ import { corsMiddleware, corsPreflight } from './middleware/cors.js';
 import ingestRoutes from './routes/ingest.js';
 import searchRoutes from './routes/search.js';
 import queryRoutes from './routes/query.js';
+import meetingRoutes from './routes/meetings.js';
 
 const app = express();
 
@@ -25,6 +26,8 @@ function resolveChatModel() {
   if (config.chat.provider === 'huggingface') return config.huggingface.chatModel;
   return config.gemini.chatModel;
 }
+
+app.get('/', (_req, res) => res.redirect('/api/query/ui'));
 
 app.get('/health', async (_req, res) => {
   const health = {
@@ -56,6 +59,7 @@ app.get('/api/ping', (_req, res) => {
 app.use('/api/ingest', ingestRoutes);
 app.use('/api/search', searchRoutes);
 app.use('/api/query', queryRoutes);
+app.use('/api/meetings', meetingRoutes);
 
 async function start() {
   try {

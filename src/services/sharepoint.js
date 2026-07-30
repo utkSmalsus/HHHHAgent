@@ -14,6 +14,7 @@ import {
   taskItemToKnowledge,
   timesheetRowsToKnowledge,
 } from './hierarchyIngest.js';
+import { meetingToKnowledge, inlineTranscript, fetchTranscriptText } from './meetingIngest.js';
 
 let cachedToken = null;
 let tokenExpiresAt = 0;
@@ -447,6 +448,26 @@ export async function fetchListItems(listKey) {
         modifiedSince,
       });
     }
+  } else if (listKey === 'meetings') {
+    const rows = await fetchGraphListItems(token, source.siteId, source.listId);
+    let transcriptsFetched = 0;
+    for (const row of rows) {
+      const fields = row.fields || {};
+      let transcript = inlineTranscript(fields);
+      const transcriptUrl = fields.TranscriptUrl || fields.TranscriptFileUrl || '';
+      if (!transcript && transcriptUrl) {
+        // ponytail: sequential per-row docx download; parallelize if meeting count grows large
+        transcript = await fetchTranscriptText(token, source.siteId, transcriptUrl);
+        if (transcript) transcriptsFetched += 1;
+      }
+      allItems.push(meetingToKnowledge(row, source, transcript));
+    }
+    sourcesUsed.push({
+      envVar: source.envVar,
+      listId: source.listId,
+      count: allItems.length,
+      transcriptsFromFile: transcriptsFetched,
+    });
   } else {
     const rows = await fetchGraphListItems(token, source.siteId, source.listId);
     const parsed = rows.map((item) => itemToText(item, source.type, source));

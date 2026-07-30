@@ -53,7 +53,6 @@ export function sanitizeEnterpriseAnswer(answer, userQuestion = '') {
 
   text = text
     .replace(/\[[^\]]*\]/g, '')
-    .replace(/\b\d{1,3}%\s+of\s+[a-z\s]+/gi, '')
     .replace(/\s+/g, ' ')
     .trim();
 
@@ -63,10 +62,6 @@ export function sanitizeEnterpriseAnswer(answer, userQuestion = '') {
 
   const wordCount = text.split(/\s+/).filter((w) => w.length > 2).length;
   if (wordCount < 6 && !/insufficient/i.test(text)) {
-    return INSUFFICIENT_DATA_MESSAGE;
-  }
-
-  if (/\b(in|of|on|at)\s*\./i.test(text) || /\d+%\s+of/i.test(text)) {
     return INSUFFICIENT_DATA_MESSAGE;
   }
 
