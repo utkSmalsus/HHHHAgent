@@ -224,6 +224,33 @@ export function extractOwnersFromText(text) {
   return [...owners];
 }
 
+// Ingest text is built as "Label: value. Label: value. ...actual description/comments". Strip the
+// leading labeled fields so only the free-text description/feedback/comments portion remains.
+const KNOWN_FIELD_RE = /^(Type|Path|Status|Completion|Owner|Structure|TaskID|Project|Portfolio|Site):/i;
+
+export function rawDescription(text) {
+  const chunks = String(text || '').split(/\.\s+/);
+  const rest = [];
+  let pastPrefix = false;
+  for (const chunk of chunks) {
+    if (!pastPrefix && KNOWN_FIELD_RE.test(chunk.trim())) continue;
+    pastPrefix = true;
+    rest.push(chunk);
+  }
+  return rest.join('. ').trim();
+}
+
+export function itemDate(payload) {
+  return payload?.timestamp || payload?.start || payload?.timeDate || '';
+}
+
+export function itemStatus(payload) {
+  return (
+    payload?.status ||
+    (String(payload?.text || '').match(/Status:\s*([^.,]+)/i)?.[1] || '').trim()
+  );
+}
+
 export function payloadToResult(payload, scores = {}) {
   return {
     score: scores.vectorScore ?? scores.combinedScore ?? 0,

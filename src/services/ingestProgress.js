@@ -1,7 +1,8 @@
 const listeners = new Set();
+let cancelRequested = false;
 
 const state = {
-  status: 'idle', // idle | running | completed | failed
+  status: 'idle', // idle | running | completed | failed | cancelled
   jobId: null,
   currentList: null,
   phase: null, // fetching | embedding
@@ -69,6 +70,9 @@ function buildMessage(s, percent) {
   if (s.status === 'completed') {
     return `Done. ${s.totalIngested} items fed into Qdrant.`;
   }
+  if (s.status === 'cancelled') {
+    return `Stopped. ${s.totalIngested} items fed into Qdrant before stopping.`;
+  }
   if (s.status === 'failed') return `Failed: ${s.error}`;
   if (s.phase === 'fetching') {
     return `Fetching ${s.currentList} from SharePoint…`;
@@ -80,7 +84,27 @@ export function isRunning() {
   return state.status === 'running';
 }
 
+/** Signal the running job to stop after its current item — checked inside the ingest loop. */
+export function requestCancel() {
+  if (state.status === 'running') cancelRequested = true;
+  return cancelRequested;
+}
+
+export function isCancelRequested() {
+  return cancelRequested;
+}
+
+export function cancelJob() {
+  state.status = 'cancelled';
+  state.finishedAt = new Date().toISOString();
+  state.elapsedMs = Date.now() - new Date(state.startedAt).getTime();
+  cancelRequested = false;
+  emit();
+  logProgress(true);
+}
+
 export function startJob(jobId, listKeys) {
+  cancelRequested = false;
   Object.assign(state, {
     status: 'running',
     jobId,

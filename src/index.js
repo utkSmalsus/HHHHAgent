@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import { config } from './config.js';
 import { ensureCollection } from './services/qdrant.js';
 import { checkOllama } from './services/ollama.js';
@@ -8,12 +10,14 @@ import searchRoutes from './routes/search.js';
 import queryRoutes from './routes/query.js';
 import meetingRoutes from './routes/meetings.js';
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
 app.use(corsMiddleware);
 corsPreflight(app);
 
 app.use(express.json());
+app.use(express.static(path.join(__dirname, '../public')));
 
 function resolveEmbeddingModel() {
   if (config.embeddings.provider === 'ollama') return config.ollama.embedModel;

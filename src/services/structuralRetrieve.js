@@ -91,7 +91,7 @@ export function buildStructuralPrompt(question, structural) {
   const more = (n, cap) => (n > cap ? `\n…and ${n - cap} more` : '');
 
   const system =
-    'You are the OMT knowledge agent. You are given the EXACT structure of one item from the ' +
+    'You are HHHH Agent. You are given the EXACT structure of one item from the ' +
     'knowledge base (its sub-components/projects and tasks). Answer the user\'s question using ONLY ' +
     'this structure. When listing, use the real titles verbatim. State counts when asked. ' +
     'Do NOT invent items, statuses, or owners. Keep it clear and concise.';

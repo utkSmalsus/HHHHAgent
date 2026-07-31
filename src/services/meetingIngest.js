@@ -27,7 +27,9 @@ function valueToText(value) {
   if (value === null || value === undefined || value === '') return '';
   if (Array.isArray(value)) return value.map(valueToText).filter(Boolean).join(', ');
   if (typeof value === 'object') {
-    return cleanText(value.LookupValue || value.Title || value.Email || value.Name || '');
+    // Person/Group fields from the real MeetingList come back as {Title, EMail, Id} (note the
+    // "EMail" spelling); lookup fields use LookupValue. Cover both shapes.
+    return cleanText(value.LookupValue || value.Title || value.EMail || value.Email || value.Name || '');
   }
   return cleanText(value);
 }
@@ -42,9 +44,13 @@ function firstField(fields, names) {
 
 /** Inline transcript text stored directly on the meeting row (no file needed). */
 export function inlineTranscript(fields) {
-  return (
-    firstField(fields, ['TeamsTranscript', 'TranscriptText']) || ''
-  );
+  const raw = fields.TeamsTranscript;
+  if (typeof raw === 'string' && raw.trim()) return cleanText(raw);
+  if (raw && typeof raw === 'object') {
+    const text = raw.TranscriptText || raw.TeamsTranscript || raw.Transcript || raw.Body || raw.Content || raw.Text || '';
+    if (text) return cleanText(String(text));
+  }
+  return firstField(fields, ['TranscriptText']) || '';
 }
 
 /** Participants column is a JSON array of {LookupValue, Email}; extract names. */
@@ -66,7 +72,7 @@ function actionItemsText(raw) {
     const arr = typeof raw === 'string' ? JSON.parse(raw) : raw;
     if (Array.isArray(arr)) {
       return arr
-        .map((a) => a?.description || a?.title || a?.text || a?.task)
+        .map((a) => a?.description || a?.Description || a?.title || a?.Title || a?.text || a?.task)
         .filter(Boolean)
         .map((t) => cleanText(t))
         .join('; ');
@@ -92,17 +98,32 @@ export function driveRelativePath(serverRelativeUrl) {
   return parts.slice(start).map(encodeURIComponent).join('/');
 }
 
-/** Download a .docx transcript via Graph and return its raw text (best-effort). */
+const TEXT_LIKE_EXT = new Set(['txt', 'vtt', 'srt', 'md', 'csv', 'json', 'xml', 'html', 'htm']);
+
+/**
+ * Download a transcript file via Graph and return its raw text (best-effort).
+ * Real transcript files here are mostly plain .txt (Teams export), not .docx — only .docx goes
+ * through mammoth; text-like extensions are read directly, everything else (media, .doc) is
+ * skipped since there's no text to extract.
+ */
 export async function fetchTranscriptText(token, siteId, transcriptUrl) {
   const rel = driveRelativePath(transcriptUrl);
   if (!rel) return '';
+  const ext = (rel.split('.').pop() || '').toLowerCase();
   const url = `https://graph.microsoft.com/v1.0/sites/${siteId}/drive/root:/${rel}:/content`;
   try {
     const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
     if (!res.ok) return '';
-    const buffer = Buffer.from(await res.arrayBuffer());
-    const result = await mammoth.extractRawText({ buffer });
-    return cleanText(result.value || '');
+
+    if (ext === 'docx') {
+      const buffer = Buffer.from(await res.arrayBuffer());
+      const result = await mammoth.extractRawText({ buffer });
+      return cleanText(result.value || '');
+    }
+    if (TEXT_LIKE_EXT.has(ext)) {
+      return cleanText(await res.text());
+    }
+    return ''; // media file or unsupported binary (.doc, etc.) — no text to extract
   } catch {
     return '';
   }
@@ -115,8 +136,10 @@ export function meetingToKnowledge(row, source, transcriptText = '') {
   const title = firstField(fields, ['Title']) || `Meeting ${id}`;
   const type = firstField(fields, ['MeetingType', 'Meeting_x0020_Type']);
   const status = firstField(fields, ['Status', 'MeetingStatus']);
-  const start = firstField(fields, ['Start', 'StartDateTime', 'Start_x0020_Time']);
-  const end = firstField(fields, ['End', 'EndDateTime', 'End_x0020_Time']);
+  // SharePoint's REST/Graph API sometimes returns DateTime column internal names with a numeric
+  // suffix (e.g. StartDateTime_x0009_) instead of the plain name — cover both.
+  const start = firstField(fields, ['Start', 'StartDateTime_x0009_', 'StartDateTime', 'Start_x0020_Time']);
+  const end = firstField(fields, ['End', 'EndDateTime_x0009_', 'EndDateTime', 'End_x0020_Time']);
   const priority = firstField(fields, ['MeetingPriority']);
   const description = firstField(fields, ['Description', 'Agenda', 'AgendaItems', 'Body']);
   const summary = firstField(fields, ['AISummary', 'AI_x0020_Summary', 'Summary']);

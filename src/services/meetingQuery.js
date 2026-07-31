@@ -75,11 +75,41 @@ export function isMeetingDetailFollowup(question) {
 }
 
 /** Find the meeting whose title is mentioned in the recent conversation (most specific wins). */
-export async function resolveReferencedMeeting(convoText) {
+const WORD_RE = /[a-z0-9]+/g;
+
+/** Word-overlap score between the CURRENT question and a candidate title (order-independent). */
+function overlapScore(questionWords, title) {
+  const titleWords = new Set((title.toLowerCase().match(WORD_RE) || []).filter((w) => w.length > 2));
+  if (!titleWords.size) return 0;
+  let hits = 0;
+  for (const w of questionWords) if (titleWords.has(w)) hits += 1;
+  return hits;
+}
+
+/**
+ * Find the meeting the user is referring to. When SEVERAL meeting titles were mentioned earlier
+ * in the conversation (e.g. a "meetings yesterday" list showed two), the current question usually
+ * names which one it means ("the scrum one") — prefer that over just grabbing whichever mentioned
+ * title happens to be the longest string, which ignores what was actually asked.
+ */
+export async function resolveReferencedMeeting(convoText, currentQuestion = '') {
   const lc = String(convoText || '').toLowerCase();
   if (!lc.trim()) return null;
   const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
   const hits = all.filter((m) => m.title && m.title.length > 4 && lc.includes(m.title.toLowerCase()));
+  if (!hits.length) return null;
+
+  const qWords = (String(currentQuestion || '').toLowerCase().match(WORD_RE) || []).filter((w) => w.length > 2);
+  if (qWords.length) {
+    const scored = hits
+      .map((m) => ({ m, score: overlapScore(qWords, m.title) }))
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score);
+    if (scored.length && (scored.length === 1 || scored[0].score > scored[1].score)) {
+      return scored[0].m;
+    }
+  }
+
   hits.sort((a, b) => (b.title.length || 0) - (a.title.length || 0));
   return hits[0] || null;
 }
@@ -87,7 +117,7 @@ export async function resolveReferencedMeeting(convoText) {
 /** Prompt to answer a detail question about ONE specific meeting from its full record. */
 export function buildMeetingDetailPrompt(question, meeting) {
   const system =
-    'You are the OMT knowledge agent. Answer the question about this specific meeting using ONLY ' +
+    'You are HHHH Agent. Answer the question about this specific meeting using ONLY ' +
     'the meeting record below (its summary, participants, transcript). Be specific and concise. ' +
     'If the record does not contain the answer, say so — do not pull in other meetings or tasks.';
   const user =
@@ -97,6 +127,37 @@ export function buildMeetingDetailPrompt(question, meeting) {
   return { system, user };
 }
 
+const PLAIN_PERIOD = new Set(['today', 'yesterday', 'tomorrow']);
+
+/**
+ * Deterministic, no-LLM answer for "meetings on/for X" questions. This exists because the LLM
+ * path (buildMeetingDatePrompt) was observed hallucinating "no meetings today" for a "yesterday"
+ * question even when handed the correct, unambiguous evidence — a small local model narrating a
+ * date range is an unnecessary reliability risk when the range/list is already fully known.
+ * Also fixes silently picking one meeting when several matched the same period — list them all.
+ */
+export function buildMeetingDateAnswer(result) {
+  const { meetings, range } = result;
+  const label = range?.label;
+  const periodPhrase = label ? (PLAIN_PERIOD.has(label) ? label : `for ${label}`) : 'matching that';
+
+  if (!meetings.length) {
+    return `There are no meetings ${periodPhrase}.`;
+  }
+
+  const fmt = (m) => {
+    const d = m.start ? new Date(m.start) : null;
+    const when = d ? d.toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : 'no date';
+    return `- **${m.title || 'Untitled meeting'}** — ${when}${m.status ? ` [${m.status}]` : ''}`;
+  };
+  const heading =
+    meetings.length === 1
+      ? `1 meeting ${periodPhrase}:`
+      : `${meetings.length} meetings ${periodPhrase} (newest first):`;
+  return `${heading}\n\n${meetings.map(fmt).join('\n')}`;
+}
+
+/** @deprecated kept for reference; buildMeetingDateAnswer is used instead — see its comment. */
 export function buildMeetingDatePrompt(question, result) {
   const { meetings, range, now } = result;
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
@@ -108,7 +169,7 @@ export function buildMeetingDatePrompt(question, result) {
   const list = meetings.map(fmt).join('\n') || '(no meetings match)';
 
   const system =
-    'You are the OMT knowledge agent. Answer ONLY from the meetings listed, using their REAL dates. ' +
+    'You are HHHH Agent. Answer ONLY from the meetings listed, using their REAL dates. ' +
     'Never claim a meeting happened on a date other than its listed date. ' +
     'If the list is empty, clearly say there are no meetings for that period — do not substitute a meeting from another date.';
   const user =

@@ -1,0 +1,166 @@
+/**
+ * Neutral, low-chroma palette. Colour is reserved for meaning (errors, success, focus) —
+ * surfaces and chrome stay greyscale so dense project data reads calmly.
+ */
+:root {
+  color-scheme: light dark;
+  --bg: #ffffff;
+  --fg: #1f2328;
+  --fg-strong: #0d1117;
+
+  --surface: #f6f7f8;          /* raised neutral: code chrome, table head */
+  --surface-hover: #eceef0;
+  --card-bg: #ffffff;
+
+  /* User bubble sits a clear step darker than --surface so the two chat roles never blur. */
+  --user-bubble: #e8eaed;
+  --user-bubble-fg: #1f2328;
+  --user-bubble-border: #dcdfe3;
+
+  --header-bg: #ffffff;
+  --header-fg: #1f2328;
+  --header-border: #e5e7eb;
+
+  --border: #d8dbdf;           /* visible dividers, inputs */
+  --border-subtle: #e9ebee;    /* hairlines between rows */
+  --muted: #6b7280;
+
+  --accent: #3d4450;           /* near-neutral graphite, used sparingly */
+  --accent-fg: #ffffff;
+  --focus-ring: rgba(31, 35, 40, 0.14);
+
+  --send-bg: #1f2328;
+  --send-fg: #ffffff;
+
+  --error: #b42318;
+  --error-bg: #fef3f2;
+  --error-border: #fecdca;
+  --success: #067647;
+  --success-bg: #ecfdf3;
+  --danger: #b42318;
+  --danger-bg: #fef3f2;
+
+  --shadow-sm: 0 1px 2px rgba(16, 24, 40, 0.06);
+  --shadow: 0 1px 3px rgba(16, 24, 40, 0.08), 0 6px 20px rgba(16, 24, 40, 0.05);
+}
+
+/* Applied before first paint by the inline head script, so there's no light-mode flash. */
+html { background: var(--bg); }
+
+/* Pin the UA colour scheme to the *chosen* theme. Without this, a dark-OS browser can
+   auto-darken our light theme (and render UA controls/scrollbars for the wrong scheme). */
+:root[data-theme='light'] { color-scheme: light; }
+:root[data-theme='dark'] { color-scheme: dark; }
+
+:root[data-theme='dark'] {
+  --bg: #0d1117;
+  --fg: #e6edf3;
+  --fg-strong: #ffffff;
+
+  --surface: #191f27;
+  --surface-hover: #222a34;
+  --card-bg: #161b22;
+
+  --user-bubble: #263041;
+  --user-bubble-fg: #e6edf3;
+  --user-bubble-border: #313d50;
+
+  --header-bg: #0d1117;
+  --header-fg: #e6edf3;
+  --header-border: #262c36;
+
+  --border: #303842;
+  --border-subtle: #232a33;
+  --muted: #9198a1;
+
+  --accent: #c9d1d9;
+  --accent-fg: #0d1117;
+  --focus-ring: rgba(230, 237, 243, 0.16);
+
+  --send-bg: #e6edf3;
+  --send-fg: #0d1117;
+
+  --error: #ff8182;
+  --error-bg: #2d1618;
+  --error-border: #5c2326;
+  --success: #3fb950;
+  --success-bg: #10281a;
+  --danger: #ff8182;
+  --danger-bg: #2d1618;
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #0d1117;
+    --fg: #e6edf3;
+    --fg-strong: #ffffff;
+
+    --surface: #191f27;
+    --surface-hover: #222a34;
+    --card-bg: #161b22;
+
+    --user-bubble: #263041;
+    --user-bubble-fg: #e6edf3;
+    --user-bubble-border: #313d50;
+
+    --header-bg: #0d1117;
+    --header-fg: #e6edf3;
+    --header-border: #262c36;
+
+    --border: #303842;
+    --border-subtle: #232a33;
+    --muted: #9198a1;
+
+    --accent: #c9d1d9;
+    --accent-fg: #0d1117;
+    --focus-ring: rgba(230, 237, 243, 0.16);
+
+    --send-bg: #e6edf3;
+    --send-fg: #0d1117;
+
+    --error: #ff8182;
+    --error-bg: #2d1618;
+    --error-border: #5c2326;
+    --success: #3fb950;
+    --success-bg: #10281a;
+    --danger: #ff8182;
+    --danger-bg: #2d1618;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 6px 20px rgba(0, 0, 0, 0.35);
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Shared icon-button chrome for header actions on both pages. */
+.hdr-btn {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+.hdr-btn:hover { background: var(--surface-hover); color: var(--fg); border-color: var(--border-subtle); }
+.hdr-btn svg { display: block; }
+.hdr-btn svg[hidden] { display: none; }

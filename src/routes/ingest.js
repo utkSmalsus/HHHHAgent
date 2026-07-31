@@ -7,7 +7,7 @@ import {
   runIngestOne,
 } from '../services/ingestion.js';
 import { getSharePointSitesConfig } from '../services/sharepoint.js';
-import { getProgress, isRunning, onProgress } from '../services/ingestProgress.js';
+import { getProgress, isRunning, onProgress, requestCancel } from '../services/ingestProgress.js';
 import { config } from '../config.js';
 
 const router = Router();
@@ -19,6 +19,15 @@ router.get('/config', (_req, res) => {
 /** Live progress JSON — poll every 1–2s while ingest runs */
 router.get('/progress', (_req, res) => {
   res.json({ success: true, ...getProgress() });
+});
+
+/** Stop the running ingest after its current item — remaining items/lists are skipped. */
+router.post('/stop', (_req, res) => {
+  if (!isRunning()) {
+    return res.status(409).json({ success: false, error: 'No ingest running' });
+  }
+  requestCancel();
+  res.json({ success: true, message: 'Stopping after current item…', ...getProgress() });
 });
 
 /** Server-Sent Events — live progress stream in browser/terminal */
@@ -41,73 +50,50 @@ router.get('/progress/stream', (req, res) => {
   });
 });
 
-/** Simple HTML page with progress bar */
+/** Ingest progress dashboard — one progress bar per dataset, live via SSE. */
 router.get('/progress/ui', (_req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.send(`<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Ingest Progress</title>
-  <style>
-    body { font-family: system-ui; max-width: 720px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { font-size: 1.25rem; }
-    #bar-wrap { background: #e5e7eb; border-radius: 8px; height: 28px; overflow: hidden; margin: 1rem 0; }
-    #bar { background: linear-gradient(90deg,#2563eb,#3b82f6); height: 100%; width: 0%; transition: width 0.3s; }
-    #pct { font-size: 2rem; font-weight: 700; }
-    #msg { color: #374151; margin: 0.5rem 0; }
-    #lists { margin-top: 1.5rem; }
-    .list-row { display: flex; justify-content: space-between; padding: 0.35rem 0; border-bottom: 1px solid #f3f4f6; }
-    .done { color: #059669; } .running { color: #2563eb; } .pending { color: #9ca3af; }
-    button { margin: 1rem 0.5rem 0 0; padding: 0.5rem 1rem; cursor: pointer; border: 1px solid #cbd5e1; border-radius: 6px; background: #fff; }
-    button:hover { background: #f1f5f9; }
-    button.full { background: #2563eb; color: #fff; border-color: #2563eb; }
-    button:disabled { opacity: 0.5; cursor: default; }
-    #buttons { display: flex; flex-wrap: wrap; }
-  </style>
+  <link rel="stylesheet" href="/ingest-ui.css"/>
+  <script>
+    // Set the saved theme before first paint, else the page flashes light then re-themes.
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('omt_theme') || 'light'); } catch (e) {}
+  </script>
 </head>
 <body>
-  <h1>SharePoint → Qdrant ingest</h1>
-  <div id="pct">0%</div>
-  <div id="bar-wrap"><div id="bar"></div></div>
-  <div id="msg">Connecting…</div>
-  <div id="meta"></div>
-  <div id="lists"></div>
-  <div id="buttons">
-    <button onclick="ingest('portfolio', this)">Portfolio</button>
-    <button onclick="ingest('projects', this)">Projects</button>
-    <button onclick="ingest('tasks', this)">Tasks</button>
-    <button onclick="ingest('timeentries', this)">Time Entries</button>
-    <button onclick="ingest('meetings', this)">Meetings + Transcripts</button>
-    <button class="full" onclick="ingest('all', this)">Full ingest</button>
-  </div>
-  <script>
-    const es = new EventSource('/api/ingest/progress/stream');
-    es.onmessage = (e) => update(JSON.parse(e.data));
-    function update(p) {
-      document.getElementById('pct').textContent = p.percent + '%';
-      document.getElementById('bar').style.width = p.percent + '%';
-      document.getElementById('msg').textContent = p.message || '';
-      document.getElementById('meta').textContent =
-        (p.status === 'running' ? p.processed + '/' + p.total + ' items · ' + p.elapsedSec + 's' : p.status);
-      const running = p.status === 'running';
-      document.querySelectorAll('#buttons button').forEach((b) => { b.disabled = running; });
-      const lists = Object.entries(p.lists || {}).map(([k,v]) =>
-        '<div class="list-row ' + v.status + '"><span>' + k + '</span><span>' +
-        (v.ingested || 0) + '/' + (v.fetched || '?') + ' (' + (v.percent||0) + '%)</span></div>'
-      ).join('');
-      document.getElementById('lists').innerHTML = lists ? '<h3>Lists</h3>' + lists : '';
-    }
-    async function ingest(key, btn) {
-      btn.disabled = true;
-      const res = await fetch('/api/ingest/' + key, { method: 'POST' });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        document.getElementById('msg').textContent = 'Error: ' + (err.error || res.status);
-        btn.disabled = false;
-      }
-    }
-  </script>
+  <header>
+    <span class="brand">SharePoint → Qdrant ingest</span>
+    <span class="actions">
+      <button class="hdr-btn" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">
+        <svg id="iconMoon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="iconSun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+      <a class="hdr-btn" href="/api/query/ui" title="Back to chat" aria-label="Back to chat">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+      </a>
+    </span>
+  </header>
+  <main>
+    <div class="summary">
+      <div class="summary-top">
+        <span class="summary-pct" id="summaryPct">0%</span>
+        <span class="summary-msg" id="summaryMsg">Connecting…</span>
+      </div>
+      <div class="bar-wrap"><div class="bar-fill" id="summaryBar"></div></div>
+      <div class="summary-meta" id="summaryMeta"></div>
+    </div>
+    <div class="controls">
+      <button class="primary" id="fullIngest" type="button">Full ingest</button>
+      <button class="stop" id="stopBtn" type="button" disabled>Stop</button>
+    </div>
+    <div class="grid" id="grid"></div>
+  </main>
+  <script src="/ingest-ui.js"></script>
 </body>
 </html>`);
 });

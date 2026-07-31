@@ -17,10 +17,10 @@ export async function embedText(text, options = {}) {
   }
 }
 
-export async function generateAnswer(prompt) {
+export async function generateAnswer(prompt, options = {}) {
   if (config.chat.provider === 'ollama') {
     const { generateAnswer: ollamaChat } = await import('./ollama.js');
-    return ollamaChat(prompt);
+    return ollamaChat(prompt, options);
   }
 
   if (config.chat.provider === 'huggingface') {

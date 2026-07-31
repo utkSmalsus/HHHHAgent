@@ -1,0 +1,208 @@
+@import url('/theme.css');
+
+body {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 0.6rem 1rem;
+  background: var(--header-bg);
+  color: var(--header-fg);
+  border-bottom: 1px solid var(--header-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+header .brand { font-weight: 600; font-size: 0.95rem; letter-spacing: -0.01em; color: var(--fg-strong); }
+header .actions { display: flex; align-items: center; gap: 0.15rem; }
+
+#log {
+  flex: 1;
+  overflow-y: auto;
+  /* Centre the column with padding rather than a width rule on children, so each row is still
+     free to size itself (a user bubble hugs its text; an answer fills the column). */
+  padding: 1.5rem max(1rem, calc((100% - 780px) / 2)) 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.15rem;
+}
+
+.msg {
+  padding: 0.7rem 0.95rem;
+  border-radius: 14px;
+  white-space: pre-wrap;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+  font-size: 0.94rem;
+}
+
+/* User turns: a distinct filled bubble hugging its own text, right-aligned.
+   Assistant turns: unboxed full-width prose. The asymmetry is what makes the two roles
+   readable at a glance, so keep both the fill and the width difference. */
+.user {
+  align-self: flex-end;
+  width: fit-content;
+  max-width: 78%;
+  background: var(--user-bubble);
+  color: var(--user-bubble-fg);
+  border: 1px solid var(--user-bubble-border);
+  border-bottom-right-radius: 4px;
+}
+.bot {
+  align-self: stretch;
+  background: transparent;
+  color: var(--fg);
+  padding-inline: 0;
+}
+.bot.error { background: var(--error-bg); color: var(--error); border: 1px solid var(--error-border); padding-inline: 0.95rem; }
+.bot.loading { color: var(--muted); }
+.typing-dots::after { content: '\2026'; animation: dots 1.2s steps(4, end) infinite; }
+@keyframes dots { 0%, 20% { content: ''; } 40% { content: '.'; } 60% { content: '..'; } 80%, 100% { content: '...'; } }
+
+.meta { font-size: 0.72rem; color: var(--muted); margin-top: 0.5rem; }
+
+.msg ul { margin: 0.4rem 0; padding-left: 1.25rem; }
+.msg li { margin: 0.25rem 0; }
+.msg table.mtable { border-collapse: collapse; margin: 0.6rem 0; font-size: 0.88rem; width: 100%; }
+.msg table.mtable th, .msg table.mtable td { border: 1px solid var(--border-subtle); padding: 0.45rem 0.6rem; text-align: left; }
+.msg table.mtable th { background: var(--surface); font-weight: 600; }
+
+code.inline-code {
+  background: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 5px;
+  padding: 0.1rem 0.35rem;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.86em;
+}
+
+.code-block {
+  margin: 0.6rem 0;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  overflow: hidden;
+  max-width: 100%;
+}
+.code-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0.4rem 0.75rem;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border-subtle);
+  font-size: 0.75rem;
+}
+.code-lang { color: var(--muted); text-transform: lowercase; font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace; }
+.copy-btn {
+  display: flex; align-items: center; gap: 0.3rem;
+  background: transparent; border: 0; color: var(--muted);
+  cursor: pointer; padding: 0.2rem 0.4rem; border-radius: 6px; font-size: 0.75rem;
+}
+.copy-btn:hover { background: var(--surface-hover); color: var(--fg); }
+.copy-btn.copied { color: var(--success); }
+.code-block pre { margin: 0; padding: 0.8rem; overflow-x: auto; background: var(--card-bg); }
+.code-block code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  white-space: pre;
+  color: var(--fg);
+}
+
+.sources { margin-top: 0.6rem; }
+.sources-toggle {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  padding: 0.25rem 0.65rem;
+  border-radius: 999px;
+  cursor: pointer;
+}
+.sources-toggle:hover { border-color: var(--muted); color: var(--fg); }
+.sources-list { margin-top: 0.45rem; border: 1px solid var(--border-subtle); border-radius: 8px; overflow: hidden; }
+.source-item { padding: 0.45rem 0.65rem; font-size: 0.78rem; border-bottom: 1px solid var(--border-subtle); }
+.source-item:last-child { border-bottom: none; }
+.source-item .src-title { font-weight: 600; }
+.source-item .src-meta { color: var(--muted); margin-left: 0.4rem; }
+
+.empty-state {
+  flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 2rem 1rem; color: var(--muted); gap: 1.1rem;
+}
+.empty-state .empty-title { font-size: 1.35rem; font-weight: 600; color: var(--fg-strong); letter-spacing: -0.02em; }
+.examples { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; max-width: 580px; }
+/* Same chip look, but left-aligned and no max-width — these sit inline under a bot answer. */
+.suggestions-row { justify-content: flex-start; max-width: none; margin-top: 0.7rem; }
+.example {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  color: var(--fg);
+  padding: 0.55rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+}
+.example:hover { background: var(--surface); border-color: var(--muted); }
+
+form {
+  display: flex; flex-direction: column; gap: 0.5rem; background: var(--bg);
+  padding: 0.75rem max(1rem, calc((100% - 780px) / 2)) 1.25rem;
+}
+input[type=file] { display: none; }
+
+.file-chip[hidden] { display: none; }
+.file-chip {
+  display: flex; align-items: center; gap: 0.5rem;
+  width: fit-content; align-self: flex-start;
+  background: var(--surface); border: 1px solid var(--border-subtle); border-radius: 999px;
+  padding: 0.3rem 0.4rem 0.3rem 0.8rem; font-size: 0.8rem; color: var(--fg); max-width: 100%;
+}
+.file-chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-chip button {
+  width: 20px; height: 20px; border-radius: 50%; border: 0; background: var(--border); color: var(--fg);
+  font-size: 0.85rem; line-height: 1; cursor: pointer; flex: none;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+}
+.file-chip button:hover { background: var(--danger); color: #fff; }
+
+.input-bar {
+  display: flex; align-items: center; gap: 0.4rem;
+  background: var(--card-bg); border: 1px solid var(--border); border-radius: 26px;
+  box-shadow: var(--shadow);
+  padding: 0.35rem 0.35rem 0.35rem 0.5rem;
+}
+.input-bar:focus-within { border-color: var(--muted); box-shadow: var(--shadow), 0 0 0 4px var(--focus-ring); }
+
+textarea#q {
+  flex: 1;
+  padding: 0.55rem 0.3rem;
+  border: 0;
+  background: transparent;
+  color: var(--fg);
+  font-size: 0.98rem;
+  font-family: inherit;
+  resize: none;
+  max-height: 160px;
+  line-height: 1.5;
+  outline: none;
+}
+textarea#q::placeholder { color: var(--muted); }
+
+.icon-btn {
+  width: 36px; height: 36px; flex: none; border-radius: 50%; border: 0;
+  background: transparent; color: var(--muted); cursor: pointer;
+  display: flex; align-items: center; justify-content: center; padding: 0;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+.icon-btn:hover:not(:disabled) { background: var(--surface-hover); color: var(--fg); }
+.icon-btn.attach-btn.has-file { color: var(--fg); background: var(--surface); }
+.icon-btn.send-btn { background: var(--send-bg); color: var(--send-fg); }
+.icon-btn.send-btn:hover:not(:disabled) { background: var(--send-bg); opacity: 0.85; }
+.icon-btn.send-btn.stopping { background: var(--danger); color: #fff; }
+.icon-btn:disabled { opacity: 0.35; cursor: default; }
+.icon-btn:disabled:hover { background: transparent; }
+.icon-btn svg { display: block; }
+.icon-btn svg[hidden] { display: none; }

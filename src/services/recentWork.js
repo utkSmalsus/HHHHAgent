@@ -8,6 +8,7 @@
  */
 import { scrollPayloads } from './qdrantScroll.js';
 import { extractKeywords, normalizeText } from '../utils/textMatch.js';
+import { groupByEntity, toCandidates } from '../utils/disambiguate.js';
 
 // Words that carry no topic meaning for a "latest work on X" question.
 const GENERIC = new Set([
@@ -25,7 +26,7 @@ function topicKeywords(text) {
   return [...new Set(combined)].filter((k) => k && k.length > 2 && !GENERIC.has(k));
 }
 
-/** @returns {Promise<null | { items: object[], keywords: string[] }>} */
+/** @returns {Promise<null | { ambiguous: true, candidates: object[], keywords: string[] } | { items: object[], keywords: string[] }>} */
 export async function recentWorkRetrieve(topicText) {
   const keywords = topicKeywords(topicText);
   if (!keywords.length) return null;
@@ -62,6 +63,37 @@ export async function recentWorkRetrieve(topicText) {
     if (!matched.length) matched = scored;
   }
 
+  const groups = groupByEntity(matched.map((x) => x.p));
+
+  // The 2-word phrase check above only needs ONE overlapping fragment, so a title that merely
+  // shares a fragment (e.g. "...MS Teams Apps" sharing "teams app" with "AIS Conversion to MS
+  // Teams App") counts as a match too. If the user actually named one real title exactly, that
+  // should win outright rather than getting crowded out of an ambiguous list by fragment-sharing
+  // near-neighbors — mirrors "found the exact file" beating "found files that mention it".
+  if (groups.length > 1) {
+    // Leading connectors ("update ON X", "status FOR X") aren't part of the entity name, but
+    // aren't safe to strip everywhere (GENERIC) since some real titles use "to"/"in" as content
+    // words — e.g. "Conversion TO MS Teams". Only strip them here, for this exact-match check.
+    const CONNECTORS = new Set(['on', 'in', 'for', 'of']);
+    const strippedTopic = normalizeText(topicText)
+      .split(' ')
+      .filter((w) => !GENERIC.has(w) && !CONNECTORS.has(w))
+      .join(' ');
+    const exactGroup = groups.find((g) => normalizeText(g.title) === strippedTopic);
+    if (exactGroup) {
+      const pool = [...exactGroup.items].sort((a, b) => tsMs(b) - tsMs(a));
+      return { items: pool.slice(0, 15), keywords };
+    }
+  }
+
+  // Several distinct real projects/tasks matched the topic (e.g. "team management tool" against
+  // real data containing "Team Management Tools", "Team management System", "Development Team
+  // Management System", ...). Picking whichever is newest and stating it as THE answer is a
+  // confident guess about the wrong thing — surface the real candidates instead.
+  if (groups.length > 1) {
+    return { ambiguous: true, candidates: toCandidates(groups), keywords };
+  }
+
   const pool = matched.map((x) => x.p);
   pool.sort((a, b) => tsMs(b) - tsMs(a)); // newest first
 
@@ -78,7 +110,7 @@ export function buildRecentWorkPrompt(question, result, now = new Date()) {
   const list = result.items.map(fmt).join('\n');
 
   const system =
-    'You are the OMT knowledge agent. The items below are sorted NEWEST FIRST by updated date. ' +
+    'You are HHHH Agent. The items below are sorted NEWEST FIRST by updated date. ' +
     'The single latest item is the FIRST one in the list — when asked for "the latest task", answer ' +
     'with that first item and its date. Do not pick an older item. Use ONLY these items; never invent.';
   const user =

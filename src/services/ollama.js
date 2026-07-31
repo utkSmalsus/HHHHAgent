@@ -4,10 +4,17 @@ import {
   sanitizeEnterpriseAnswer,
 } from '../utils/answerSanitizer.js';
 
-async function ollamaFetch(path, body, timeoutMs = 300000) {
+async function ollamaFetch(path, body, timeoutMs = 300000, externalSignal) {
   const url = `${config.ollama.baseUrl}${path}`;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
+  // Client stopped generation (or disconnected) — cancel the in-flight Ollama request too,
+  // instead of letting it run to completion for an answer nobody will see.
+  const onExternalAbort = () => controller.abort();
+  if (externalSignal) {
+    if (externalSignal.aborted) controller.abort();
+    else externalSignal.addEventListener('abort', onExternalAbort);
+  }
 
   try {
     const res = await fetch(url, {
@@ -24,6 +31,9 @@ async function ollamaFetch(path, body, timeoutMs = 300000) {
     return JSON.parse(text);
   } catch (err) {
     if (err.name === 'AbortError') {
+      if (externalSignal?.aborted) {
+        throw new Error('Stopped by user.');
+      }
       throw new Error(`Ollama request timed out (${timeoutMs / 1000}s). Is Ollama running?`);
     }
     if (String(err.cause || err.message).includes('ECONNREFUSED')) {
@@ -34,6 +44,7 @@ async function ollamaFetch(path, body, timeoutMs = 300000) {
     throw err;
   } finally {
     clearTimeout(timer);
+    if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
   }
 }
 
@@ -114,7 +125,7 @@ export async function embedText(text) {
   return embedding;
 }
 
-export async function generateAnswer(promptOrMessages) {
+export async function generateAnswer(promptOrMessages, { signal } = {}) {
   const isObject = promptOrMessages && typeof promptOrMessages === 'object';
   const system = isObject
     ? String(promptOrMessages.system || '').slice(0, 4000)
@@ -138,7 +149,7 @@ export async function generateAnswer(promptOrMessages) {
       temperature: config.ollama.temperature,
       num_predict: config.ollama.maxTokens,
     },
-  });
+  }, 300000, signal);
 
   let answer = data.message?.content?.trim();
   // Strip reasoning blocks emitted by "thinking" models (e.g. qwen3): <think>...</think>.

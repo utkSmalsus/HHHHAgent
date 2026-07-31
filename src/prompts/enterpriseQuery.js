@@ -1,7 +1,8 @@
 import { contextPackForPrompt } from '../services/contextPack.js';
 
-export const INSUFFICIENT_DATA_MESSAGE =
-  'Insufficient enterprise activity data available.';
+// Re-exported, not redefined: ollama.js compares answers against this exact string, so a second
+// copy that drifted out of sync would silently break that comparison.
+export { INSUFFICIENT_DATA_MESSAGE } from '../utils/answerSanitizer.js';
 
 function formatEvidenceRecord(c, index) {
   const p = c.payload || c;
@@ -26,7 +27,7 @@ function formatEvidenceRecord(c, index) {
 }
 
 export function buildEnterpriseSystemPrompt() {
-  return `You are OMT Enterprise Project Intelligence. You answer questions about project/portfolio work using ONLY the evidence in the user message.
+  return `You are HHHH Agent. You answer questions about project/portfolio work using ONLY the evidence in the user message.
 
 HOW TO ANSWER:
 - SYNTHESIZE a real summary — do NOT just list task titles back. Describe what the work is ABOUT: the main focus areas / themes, the overall progress (roughly how many items are in progress vs completed vs not started), and what is actively happening now.

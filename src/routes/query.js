@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { generateAnswer } from '../services/ai.js';
 import { buildContextPack } from '../services/contextPack.js';
 import { hybridRetrieve } from '../services/hybridSearch.js';
+import { scrollPayloads } from '../services/qdrantScroll.js';
 import { queryStructuredData } from '../services/sharepoint.js';
 import {
   buildEnterpriseMessages,
@@ -20,7 +21,7 @@ import {
 import {
   isMeetingDateQuestion,
   meetingDateRetrieve,
-  buildMeetingDatePrompt,
+  buildMeetingDateAnswer,
   isMeetingDetailFollowup,
   resolveReferencedMeeting,
   buildMeetingDetailPrompt,
@@ -30,10 +31,27 @@ import {
   recentWorkRetrieve,
   buildRecentWorkPrompt,
 } from '../services/recentWork.js';
+import {
+  isExactLookupQuestion,
+  extractLookupPhrase,
+  resolveReferencedEntity,
+  exactLookup,
+  buildRawAnswer,
+} from '../services/exactLookup.js';
+import { detectPresentationFormat, formatRows } from '../utils/presentFormat.js';
+import {
+  groupByEntity,
+  plausibleGroups,
+  toCandidates,
+  buildDisambiguationAnswer,
+  buildDisambiguationSuggestions,
+} from '../utils/disambiguate.js';
+import { normalizeText } from '../utils/textMatch.js';
 
 const router = Router();
 
-/** Minimal self-contained chat UI — talks to POST /api/query */
+/** Self-contained chat UI — talks to POST /api/query. Styles/script are static files
+ *  (public/query-ui.css, public/query-ui.js) so they're plain, unescaped CSS/JS to edit. */
 router.get('/ui', (_req, res) => {
   res.setHeader('Content-Type', 'text/html');
   res.send(`<!DOCTYPE html>
@@ -41,158 +59,67 @@ router.get('/ui', (_req, res) => {
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>OMT AI Agent</title>
-  <style>
-    :root { color-scheme: light dark; }
-    * { box-sizing: border-box; }
-    body { font-family: system-ui, sans-serif; margin: 0; height: 100vh; display: flex; flex-direction: column; background: #f8fafc; color: #0f172a; }
-    header { padding: 0.9rem 1rem; background: #1e293b; color: #fff; font-weight: 600; display: flex; align-items: center; justify-content: space-between; }
-    header a, header .newchat { background: #2563eb; color: #fff; text-decoration: none; font-size: 0.85rem; font-weight: 500; padding: 0.4rem 0.8rem; border-radius: 6px; border: 0; cursor: pointer; }
-    header .newchat { background: #334155; margin-right: 0.5rem; }
-    header .actions { display: flex; align-items: center; }
-    #log { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
-    .msg { max-width: 80%; padding: 0.7rem 0.9rem; border-radius: 12px; white-space: pre-wrap; line-height: 1.45; overflow-wrap: anywhere; }
-    .user { align-self: flex-end; background: #2563eb; color: #fff; border-bottom-right-radius: 3px; }
-    .bot { align-self: flex-start; background: #fff; color: #0f172a; border: 1px solid #e2e8f0; border-bottom-left-radius: 3px; }
-    .bot.loading { color: #475569; font-style: italic; }
-    .meta { font-size: 0.72rem; color: #64748b; margin-top: 0.35rem; }
-    form { display: flex; gap: 0.5rem; padding: 0.75rem 1rem; border-top: 1px solid #e2e8f0; background: #fff; align-items: center; }
-    input { flex: 1; padding: 0.7rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 1rem; }
-    input[type=file] { display: none; }
-    button { padding: 0.7rem 1.2rem; border: 0; border-radius: 8px; background: #2563eb; color: #fff; font-size: 1rem; cursor: pointer; }
-    .attach { padding: 0.7rem 0.9rem; border: 1px solid #cbd5e1; border-radius: 8px; background: #fff; color: #334155; cursor: pointer; white-space: nowrap; }
-    .attach.has-file { border-color: #2563eb; color: #2563eb; background: #eff6ff; }
-    button:disabled { opacity: 0.5; cursor: default; }
-  </style>
+  <title>HHHH Agent</title>
+  <link rel="stylesheet" href="/query-ui.css"/>
+  <script>
+    // Set the saved theme before first paint, else the page flashes light then re-themes.
+    try { document.documentElement.setAttribute('data-theme', localStorage.getItem('omt_theme') || 'light'); } catch (e) {}
+  </script>
 </head>
 <body>
-  <header><span>OMT AI Agent</span><span class="actions"><button class="newchat" id="newchat" type="button">New Chat</button><a href="/api/ingest/progress/ui">Backup</a></span></header>
+  <header>
+    <span class="brand">HHHH Agent</span>
+    <span class="actions">
+      <button class="hdr-btn" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">
+        <svg id="iconMoon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        <svg id="iconSun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
+      </button>
+      <button class="hdr-btn" id="newchat" type="button" title="New chat" aria-label="New chat">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+      </button>
+      <a class="hdr-btn" href="/api/ingest/progress/ui" title="Ingest / backup" aria-label="Ingest / backup">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>
+      </a>
+    </span>
+  </header>
   <div id="log"></div>
   <form id="f">
-    <label class="attach" id="attachLabel" for="file">Attach</label>
     <input id="file" type="file" accept=".pdf,.docx,.txt,application/pdf,text/plain,application/vnd.openxmlformats-officedocument.wordprocessingml.document"/>
-    <input id="q" placeholder="Ask about projects, tasks, meetings…" autocomplete="off" autofocus/>
-    <button id="send" type="submit">Send</button>
+    <div class="file-chip" id="fileChip" hidden>
+      <span id="fileChipName"></span>
+      <button type="button" id="fileChipRemove" aria-label="Remove attachment">&times;</button>
+    </div>
+    <div class="input-bar">
+      <button type="button" class="icon-btn attach-btn" id="attachBtn" title="Attach file" aria-label="Attach file">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      </button>
+      <textarea id="q" rows="1" placeholder="Ask about projects, tasks, meetings…" autocomplete="off" autofocus></textarea>
+      <button id="send" class="icon-btn send-btn" type="submit" title="Send" aria-label="Send">
+        <svg id="sendIcon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+        <svg id="stopIcon" viewBox="0 0 24 24" width="14" height="14" fill="currentColor" hidden><rect x="4" y="4" width="16" height="16" rx="2"/></svg>
+      </button>
+    </div>
   </form>
-  <script>
-    const log = document.getElementById('log');
-    const form = document.getElementById('f');
-    const input = document.getElementById('q');
-    const file = document.getElementById('file');
-    const attachLabel = document.getElementById('attachLabel');
-    const send = document.getElementById('send');
-
-    const MAX = 20; // keep last 20 messages; 21st added → oldest dropped, stays 20
-    let history = [];
-    try { history = JSON.parse(localStorage.getItem('omt_chat') || '[]'); } catch (e) { history = []; }
-    function save() {
-      history = history.slice(-MAX);
-      localStorage.setItem('omt_chat', JSON.stringify(history));
-    }
-
-    function render(text, cls, meta) {
-      const el = document.createElement('div');
-      el.className = 'msg ' + cls;
-      el.textContent = text;
-      if (meta) { const m = document.createElement('div'); m.className = 'meta'; m.textContent = meta; el.appendChild(m); }
-      log.appendChild(el);
-      log.scrollTop = log.scrollHeight;
-      return el;
-    }
-
-    function cleanDisplayText(text) {
-      return String(text || '')
-        .replace(/\\r/g, '\\n')
-        .replace(/[ \\t]+\\n/g, '\\n')
-        .replace(/\\n{3,}/g, '\\n\\n')
-        .trim();
-    }
-
-    file.addEventListener('change', () => {
-      const picked = file.files[0];
-      attachLabel.textContent = picked ? picked.name.slice(0, 24) : 'Attach';
-      attachLabel.classList.toggle('has-file', Boolean(picked));
-      input.placeholder = picked ? 'Optional note for this transcript…' : 'Ask about projects, tasks, meetings…';
-      input.focus();
-    });
-
-    // Restore saved conversation on load.
-    history.forEach((m) => render(m.text, m.role === 'user' ? 'user' : 'bot', m.meta));
-
-    // New Chat: wipe history + context and start fresh.
-    document.getElementById('newchat').addEventListener('click', () => {
-      history = [];
-      localStorage.removeItem('omt_chat');
-      log.innerHTML = '';
-      input.focus();
-    });
-
-    form.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const question = input.value.trim();
-      const pickedFile = file.files[0];
-      if (!question && !pickedFile) return;
-      const priorHistory = history.slice(-10); // conversation so far, before this question
-      const shownUserText = pickedFile
-        ? 'Uploaded transcript: ' + pickedFile.name + (question ? '\\n' + question : '')
-        : question;
-      render(shownUserText, 'user');
-      history.push({ role: 'user', text: shownUserText }); save();
-      input.value = '';
-      send.disabled = true;
-      const thinking = render(pickedFile ? 'Analyzing transcript…' : 'Thinking…', 'bot loading'); // transient, not saved until answered
-      try {
-        let r;
-        if (pickedFile) {
-          const fd = new FormData();
-          fd.append('file', pickedFile);
-          r = await fetch('/api/meetings/analyze', { method: 'POST', body: fd });
-        } else {
-          r = await fetch('/api/query', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question, history: priorHistory }),
-          });
-        }
-        const data = await r.json();
-        if (data.success) {
-          const srcCount = pickedFile
-            ? ((data.sources?.meetings || []).length + (data.sources?.tasks || []).length)
-            : (data.sources?.qdrant || []).length;
-          const text = cleanDisplayText(data.answer) || '(no answer)';
-          const meta = pickedFile
-            ? 'transcript analysis · ' + (data.retrieved?.meetings || 0) + ' meeting sources · ' + (data.retrieved?.tasks || 0) + ' task sources'
-            : 'intent: ' + (data.intent || '?') + ' · confidence: ' + (data.confidence ?? '?') + ' · ' + srcCount + ' sources';
-          thinking.textContent = text;
-          thinking.classList.remove('loading');
-          const m = document.createElement('div'); m.className = 'meta'; m.textContent = meta; thinking.appendChild(m);
-          history.push({ role: 'bot', text, meta }); save();
-          if (pickedFile) {
-            file.value = '';
-            attachLabel.textContent = 'Attach';
-            attachLabel.classList.remove('has-file');
-            input.placeholder = 'Ask about projects, tasks, meetings…';
-          }
-        } else {
-          const text = 'Error: ' + (data.error || 'unknown');
-          thinking.textContent = text;
-          thinking.classList.remove('loading');
-          history.push({ role: 'bot', text }); save();
-        }
-      } catch (err) {
-        thinking.textContent = 'Request failed: ' + err.message;
-        thinking.classList.remove('loading');
-      } finally {
-        send.disabled = false;
-        input.focus();
-      }
-    });
-  </script>
+  <script src="/query-ui.js"></script>
 </body>
 </html>`);
 });
 
 router.post('/', async (req, res) => {
+  // Client hit "Stop" or navigated away — cancel the in-flight Ollama call too, instead of
+  // burning GPU time on an answer nobody will see. Declared outside the try block so the
+  // catch block below can still read it.
+  //
+  // NB: listen on `res`, not `req`. `req`'s "close" fires as soon as the request body has been
+  // fully read — which express.json() already did before this handler runs — so it would abort
+  // every healthy request instantly. `res` "close" with writableEnded still false means the
+  // client really did go away before we answered.
+  const abortController = new AbortController();
+  res.on('close', () => {
+    if (!res.writableEnded) abortController.abort();
+  });
+  const { signal } = abortController;
+
   try {
     const { question, limit = 8, history = [] } = req.body;
 
@@ -215,6 +142,10 @@ router.post('/', async (req, res) => {
       .map((m) => String(m.text).slice(0, 300))
       .join('\n');
     const retrievalQuestion = recentContext ? `${recentContext}\n${question}` : question;
+    // "as a table" / "in bullet points" / "chronologically" → render deterministically, no LLM,
+    // so the layout is exactly what was asked for (a local model can't be trusted to always
+    // produce a real table). Applied below wherever a branch already has its rows in hand.
+    const presentationFormat = detectPresentationFormat(question);
     // "latest / recent / current work" → prefer the most recently updated records.
     const wantsRecent = /\b(latest|recent|recently|current|currently|now|nowadays|these days|up[- ]?to[- ]?date|newest|last few)\b/i.test(question);
     const tsMs = (r) => Date.parse(r?.timestamp || r?.payload?.timestamp || '') || 0;
@@ -232,21 +163,28 @@ router.post('/', async (req, res) => {
       'good morning', 'good afternoon', 'good evening', 'how are you',
       'who are you', 'what are you', 'what can you do', 'what do you do', 'help',
     ]);
-    if (words.length <= 1 || GREETING_PHRASES.has(norm)) {
+    // Exact-phrase matching alone misses natural variants ("hello there", "hi team", "good
+    // morning all"), which then fall through to a KB search and get the no-data reply. Treat a
+    // short opener that STARTS with a greeting word as a greeting too.
+    const GREETING_OPENER =
+      /^(hi|hii+|hey+|hello+|yo|hiya|howdy|sup|greetings|good (morning|afternoon|evening))\b/;
+    const isShortGreeting = words.length <= 4 && GREETING_OPENER.test(norm);
+    if (words.length <= 1 || GREETING_PHRASES.has(norm) || isShortGreeting) {
       // Let the LLM reply conversationally — but no KB retrieval, so it can't dump data.
       const greetingReply = await generateAnswer(withHistory({
         system:
-          'You are the OMT knowledge agent, a friendly assistant for a project-management knowledge base. ' +
+          'You are HHHH Agent, a friendly assistant for a project-management knowledge base. ' +
           'Reply to the user\'s greeting or small talk in 1-2 short, warm sentences. ' +
           'Do NOT invent any project, task, or people data. ' +
           'Briefly invite them to ask about their portfolio, projects, or tasks.',
         user: String(question).trim(),
-      })).catch(() => null);
+      }), { signal }).catch(() => null);
       return res.json({
         success: true,
         answer:
           greetingReply ||
-          "Hi! I'm the OMT knowledge agent — ask me about your portfolio, projects, or tasks.",
+          "Hi! I'm HHHH Agent — ask me about your portfolio, projects, or tasks.",
+        format: 'prose',
         confidence: 1,
         intent: 'greeting',
         sources: { qdrant: [], sharepoint: {} },
@@ -256,16 +194,17 @@ router.post('/', async (req, res) => {
     // Follow-up about a specific meeting from the conversation ("what was discussed in that meeting?",
     // "who were the participants?") → answer from THAT meeting's full record, not a broad search.
     if (convo && isMeetingDetailFollowup(question)) {
-      const meeting = await resolveReferencedMeeting(convo).catch(() => null);
+      const meeting = await resolveReferencedMeeting(convo, question).catch(() => null);
       if (meeting) {
         const answer =
           sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildMeetingDetailPrompt(question, meeting))),
+            await generateAnswer(withHistory(buildMeetingDetailPrompt(question, meeting)), { signal }),
             question
           ) || INSUFFICIENT_DATA_MESSAGE;
         return res.json({
           success: true,
           answer,
+          format: 'prose',
           confidence: 0.9,
           intent: 'meeting-detail',
           sources: { qdrant: [{ payload: meeting }], sharepoint: {} },
@@ -278,14 +217,17 @@ router.post('/', async (req, res) => {
     if (isMeetingDateQuestion(question)) {
       const result = await meetingDateRetrieve(question).catch(() => null);
       if (result) {
-        const answer =
-          sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildMeetingDatePrompt(question, result))),
-            question
-          ) || INSUFFICIENT_DATA_MESSAGE;
+        // Deterministic, not LLM-narrated: the date range and matching list are already fully
+        // known facts, and a local model was observed hallucinating "no meetings today" for a
+        // "yesterday" question despite correct evidence — see buildMeetingDateAnswer's comment.
+        const formatted = presentationFormat
+          ? formatRows(presentationFormat, result.meetings)
+          : buildMeetingDateAnswer(result);
+        const answer = formatted || INSUFFICIENT_DATA_MESSAGE;
         return res.json({
           success: true,
           answer,
+          format: presentationFormat || 'bullets',
           confidence: result.meetings.length ? 0.9 : 0,
           intent: 'meeting-date',
           counts: { meetings: result.meetings.length, range: result.range?.label || 'latest' },
@@ -297,22 +239,73 @@ router.post('/', async (req, res) => {
       }
     }
 
+    // Exact/verbatim lookup ("comments on X", "feedback for X", "what does X say") → deterministic
+    // substring match over ALL records, returning the RAW stored text with no LLM in the loop —
+    // so the answer is exactly what's in the record, not a paraphrase from top-K vector search.
+    if (isExactLookupQuestion(question)) {
+      let phrase = extractLookupPhrase(question);
+      if (!phrase && convo) {
+        phrase = await resolveReferencedEntity(convo).catch(() => null);
+      }
+      if (phrase) {
+        const rows = await exactLookup({ phrase }).catch(() => []);
+        if (rows.length) {
+          // Table/timeline requests get the shared formatter; bullets (or no format) keep
+          // exactLookup's own verbatim rendering (title + raw description on its own line).
+          const formatted =
+            presentationFormat === 'table' || presentationFormat === 'timeline'
+              ? formatRows(presentationFormat, rows)
+              : null;
+          return res.json({
+            success: true,
+            answer: formatted || buildRawAnswer(rows),
+            format: formatted ? presentationFormat : 'bullets',
+            confidence: 0.95,
+            intent: 'exact-lookup',
+            counts: { matched: rows.length },
+            sources: {
+              qdrant: rows.slice(0, 20).map((payload) => ({ payload })),
+              sharepoint: {},
+            },
+          });
+        }
+      }
+    }
+
     // "Latest / recent work on X" for tasks & projects → keyword-match ALL items on the topic,
     // then sort by real updated date (relevance-only vector search misses the genuinely newest).
     if (isRecentWorkQuestion(question)) {
       const topicText = recentContext ? `${recentContext}\n${question}` : question;
       const recent = await recentWorkRetrieve(topicText).catch(() => null);
+      if (recent?.ambiguous) {
+        return res.json({
+          success: true,
+          answer: buildDisambiguationAnswer(recent.candidates),
+          format: 'bullets',
+          confidence: 0,
+          intent: 'disambiguation',
+          suggestions: buildDisambiguationSuggestions(recent.candidates),
+          sources: {
+            qdrant: recent.candidates.map((payload) => ({ payload })),
+            sharepoint: {},
+          },
+        });
+      }
       if (recent && recent.items.length) {
         // No withHistory here on purpose: the newest-first list is authoritative, and stale prior
         // answers in the history make the model repeat an older "latest task".
+        const formatted = presentationFormat ? formatRows(presentationFormat, recent.items) : null;
         const answer =
+          formatted ||
           sanitizeEnterpriseAnswer(
-            await generateAnswer(buildRecentWorkPrompt(question, recent)),
+            await generateAnswer(buildRecentWorkPrompt(question, recent), { signal }),
             question
-          ) || INSUFFICIENT_DATA_MESSAGE;
+          ) ||
+          INSUFFICIENT_DATA_MESSAGE;
         return res.json({
           success: true,
           answer,
+          format: formatted ? presentationFormat : 'prose',
           confidence: 0.9,
           intent: 'recent-work',
           counts: { matched: recent.items.length },
@@ -329,14 +322,20 @@ router.post('/', async (req, res) => {
     if (isHierarchyQuestion(question)) {
       const structural = await structuralRetrieve(question).catch(() => null);
       if (structural && (structural.masters.length > 1 || structural.tasks.length)) {
+        const formatted = presentationFormat
+          ? formatRows(presentationFormat, [...structural.masters, ...structural.tasks])
+          : null;
         const answer =
+          formatted ||
           sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildStructuralPrompt(question, structural))),
+            await generateAnswer(withHistory(buildStructuralPrompt(question, structural)), { signal }),
             question
-          ) || INSUFFICIENT_DATA_MESSAGE;
+          ) ||
+          INSUFFICIENT_DATA_MESSAGE;
         return res.json({
           success: true,
           answer,
+          format: formatted ? presentationFormat : 'prose',
           confidence: 0.9,
           intent: 'hierarchy',
           counts: {
@@ -357,12 +356,61 @@ router.post('/', async (req, res) => {
 
     const { intent, results, confidence, meta } = retrieval;
 
+    // The user (or a disambiguation chip they clicked) named a real item exactly — that beats
+    // any confidence score. Without this, clicking a candidate from OUR OWN disambiguation list
+    // could re-trigger a second, unrelated round of disambiguation instead of just answering.
+    const qNorm = normalizeText(question);
+    let exactMatch = qNorm
+      ? results.find((r) => {
+          const p = r.payload || r;
+          const t = normalizeText(p.title || p.projectName || '');
+          return t && t === qNorm;
+        })
+      : null;
+
+    // Below this, retrieval found essentially nothing meaningful (e.g. 0.08) — real matches from
+    // deliberate keyword+vector overlap score well above it. The enterprise prompt is instructed
+    // to always write a confident-sounding summary once it clears this gate, so letting
+    // noise-level matches through means a fabricated-feeling answer about the wrong thing.
+    // Checked regardless of `convo`: a numeric floor doesn't share the keyword gate's follow-up
+    // brittleness, so there's no reason to skip it just because this is mid-conversation.
+    const CONFIDENCE_FLOOR = 0.25;
+    const lowConfidence = confidence < CONFIDENCE_FLOOR;
+
     // The keyword guard is brittle for follow-ups (short/pronoun questions, paraphrases), so with
     // conversation history we trust vector retrieval + the LLM's own "insufficient" rule instead.
-    if (!results.length || (!convo && !evidenceMatchesQuestion(question, results))) {
+    if (!exactMatch && (!results.length || (!convo && !evidenceMatchesQuestion(question, results)) || lowConfidence)) {
+      // Last resort before giving up: hybridRetrieve's top-K vector/BM25 search can simply miss
+      // an exact real title (e.g. clicking a candidate from OUR OWN disambiguation list, whose
+      // title didn't rank highly enough to make the top-K). A full-collection check, same as
+      // recentWork's, catches it. Only paid on the failure path, not on every query.
+      if (qNorm) {
+        const allEntities = await scrollPayloads({ types: ['portfolio', 'project', 'task'], limit: 30000 }).catch(() => []);
+        const hit = allEntities.find((p) => normalizeText(p.title || '') === qNorm);
+        if (hit) exactMatch = hit;
+      }
+    }
+
+    if (!exactMatch && (!results.length || (!convo && !evidenceMatchesQuestion(question, results)) || lowConfidence)) {
+      // Before giving up: several distinct real entities loosely matched (same "which Team
+      // Management Tool?" problem as recent-work) rather than nothing relevant existing at all.
+      const groups = plausibleGroups(groupByEntity(results.map((r) => r.payload || r)), question);
+      if (groups.length > 1) {
+        const candidates = toCandidates(groups);
+        return res.json({
+          success: true,
+          answer: buildDisambiguationAnswer(candidates),
+          format: 'bullets',
+          confidence: 0,
+          intent: 'disambiguation',
+          suggestions: buildDisambiguationSuggestions(candidates),
+          sources: { qdrant: candidates.map((payload) => ({ payload })), sharepoint: {} },
+        });
+      }
       return res.json({
         success: true,
         answer: INSUFFICIENT_DATA_MESSAGE,
+        format: 'prose',
         confidence: 0,
         intent: intent.intent,
         sources: { qdrant: [], sharepoint: {} },
@@ -375,20 +423,36 @@ router.post('/', async (req, res) => {
       // Surface the newest work first (retrieval ranks by relevance only, ignoring date).
       resultsForLlm = [...resultsForLlm].sort((a, b) => tsMs(b) - tsMs(a));
     }
+    if (exactMatch) {
+      // Named exactly — put it first so it's what the LLM actually writes about, not just one
+      // of several loosely-relevant records competing for attention.
+      resultsForLlm = [exactMatch, ...resultsForLlm.filter((r) => r !== exactMatch)];
+    }
     const contextPack = buildContextPack(intent, resultsForLlm);
 
-    const sharepointResult = await queryStructuredData(question, resultsForLlm);
+    // "as a table" / "in bullet points" / "chronologically" → render the retrieved records
+    // deterministically and skip the LLM summarizer entirely.
+    const formattedAnswer = presentationFormat
+      ? formatRows(presentationFormat, resultsForLlm.map((r) => r.payload || r))
+      : null;
+
+    const sharepointResult = formattedAnswer
+      ? { data: {} }
+      : await queryStructuredData(question, resultsForLlm);
     const sharepointData = sharepointResult.data || {};
 
-    // Ollama is the brain: LLM writes every answer from retrieved evidence + aggregated facts,
-    // plus the recent conversation so it can resolve follow-ups.
-    const messages = withHistory(buildEnterpriseMessages({
-      userQuestion: question,
-      qdrantContext: resultsForLlm.slice(0, 12),
-      contextPack,
-      recency: wantsRecent,
-    }));
-    let answer = sanitizeEnterpriseAnswer(await generateAnswer(messages), question);
+    let answer = formattedAnswer;
+    if (!answer) {
+      // Ollama is the brain: LLM writes every answer from retrieved evidence + aggregated facts,
+      // plus the recent conversation so it can resolve follow-ups.
+      const messages = withHistory(buildEnterpriseMessages({
+        userQuestion: question,
+        qdrantContext: resultsForLlm.slice(0, 12),
+        contextPack,
+        recency: wantsRecent,
+      }));
+      answer = sanitizeEnterpriseAnswer(await generateAnswer(messages, { signal }), question);
+    }
 
     if (!answer) {
       answer = INSUFFICIENT_DATA_MESSAGE;
@@ -397,7 +461,11 @@ router.post('/', async (req, res) => {
     res.json({
       success: true,
       answer,
-      confidence,
+      format: formattedAnswer ? presentationFormat : 'prose',
+      // An exact title match overrides retrieval's own (possibly low) top-K score — the answer
+      // isn't a guess anymore once we've found the literal named record, so it shouldn't display
+      // as low-confidence.
+      confidence: exactMatch ? Math.max(confidence, 0.9) : confidence,
       intent: intent.intent,
       contextPack,
       retrievalMeta: meta,
@@ -407,6 +475,7 @@ router.post('/', async (req, res) => {
       },
     });
   } catch (err) {
+    if (res.writableEnded || abortController.signal.aborted) return; // client stopped/disconnected
     console.error('Query error:', err.message);
     const msg = String(err.message || err);
     const status =

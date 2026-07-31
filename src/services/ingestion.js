@@ -20,6 +20,7 @@ export async function ingestFromSharePoint(listKey, { trackProgress = true } = {
   const results = [];
   const skipped = [];
   for (const item of items) {
+    if (trackProgress && progress.isCancelRequested()) break;
     try {
       const stored = await upsertKnowledge({
         text: item.text,
@@ -68,12 +69,17 @@ export async function runIngestAll(listKeys) {
   const results = {};
   try {
     for (const listKey of listKeys) {
+      if (progress.isCancelRequested()) break;
       const result = await ingestFromSharePoint(listKey);
       results[listKey] = {
         ingested: result.ingested,
         sources: result.sources,
         message: result.message,
       };
+    }
+    if (progress.isCancelRequested()) {
+      progress.cancelJob();
+      return { success: true, jobId, cancelled: true, totalIngested: progress.getProgress().totalIngested, results };
     }
     progress.finishJob();
     return { success: true, jobId, totalIngested: progress.getProgress().totalIngested, results };
@@ -89,6 +95,10 @@ export async function runIngestOne(listKey) {
   progress.startJob(jobId, [listKey]);
   try {
     const result = await ingestFromSharePoint(listKey);
+    if (progress.isCancelRequested()) {
+      progress.cancelJob();
+      return { success: true, jobId, type: listKey, cancelled: true, ...result };
+    }
     progress.finishJob();
     return { success: true, jobId, type: listKey, ...result };
   } catch (err) {
