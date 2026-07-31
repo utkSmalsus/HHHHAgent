@@ -48,7 +48,14 @@ export function isMetaOrInstructionalAnswer(text) {
   return false;
 }
 
-export function sanitizeEnterpriseAnswer(answer, userQuestion = '') {
+/**
+ * @param {boolean} [preserveStructure] - keep newlines (only squash runs of spaces/tabs and
+ *   excess blank lines) instead of collapsing everything to one line. Needed whenever the LLM
+ *   itself was asked to produce a bullet list / table (e.g. meeting-detail's format instruction,
+ *   which has no deterministic formatRows() equivalent to bypass this sanitizer) — collapsing all
+ *   whitespace would otherwise flatten "- item\n- item" into one run-on paragraph.
+ */
+export function sanitizeEnterpriseAnswer(answer, userQuestion = '', preserveStructure = false) {
   let text = String(answer || '').trim();
   if (!text) return INSUFFICIENT_DATA_MESSAGE;
 
@@ -56,10 +63,16 @@ export function sanitizeEnterpriseAnswer(answer, userQuestion = '') {
     text = text.replace(re, '');
   }
 
-  text = text
-    .replace(/\[[^\]]*\]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  text = preserveStructure
+    ? text
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n{3,}/g, '\n\n')
+        .trim()
+    : text
+        .replace(/\[[^\]]*\]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
 
   if (!text || isMetaOrInstructionalAnswer(text)) {
     return INSUFFICIENT_DATA_MESSAGE;

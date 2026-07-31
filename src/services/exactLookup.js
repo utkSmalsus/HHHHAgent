@@ -13,6 +13,7 @@
  */
 import { scrollPayloads } from './qdrantScroll.js';
 import { normalizeText, rawDescription } from '../utils/textMatch.js';
+import { resolveReferencedTopic } from '../utils/referenceResolve.js';
 
 const LOOKUP_TYPES = ['portfolio', 'project', 'task', 'timeentry', 'meeting'];
 
@@ -27,6 +28,16 @@ export function isExactLookupQuestion(question) {
 const STRIP_RE =
   /\b(show|me|the|a|an|comments?|feedback|verbatim|raw|data|text|word|for|exact(ly)?|words|wording|quote|what|does|is|are|was|were|did|say|says|said|full|description|of|details?|on|in|for|list|give|please|and|about|to)\b/gi;
 
+// Words that refer to "the thing we were just discussing" rather than naming an entity. If the
+// WHOLE extracted phrase is made of these ("this task", "that", "it"), there's no real name to
+// search for — return null so the caller's resolveReferencedEntity(convo) fallback runs instead
+// of literally searching for the words "this"/"task" (which match almost anything).
+const PURE_REFERENCE_WORDS = new Set([
+  'this', 'that', 'these', 'those', 'it', 'one',
+  'task', 'tasks', 'item', 'items', 'thing', 'things',
+  'meeting', 'meetings', 'project', 'projects', 'portfolio', 'entry', 'entries',
+]);
+
 /** Pull the entity name out of the question — quoted text wins, else strip trigger/stop words. */
 export function extractLookupPhrase(question) {
   const quoted = String(question || '').match(/["']([^"']{3,80})["']/);
@@ -38,17 +49,22 @@ export function extractLookupPhrase(question) {
     .replace(/\s+/g, ' ')
     .trim();
 
+  if (!stripped) return null;
+
+  const words = stripped.toLowerCase().split(' ');
+  if (words.every((w) => PURE_REFERENCE_WORDS.has(w))) return null;
+
   return stripped.length >= 3 ? stripped : null;
 }
 
-/** Follow-up with no named entity ("what did it say?") → resolve from the prior conversation. */
-export async function resolveReferencedEntity(convoText, types = LOOKUP_TYPES) {
-  const lc = String(convoText || '').toLowerCase();
-  if (!lc.trim()) return null;
-  const all = await scrollPayloads({ types, limit: 30000 });
-  const hits = all.filter((p) => p.title && p.title.length > 4 && lc.includes(String(p.title).toLowerCase()));
-  hits.sort((a, b) => (b.title?.length || 0) - (a.title?.length || 0));
-  return hits[0]?.title || null;
+/**
+ * Follow-up with no named entity ("what did it say?") → resolve from the prior conversation.
+ * Thin wrapper over the shared resolver (src/utils/referenceResolve.js) — same ONE resolution
+ * mechanism used by meeting follow-ups and structural/recent-work follow-ups.
+ */
+export async function resolveReferencedEntity(convoText, currentQuestion = '', types = LOOKUP_TYPES) {
+  const hit = await resolveReferencedTopic(convoText, currentQuestion, types);
+  return hit?.title || null;
 }
 
 const tsMs = (p) => Date.parse(p?.timestamp || p?.start || '') || 0;
@@ -57,13 +73,18 @@ const tsMs = (p) => Date.parse(p?.timestamp || p?.start || '') || 0;
 export async function exactLookup({ phrase, types = LOOKUP_TYPES, limit = 20 }) {
   const q = normalizeText(phrase);
   if (!q) return [];
+  // Word-set match, not literal substring: extractLookupPhrase strips connector words ("and",
+  // "feedback") that the real title still has (e.g. "Hardware/Software AND Licenses"), so a
+  // strict hay.includes(q) misses the exact record the trigger phrase names. Requiring every
+  // query word to be present (any order) tolerates that while staying precise.
+  const qWords = q.split(' ').filter(Boolean);
 
   const all = await scrollPayloads({ types, limit: 30000 });
   const hits = all.filter((p) => {
     const hay = normalizeText(
       [p.title, p.hierarchyPath, p.projectName, p.portfolioName].filter(Boolean).join(' ')
     );
-    return hay.includes(q);
+    return hay.includes(q) || qWords.every((w) => hay.includes(w));
   });
 
   hits.sort((a, b) => tsMs(b) - tsMs(a));

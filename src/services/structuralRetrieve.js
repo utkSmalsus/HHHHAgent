@@ -22,9 +22,14 @@ const num = (v) => {
 };
 
 /**
+ * @param {object} [options]
+ * @param {object} [options.anchorOverride] - already-resolved anchor payload (e.g. from
+ *   resolveReferencedTopic for a pronoun follow-up like "under it") — skips the vector search
+ *   entirely, since a follow-up's own words ("it", "latest", "under") carry no real topic to
+ *   search for and can otherwise resolve to a completely unrelated container.
  * @returns {Promise<null | { anchor: object, masters: object[], tasks: object[], descendantIds: Set<number> }>}
  */
-export async function structuralRetrieve(question) {
+export async function structuralRetrieve(question, { anchorOverride } = {}) {
   const all = await scrollPayloads({ types: ['portfolio', 'project', 'task'], limit: 20000 });
   if (!all.length) return null;
 
@@ -34,11 +39,20 @@ export async function structuralRetrieve(question) {
     if (id && !byId.has(id)) byId.set(id, p);
   }
 
-  // Anchor = the container the user named. Prefer a portfolio/project over a task.
-  const hits = await searchKnowledge(question, 8);
-  const anchor =
-    (hits.find((h) => h.payload && (h.payload.type === 'portfolio' || h.payload.type === 'project'))
-      || hits[0])?.payload;
+  let anchor = anchorOverride;
+  if (!anchor) {
+    // Anchor = the container the user named. Restrict the vector search to portfolio/project types
+    // first: real data can have dozens of near-identically-worded TASKS (e.g. many "Team Management
+    // Tool ..." tasks), which can outrank the one actual project/portfolio in an unrestricted top-8
+    // search, leaving the "anchor" as a task with no real descendants. Only fall back to an
+    // unrestricted search if nothing scores as a portfolio/project at all.
+    const containerFilter = { should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }] };
+    const containerHits = await searchKnowledge(question, 5, containerFilter).catch(() => []);
+    const hits = containerHits.length ? containerHits : await searchKnowledge(question, 8);
+    anchor =
+      (hits.find((h) => h.payload && (h.payload.type === 'portfolio' || h.payload.type === 'project'))
+        || hits[0])?.payload;
+  }
   const anchorId = num(anchor?.sharePointItemId);
   if (!anchor || !anchorId) return null;
 

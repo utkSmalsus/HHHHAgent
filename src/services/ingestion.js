@@ -66,27 +66,40 @@ export async function runIngestAll(listKeys) {
   clearIngestCache();
   progress.startJob(jobId, listKeys);
 
+  // Run every list concurrently instead of one-by-one. Safe because: (1) each list's progress
+  // lives at state.lists[listKey] — independent keys, no shared counter to race; (2) the shared
+  // master-item cache in hierarchyIngest.js is only ever overwritten with equivalent data (tasks/
+  // timeentries may redundantly re-fetch the same master rows portfolio already cached, but never
+  // corrupt each other — JS only yields at `await`, so no torn writes). allSettled (not all) so
+  // one list failing doesn't abort the others.
+  const settled = await Promise.allSettled(listKeys.map((listKey) => ingestFromSharePoint(listKey)));
+
   const results = {};
-  try {
-    for (const listKey of listKeys) {
-      if (progress.isCancelRequested()) break;
-      const result = await ingestFromSharePoint(listKey);
-      results[listKey] = {
-        ingested: result.ingested,
-        sources: result.sources,
-        message: result.message,
-      };
+  settled.forEach((outcome, i) => {
+    const listKey = listKeys[i];
+    if (outcome.status === 'fulfilled') {
+      const result = outcome.value;
+      results[listKey] = { ingested: result.ingested, sources: result.sources, message: result.message };
+    } else {
+      const message = outcome.reason?.message || String(outcome.reason);
+      console.error(`Ingest ${listKey} failed:`, message);
+      results[listKey] = { ingested: 0, message };
     }
-    if (progress.isCancelRequested()) {
-      progress.cancelJob();
-      return { success: true, jobId, cancelled: true, totalIngested: progress.getProgress().totalIngested, results };
-    }
-    progress.finishJob();
-    return { success: true, jobId, totalIngested: progress.getProgress().totalIngested, results };
-  } catch (err) {
+  });
+
+  if (progress.isCancelRequested()) {
+    progress.cancelJob();
+    return { success: true, jobId, cancelled: true, totalIngested: progress.getProgress().totalIngested, results };
+  }
+
+  if (settled.every((o) => o.status === 'rejected')) {
+    const err = settled[0].reason;
     progress.failJob(err);
     throw err;
   }
+
+  progress.finishJob();
+  return { success: true, jobId, totalIngested: progress.getProgress().totalIngested, results };
 }
 
 export async function runIngestOne(listKey) {

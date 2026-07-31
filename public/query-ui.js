@@ -379,6 +379,7 @@ form.addEventListener('submit', async (e) => {
     if (pickedFile) {
       const fd = new FormData();
       fd.append('file', pickedFile);
+      if (question) fd.append('question', question);
       r = await fetch('/api/meetings/analyze', { method: 'POST', body: fd, signal: controller.signal });
     } else {
       r = await fetch('/api/query', {

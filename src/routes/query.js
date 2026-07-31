@@ -24,6 +24,7 @@ import {
   buildMeetingDateAnswer,
   isMeetingDetailFollowup,
   resolveReferencedMeeting,
+  resolveExactMeetingTitle,
   buildMeetingDetailPrompt,
 } from '../services/meetingQuery.js';
 import {
@@ -38,7 +39,7 @@ import {
   exactLookup,
   buildRawAnswer,
 } from '../services/exactLookup.js';
-import { detectPresentationFormat, formatRows } from '../utils/presentFormat.js';
+import { detectPresentationFormat, formatRows, isPureReformatRequest, forceBulletLines } from '../utils/presentFormat.js';
 import {
   groupByEntity,
   plausibleGroups,
@@ -47,6 +48,7 @@ import {
   buildDisambiguationSuggestions,
 } from '../utils/disambiguate.js';
 import { normalizeText } from '../utils/textMatch.js';
+import { resolveReferencedTopic, isPronounFollowup } from '../utils/referenceResolve.js';
 
 const router = Router();
 
@@ -121,9 +123,9 @@ router.post('/', async (req, res) => {
   const { signal } = abortController;
 
   try {
-    const { question, limit = 8, history = [] } = req.body;
+    const { question: rawQuestion, limit = 8, history = [] } = req.body;
 
-    if (!question) {
+    if (!rawQuestion) {
       return res.status(400).json({ success: false, error: 'question is required' });
     }
 
@@ -131,21 +133,42 @@ router.post('/', async (req, res) => {
     const priorTurns = (Array.isArray(history) ? history : [])
       .filter((m) => m && m.text)
       .slice(-8);
+
+    // "as a table" / "in bullet points" / "chronologically" → render deterministically, no LLM,
+    // so the layout is exactly what was asked for (a local model can't be trusted to always
+    // produce a real table). Applied below wherever a branch already has its rows in hand.
+    const presentationFormat = detectPresentationFormat(rawQuestion);
+
+    // A PURE reformat request ("show that as bullets", "give me the above as a table") names no
+    // new topic at all — searching for its literal words always fails ("couldn't find anything
+    // matching that"). Re-run retrieval for the previous real question instead, and let the
+    // presentationFormat captured above render it in the newly-requested layout.
+    let question = rawQuestion;
+    let isReformatSubstitution = false;
+    if (presentationFormat && isPureReformatRequest(rawQuestion)) {
+      const lastUserQuestion = [...priorTurns].reverse().find((m) => m.role === 'user')?.text;
+      if (lastUserQuestion) {
+        question = lastUserQuestion;
+        isReformatSubstitution = true;
+      }
+    }
+
     const convo = priorTurns
       .map((m) => `${m.role === 'user' ? 'User' : 'Assistant'}: ${String(m.text).slice(0, 500)}`)
       .join('\n');
     // Follow-ups ("who were the participants?", "what was discussed in that meeting?") retrieve
     // better with the previous turns prepended — the entity name (e.g. "Scrum 30/07/2026") is
-    // usually in the ASSISTANT's last answer, not the user's words.
-    const recentContext = priorTurns
-      .slice(-2)
-      .map((m) => String(m.text).slice(0, 300))
-      .join('\n');
+    // usually in the ASSISTANT's last answer, not the user's words. Skipped on a reformat
+    // substitution: `question` there is already the complete original question (not a vague
+    // pronoun follow-up), so prepending the same turns again just duplicates/dilutes the search
+    // text and can tank retrieval confidence enough to misfire the low-confidence disambiguation.
+    const recentContext = isReformatSubstitution
+      ? ''
+      : priorTurns
+          .slice(-2)
+          .map((m) => String(m.text).slice(0, 300))
+          .join('\n');
     const retrievalQuestion = recentContext ? `${recentContext}\n${question}` : question;
-    // "as a table" / "in bullet points" / "chronologically" → render deterministically, no LLM,
-    // so the layout is exactly what was asked for (a local model can't be trusted to always
-    // produce a real table). Applied below wherever a branch already has its rows in hand.
-    const presentationFormat = detectPresentationFormat(question);
     // "latest / recent / current work" → prefer the most recently updated records.
     const wantsRecent = /\b(latest|recent|recently|current|currently|now|nowadays|these days|up[- ]?to[- ]?date|newest|last few)\b/i.test(question);
     const tsMs = (r) => Date.parse(r?.timestamp || r?.payload?.timestamp || '') || 0;
@@ -193,18 +216,28 @@ router.post('/', async (req, res) => {
 
     // Follow-up about a specific meeting from the conversation ("what was discussed in that meeting?",
     // "who were the participants?") → answer from THAT meeting's full record, not a broad search.
-    if (convo && isMeetingDetailFollowup(question)) {
-      const meeting = await resolveReferencedMeeting(convo, question).catch(() => null);
+    // Also: a bare exact meeting title with no context at all — SharePoint can have a meeting and
+    // an unrelated task sharing an identical title, so this routes straight to the real meeting
+    // instead of letting the type-agnostic general search possibly answer from the wrong record.
+    const exactTitleMeeting = await resolveExactMeetingTitle(question).catch(() => null);
+    if (exactTitleMeeting || (convo && isMeetingDetailFollowup(question))) {
+      const meeting = exactTitleMeeting || (await resolveReferencedMeeting(convo, question).catch(() => null));
       if (meeting) {
-        const answer =
+        let answer =
           sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildMeetingDetailPrompt(question, meeting)), { signal }),
-            question
+            await generateAnswer(withHistory(buildMeetingDetailPrompt(question, meeting, presentationFormat)), { signal }),
+            question,
+            Boolean(presentationFormat)
           ) || INSUFFICIENT_DATA_MESSAGE;
+        // Guarantee real line breaks: qwen3 often ignores "write bullets" and writes one flowing
+        // paragraph instead — deterministic post-process, same principle as formatRows() elsewhere.
+        if ((presentationFormat === 'bullets' || presentationFormat === 'timeline') && answer !== INSUFFICIENT_DATA_MESSAGE) {
+          answer = forceBulletLines(answer);
+        }
         return res.json({
           success: true,
           answer,
-          format: 'prose',
+          format: presentationFormat || 'prose',
           confidence: 0.9,
           intent: 'meeting-detail',
           sources: { qdrant: [{ payload: meeting }], sharepoint: {} },
@@ -245,7 +278,7 @@ router.post('/', async (req, res) => {
     if (isExactLookupQuestion(question)) {
       let phrase = extractLookupPhrase(question);
       if (!phrase && convo) {
-        phrase = await resolveReferencedEntity(convo).catch(() => null);
+        phrase = await resolveReferencedEntity(convo, question).catch(() => null);
       }
       if (phrase) {
         const rows = await exactLookup({ phrase }).catch(() => []);
@@ -272,10 +305,54 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // "Latest / recent work on X" for tasks & projects → keyword-match ALL items on the topic,
-    // then sort by real updated date (relevance-only vector search misses the genuinely newest).
+    // "Latest / recent work on X" for tasks & projects.
     if (isRecentWorkQuestion(question)) {
-      const topicText = recentContext ? `${recentContext}\n${question}` : question;
+      // A bare-pronoun follow-up ("what's the latest task UNDER IT") names no topic of its own —
+      // vector search on "it"/generic filler alone can resolve to a totally unrelated project. The
+      // ONE shared resolver (used by meeting and exact-lookup follow-ups too) finds what "it"
+      // actually refers to from the conversation; only used when the question truly has no
+      // distinguishing words of its own, so a fresh unrelated question in the same conversation
+      // isn't wrongly pinned to whatever was discussed earlier.
+      const pronounAnchor =
+        convo && isPronounFollowup(question)
+          ? await resolveReferencedTopic(convo, question, ['portfolio', 'project']).catch(() => null)
+          : null;
+
+      // Prefer resolving ONE real project/portfolio anchor and walking its actual descendant tree
+      // (same approach as the hierarchy branch below) over broad topic-keyword matching. Real data
+      // can have 100+ items loosely sharing generic words ("team", "management"), spanning dozens
+      // of genuinely unrelated projects — that's a real recall problem, not real ambiguity, and it
+      // was surfacing as a confusing "8 different items, which did you mean?" for a question that
+      // named ONE specific project. Only fall back to the broader matching below when no single
+      // anchor resolves (e.g. the question doesn't actually name one real project/portfolio).
+      const structural = await structuralRetrieve(question, { anchorOverride: pronounAnchor }).catch(() => null);
+      if (structural && (structural.masters.length > 1 || structural.tasks.length > 0)) {
+        const answer =
+          sanitizeEnterpriseAnswer(
+            await generateAnswer(buildStructuralPrompt(question, structural), { signal }),
+            question
+          ) || INSUFFICIENT_DATA_MESSAGE;
+        return res.json({
+          success: true,
+          answer,
+          format: 'prose',
+          confidence: 0.9,
+          intent: 'recent-work',
+          counts: { subItems: structural.masters.length - 1, tasks: structural.tasks.length },
+          sources: {
+            qdrant: structural.masters.slice(0, 10).map((payload) => ({ payload })),
+            sharepoint: {},
+          },
+        });
+      }
+
+      // If the pronoun resolved to a real anchor above but the tree walk found too little to be
+      // worth returning on its own, still search using the RESOLVED name, not the bare pronoun.
+      const topicText = pronounAnchor
+        ? pronounAnchor.title
+        : recentContext
+          ? `${recentContext}\n${question}`
+          : question;
       const recent = await recentWorkRetrieve(topicText).catch(() => null);
       if (recent?.ambiguous) {
         return res.json({
@@ -320,7 +397,13 @@ router.post('/', async (req, res) => {
     // Structural questions ("what's under X", "structure of X") → walk the tree by ID,
     // not flat vector search. Falls through to normal retrieval if nothing structural found.
     if (isHierarchyQuestion(question)) {
-      const structural = await structuralRetrieve(question).catch(() => null);
+      // Same bare-pronoun handling as the recent-work branch above ("what's under it") — reuse
+      // the resolved anchor if this question has no real topic of its own.
+      const hierarchyAnchor =
+        convo && isPronounFollowup(question)
+          ? await resolveReferencedTopic(convo, question, ['portfolio', 'project']).catch(() => null)
+          : null;
+      const structural = await structuralRetrieve(question, { anchorOverride: hierarchyAnchor }).catch(() => null);
       if (structural && (structural.masters.length > 1 || structural.tasks.length)) {
         const formatted = presentationFormat
           ? formatRows(presentationFormat, [...structural.masters, ...structural.tasks])

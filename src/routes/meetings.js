@@ -27,7 +27,7 @@ router.get('/analyze/ui', (_req, res) => res.redirect('/api/query/ui'));
 
 router.post('/analyze', uploadOne, async (req, res) => {
   try {
-    const result = await analyzeUploadedTranscript(req.file);
+    const result = await analyzeUploadedTranscript(req.file, req.body?.question || '');
     res.json({ success: true, ...result });
   } catch (err) {
     console.error('Meeting transcript analysis error:', err.message);

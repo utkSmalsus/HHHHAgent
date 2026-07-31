@@ -5,6 +5,8 @@
  * `start` date, so for temporal meeting questions we filter/sort by that date instead.
  */
 import { scrollPayloads } from './qdrantScroll.js';
+import { normalizeText } from '../utils/textMatch.js';
+import { resolveReferencedTopic } from '../utils/referenceResolve.js';
 
 const MEETINGISH = /\b(meeting|meetings|scrum|stand[- ]?up|standup|call|sync|huddle|retro|review|1[- ]?on[- ]?1)\b/i;
 const TEMPORAL = /\b(today(?:'?s)?|yesterday(?:'?s)?|tomorrow(?:'?s)?|this week|last week|this month|last month|recent|lately|latest|most recent|last|upcoming|earlier|this morning)\b/i;
@@ -50,13 +52,27 @@ export function parseDateRange(question, now = new Date()) {
   return null; // "latest"/"last meeting" with no explicit range → handled by sorting
 }
 
+/**
+ * "Unscheduled" meetings are stored with a fixed far-future placeholder start date (seen: year
+ * 2099), not a real one. Naive newest-first sorting puts these at the very top of "latest meeting"
+ * (which has no explicit date range to filter them out of), burying every real recent meeting.
+ */
+function isPlaceholderMeetingDate(meeting, now) {
+  if (/unscheduled/i.test(meeting.status || '')) return true;
+  const t = new Date(meeting.start).getTime();
+  const FIVE_YEARS_MS = 5 * 365 * 24 * 60 * 60 * 1000;
+  return t - now.getTime() > FIVE_YEARS_MS;
+}
+
 /** @returns {Promise<{ meetings: object[], range: object|null, now: Date, wantsLatest: boolean }>} */
 export async function meetingDateRetrieve(question, now = new Date()) {
   const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
   const range = parseDateRange(question, now);
   const wantsLatest = /\b(latest|most recent|last)\b/i.test(question);
 
-  let picked = all.filter((m) => m.start && !Number.isNaN(new Date(m.start).getTime()));
+  let picked = all.filter(
+    (m) => m.start && !Number.isNaN(new Date(m.start).getTime()) && !isPlaceholderMeetingDate(m, now)
+  );
   if (range) {
     picked = picked.filter((m) => {
       const t = new Date(m.start);
@@ -74,52 +90,59 @@ export function isMeetingDetailFollowup(question) {
   return /\b(that|this|the)\s+(meeting|call|scrum|stand[- ]?up)\b|\bin it\b|\bof it\b|\bparticipants?\b|\battendees?\b|\bwho (was|were|attended|joined)\b|\bdiscussed?\b|\bdiscussion\b|\baction items?\b|\bagenda\b|\btranscript\b|\bmore about it\b/i.test(String(question || ''));
 }
 
-/** Find the meeting whose title is mentioned in the recent conversation (most specific wins). */
-const WORD_RE = /[a-z0-9]+/g;
-
-/** Word-overlap score between the CURRENT question and a candidate title (order-independent). */
-function overlapScore(questionWords, title) {
-  const titleWords = new Set((title.toLowerCase().match(WORD_RE) || []).filter((w) => w.length > 2));
-  if (!titleWords.size) return 0;
-  let hits = 0;
-  for (const w of questionWords) if (titleWords.has(w)) hits += 1;
-  return hits;
+/**
+ * Find the meeting the user is referring to ("the scrum one", "that meeting", bare "it"). Thin
+ * wrapper over the shared resolver (src/utils/referenceResolve.js) — every follow-up path
+ * (meetings, tasks, projects, exact-lookup) uses that ONE resolution mechanism, not a per-path copy.
+ */
+export async function resolveReferencedMeeting(convoText, currentQuestion = '') {
+  return resolveReferencedTopic(convoText, currentQuestion, ['meeting']);
 }
 
 /**
- * Find the meeting the user is referring to. When SEVERAL meeting titles were mentioned earlier
- * in the conversation (e.g. a "meetings yesterday" list showed two), the current question usually
- * names which one it means ("the scrum one") — prefer that over just grabbing whichever mentioned
- * title happens to be the longest string, which ignores what was actually asked.
+ * The question IS (exactly, ignoring case/punctuation/spacing) a real meeting's title — e.g. the
+ * user pasted/typed a meeting name with no other context. SharePoint sometimes has a meeting and
+ * an unrelated task sharing an identical title (seen: two separate "Scrum 30/07/2026" records);
+ * the general type-agnostic search has no way to prefer the meeting, so this exact match routes
+ * straight to it instead of risking an answer built from the wrong record.
  */
-export async function resolveReferencedMeeting(convoText, currentQuestion = '') {
-  const lc = String(convoText || '').toLowerCase();
-  if (!lc.trim()) return null;
+export async function resolveExactMeetingTitle(question) {
+  const q = normalizeText(question);
+  if (!q || q.length < 4) return null;
   const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
-  const hits = all.filter((m) => m.title && m.title.length > 4 && lc.includes(m.title.toLowerCase()));
-  if (!hits.length) return null;
-
-  const qWords = (String(currentQuestion || '').toLowerCase().match(WORD_RE) || []).filter((w) => w.length > 2);
-  if (qWords.length) {
-    const scored = hits
-      .map((m) => ({ m, score: overlapScore(qWords, m.title) }))
-      .filter((s) => s.score > 0)
-      .sort((a, b) => b.score - a.score);
-    if (scored.length && (scored.length === 1 || scored[0].score > scored[1].score)) {
-      return scored[0].m;
-    }
-  }
-
-  hits.sort((a, b) => (b.title.length || 0) - (a.title.length || 0));
-  return hits[0] || null;
+  return all.find((m) => m.title && normalizeText(m.title) === q) || null;
 }
 
+// The meeting's content is free text (a summary/transcript), not a list of records — there's no
+// "rows" array to run through the deterministic formatRows() the other branches use. The LLM has
+// to do the actual work of breaking it into items, so the format request goes into the prompt.
+// A concrete example gets small local models to actually emit real line breaks far more reliably
+// than an abstract instruction alone — without it, models like qwen3 tend to write one run-on
+// paragraph with no punctuation between items despite being told "use bullets".
+const FORMAT_INSTRUCTION = {
+  bullets:
+    'Format your ENTIRE answer as a markdown bullet list. Put a REAL newline character between ' +
+    'every item — never run two items together on one line, and never omit the period at the end ' +
+    'of an item. Follow this exact shape:\n- First item goes here.\n- Second item goes here.\n' +
+    '- Third item goes here.\nDo not write any prose paragraphs.',
+  table:
+    'Format your ENTIRE answer as a markdown table with a header row, one real newline between ' +
+    'rows. Follow this exact shape:\n| Column A | Column B |\n|---|---|\n| value | value |\n' +
+    'Do not write any prose paragraphs.',
+  timeline:
+    'Format your ENTIRE answer as a markdown bullet list ordered chronologically, oldest first. ' +
+    'Put a REAL newline character between every item. Follow this exact shape:\n- First item goes here.\n' +
+    '- Second item goes here.\nDo not write any prose paragraphs.',
+};
+
 /** Prompt to answer a detail question about ONE specific meeting from its full record. */
-export function buildMeetingDetailPrompt(question, meeting) {
+export function buildMeetingDetailPrompt(question, meeting, format = null) {
+  const formatNote = FORMAT_INSTRUCTION[format] ? `\n${FORMAT_INSTRUCTION[format]}` : '';
   const system =
     'You are HHHH Agent. Answer the question about this specific meeting using ONLY ' +
     'the meeting record below (its summary, participants, transcript). Be specific and concise. ' +
-    'If the record does not contain the answer, say so — do not pull in other meetings or tasks.';
+    'If the record does not contain the answer, say so — do not pull in other meetings or tasks.' +
+    formatNote;
   const user =
     `USER QUESTION: ${question}\n\n` +
     `MEETING RECORD for "${meeting.title}":\n${String(meeting.text || '').slice(0, 7000)}\n\n` +

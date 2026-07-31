@@ -146,9 +146,9 @@ async function generateMeetingAnalysis(messages) {
   return answer;
 }
 
-export async function retrieveMeetingAnalysisContext(transcriptText, { limitMeetings = 8, limitTasks = 14 } = {}) {
+export async function retrieveMeetingAnalysisContext(transcriptText, { limitMeetings = 8, limitTasks = 14, limitContainers = 6 } = {}) {
   const query = cleanText(transcriptText).slice(0, 4000);
-  const [meetingResults, vectorTaskResults, allTasks] = await Promise.all([
+  const [meetingResults, vectorTaskResults, allTasks, containerResults] = await Promise.all([
     searchKnowledge(query, limitMeetings, {
       must: [{ key: 'type', match: { value: 'meeting' } }],
     }).catch(() => []),
@@ -156,6 +156,11 @@ export async function retrieveMeetingAnalysisContext(transcriptText, { limitMeet
       must: [{ key: 'type', match: { value: 'task' } }],
     }).catch(() => []),
     scrollPayloads({ types: ['task'], limit: 15000 }).catch(() => []),
+    // Real portfolio/project candidates for where a NEW action item's task should live — so the
+    // model recommends an EXISTING container it actually found, never an invented project name.
+    searchKnowledge(query, limitContainers, {
+      should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }],
+    }).catch(() => []),
   ]);
 
   const lexicalTaskResults = allTasks
@@ -190,6 +195,7 @@ export async function retrieveMeetingAnalysisContext(transcriptText, { limitMeet
   return {
     meetings: topRecords(meetingResults, limitMeetings),
     tasks: taskResults,
+    containers: topRecords(containerResults, limitContainers),
   };
 }
 
@@ -198,6 +204,8 @@ export function buildUploadedMeetingAnalysisMessages({
   transcriptText,
   meetings = [],
   tasks = [],
+  containers = [],
+  question = '',
 }) {
   const meetingEvidence = meetings.length
     ? meetings.map(compactRecord).join('\n\n')
@@ -205,30 +213,38 @@ export function buildUploadedMeetingAnalysisMessages({
   const taskEvidence = tasks.length
     ? tasks.map(compactRecord).join('\n\n')
     : 'No related existing task records were retrieved.';
+  const containerEvidence = containers.length
+    ? containers.map(compactRecord).join('\n\n')
+    : 'No related project/portfolio records were retrieved.';
+  const userAsk = String(question || '').trim();
 
   return {
     system:
       'You are OMT Meeting Intelligence. Use ONLY the uploaded transcript and retrieved Qdrant evidence. ' +
-      'The uploaded transcript may be old or new. Your job is to summarize that uploaded meeting, connect it to older meeting context, and identify action items/follow-ups. ' +
-      'Do not stop at a summary. Always produce an Action items section, even if the transcript is exploratory; infer concrete follow-ups such as verify, test, confirm service name, validate ID/configuration, or create/update task. ' +
-      'When an action item appears to already exist as a task, cite the existing taskId/taskCode from the task evidence. ' +
-      'If no matching task is present in evidence, mark it as New task needed. Do not invent task IDs, owners, dates, or previous discussions.',
+      'The uploaded transcript may be old or new. Your job is to summarize that uploaded meeting, connect it to older meeting context on the same topic, and turn it into action items. ' +
+      'Do not stop at a summary. Always produce an Action items section, even if the transcript is exploratory; infer concrete follow-ups such as verify, test, confirm service name, validate ID/configuration, or create/update task.\n' +
+      'For EVERY action item, first check the RELATED EXISTING TASKS evidence for a task that already covers it:\n' +
+      '  - If one does: say plainly "This task already exists — do not create a new one" and cite its EXACT taskId/taskCode. Never propose creating a duplicate of a task that is already in the evidence.\n' +
+      '  - If none does (a genuinely new action item): mark it "New task — none found" and recommend which EXISTING project and portfolio it should be created under, using ONLY names from the RELATED EXISTING TASKS or RELATED PROJECTS/PORTFOLIOS evidence below (whichever real project/portfolio most closely matches the topic). Never invent a project or portfolio name that is not in the evidence — if genuinely nothing fits, say so instead of guessing.\n' +
+      'Do not invent task IDs, owners, dates, project names, portfolio names, or previous discussions not present in the evidence.',
     user:
-      `Uploaded transcript file: ${filename || 'transcript'}\n\n` +
-      `UPLOADED TRANSCRIPT (may be historical):\n${cleanText(transcriptText).slice(0, MAX_TRANSCRIPT_CHARS)}\n\n` +
-      `RELATED OLD MEETINGS / SUMMARIES FROM QDRANT:\n${meetingEvidence}\n\n` +
-      `RELATED EXISTING TASKS FROM QDRANT:\n${taskEvidence}\n\n` +
+      `Uploaded transcript file: ${filename || 'transcript'}\n` +
+      (userAsk ? `USER'S REQUEST ABOUT THIS UPLOAD: ${userAsk}\n` : '') +
+      `\nUPLOADED TRANSCRIPT (may be historical):\n${cleanText(transcriptText).slice(0, MAX_TRANSCRIPT_CHARS)}\n\n` +
+      `RELATED OLD MEETINGS / SUMMARIES FROM QDRANT (what was already discussed on this topic):\n${meetingEvidence}\n\n` +
+      `RELATED EXISTING TASKS FROM QDRANT (what has already been created/done — each carries its real project/portfolio):\n${taskEvidence}\n\n` +
+      `RELATED PROJECTS/PORTFOLIOS FROM QDRANT (real containers a NEW task could be placed under):\n${containerEvidence}\n\n` +
       'Write the response in this exact structure:\n' +
       'Uploaded meeting summary: 4-7 concise sentences.\n' +
       'What was already discussed before: 2-5 bullets based only on related old meetings. If none are relevant, say no strong previous-meeting match was retrieved.\n' +
-      'Action items / follow-ups: bullets. For each item include: action, owner if stated, due date if stated, existing task match with taskId/taskCode if evidence supports it, otherwise New task needed.\n' +
-      'Existing tasks already created: list matching or possibly related tasks with exact taskId/taskCode and why they may cover the action.\n' +
+      'Action items / follow-ups: bullets. For each item include the action, owner/due date if stated, and EITHER "Already exists — taskId=X, do not create a new one" OR "New task — none found. Recommended project: <real name>, portfolio: <real name>".\n' +
+      'Existing tasks already created: list every matching task with its exact taskId/taskCode and why it covers the action — this is the do-not-duplicate list.\n' +
       'Potential duplicates or follow-ups: bullets for any action item that may duplicate an existing task but is not certain.\n' +
-      'Important: include exact task IDs from task evidence wherever they match. Never omit a matching task ID from task evidence.\n',
+      'Important: include exact task IDs from task evidence wherever they match, and exact project/portfolio names from evidence for any new task. Never omit a matching task ID. Never invent a name not present in the evidence.\n',
   };
 }
 
-export async function analyzeUploadedTranscript(file) {
+export async function analyzeUploadedTranscript(file, question = '') {
   const transcriptText = await extractUploadedTranscript(file);
   if (!transcriptText) {
     throw new Error('Could not extract readable text from the uploaded file');
@@ -240,6 +256,8 @@ export async function analyzeUploadedTranscript(file) {
     transcriptText,
     meetings: context.meetings,
     tasks: context.tasks,
+    containers: context.containers,
+    question,
   });
   let answer = ensureRequiredSections(await generateMeetingAnalysis(messages));
   const matches = taskMatchesText(context.tasks);
@@ -254,6 +272,7 @@ export async function analyzeUploadedTranscript(file) {
     retrieved: {
       meetings: context.meetings.length,
       tasks: context.tasks.length,
+      containers: context.containers.length,
     },
     taskMatches: context.tasks
       .map((record) => {
