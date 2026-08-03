@@ -8,12 +8,96 @@
  */
 import { scrollPayloads } from './qdrantScroll.js';
 import { searchKnowledge } from './qdrant.js';
+import { queryTokens, extractKeywords, normalizeText } from '../utils/textMatch.js';
+import { groupByEntity, toCandidates } from '../utils/disambiguate.js';
 
+// "belongs? to" was previously a trigger here too, but it's genuinely ambiguous — "which tasks
+// belong to Deepak Trivedi" means OWNERSHIP (a person), not CONTAINMENT (a project/portfolio),
+// and this regex only knows the latter. Tested live: it walked the descendant tree of an unrelated
+// project called "Tasks View Page" and presented those tasks as "belonging to" the named person.
+// Removed — "part of"/"contained in"/"under"/"within" already cover genuine container questions
+// unambiguously, without swallowing ownership questions that happen to share the phrase.
 const HIERARCHY_RE =
-  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|belongs? to|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of))\b/i;
+  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of))\b/i;
 
 export function isHierarchyQuestion(question) {
   return HIERARCHY_RE.test(String(question || ''));
+}
+
+/**
+ * Pick the real portfolio/project the question names, from the FULL real dataset (not just the
+ * vector top-5) — and refuse to guess when several genuinely distinct real entities tie for the
+ * best match. Verified live: "what are the latest task under team management tool project" was
+ * silently answered from "Team Task Management" when the real data also has "Team Management
+ * Tools", "HHHH Team Management", "Development Team Management System", and 4 more distinctly
+ * real projects/portfolios sharing the same words — the old code (plain vector top-1) just picked
+ * whichever one embedded closest, with no signal to the user that 7 other real candidates existed.
+ * Scored by real keyword overlap against every real title, not vector similarity, because vector
+ * closeness for near-duplicate names is exactly the thing that was picking arbitrarily here.
+ */
+// extractKeywords() already strips exactly this class of word (portfolio/project/task/etc. — see
+// its own comment in textMatch.js) for the same reason disambiguate.js's plausibleGroups() uses
+// it: these words are too generic on their own and, critically, appear LITERALLY inside many real
+// title strings that have nothing to do with the question's real topic (a real project literally
+// titled "Portfolio Tool - SPFx Issues and Bug fixing" is not what "SmartFilters portfolio" is
+// asking about; "task" inside "what's the latest TASK under X" is asking ABOUT tasks, not naming
+// an entity called "Task X"). Found via two direct regression checks — the first version of this
+// function only excluded portfolio/project and NOT task, which let "task" in a question like
+// "what are the latest task under team management tool project" pull "Team Task Management" and
+// "Task Management Tool" into a false top-scoring tie ahead of the plain "Team Management" match.
+function resolveContainerAnchor(question, containerItems) {
+  const qWords = extractKeywords(question);
+  if (!qWords.length) return { anchor: null };
+
+  const groups = groupByEntity(containerItems);
+  const scored = groups
+    .map((g) => {
+      const titleTokens = queryTokens(g.title);
+      const titleWords = new Set(titleTokens);
+      const score = qWords.reduce((s, w) => s + (titleWords.has(w) ? 1 : 0), 0);
+      // Precision matters as much as raw overlap count: "SmartFilters" (1 word, 1 match — a
+      // near-exact name match) must beat "Share SmartFilters" or "Full Dynamic SmartFilters
+      // Approach" (also 1 match each, but buried among 1-3 OTHER words the question never asked
+      // about) — otherwise a bare, exact real title loses a tie to unrelated longer titles that
+      // merely happen to contain the same one word. Found via a direct regression check on
+      // "what's under SmartFilters portfolio", which real data has 6 different real titles
+      // containing the word "smartfilters".
+      const ratio = titleTokens.length ? score / titleTokens.length : 0;
+      return { group: g, score, ratio };
+    })
+    .filter((s) => s.score > 0)
+    .sort((a, b) => b.score - a.score);
+
+  if (!scored.length) return { anchor: null };
+
+  const topScore = scored[0].score;
+  let tied = scored.filter((s) => s.score === topScore);
+  if (tied.length === 1) {
+    return { anchor: tied[0].group.items[0] };
+  }
+
+  const topRatio = Math.max(...tied.map((s) => s.ratio));
+  const precise = tied.filter((s) => s.ratio === topRatio);
+  if (precise.length === 1) {
+    return { anchor: precise[0].group.items[0] };
+  }
+  tied = precise;
+
+  // Tie among distinct real entities — the question explicitly saying "portfolio" or "project"
+  // is a real disambiguating signal that plain keyword-overlap scoring throws away (both words are
+  // themselves too generic to raise one title's score over another's). Use it before giving up.
+  const qNorm = normalizeText(question);
+  const wantsType = qNorm.includes(' portfolio') || qNorm.endsWith('portfolio')
+    ? 'portfolio'
+    : qNorm.includes(' project') || qNorm.endsWith('project')
+      ? 'project'
+      : null;
+  if (wantsType) {
+    const typeMatches = tied.filter((s) => s.group.items.some((i) => i.type === wantsType));
+    if (typeMatches.length === 1) return { anchor: typeMatches[0].group.items[0] };
+  }
+
+  return { ambiguous: true, candidates: toCandidates(tied.map((s) => s.group)) };
 }
 
 const num = (v) => {
@@ -41,17 +125,29 @@ export async function structuralRetrieve(question, { anchorOverride } = {}) {
 
   let anchor = anchorOverride;
   if (!anchor) {
-    // Anchor = the container the user named. Restrict the vector search to portfolio/project types
-    // first: real data can have dozens of near-identically-worded TASKS (e.g. many "Team Management
-    // Tool ..." tasks), which can outrank the one actual project/portfolio in an unrestricted top-8
-    // search, leaving the "anchor" as a task with no real descendants. Only fall back to an
-    // unrestricted search if nothing scores as a portfolio/project at all.
-    const containerFilter = { should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }] };
-    const containerHits = await searchKnowledge(question, 5, containerFilter).catch(() => []);
-    const hits = containerHits.length ? containerHits : await searchKnowledge(question, 8);
-    anchor =
-      (hits.find((h) => h.payload && (h.payload.type === 'portfolio' || h.payload.type === 'project'))
-        || hits[0])?.payload;
+    // Keyword-overlap resolution against the FULL real dataset first — catches genuine ambiguity
+    // (several distinct real entities tied for best match) that vector top-1 silently papers over.
+    // Only when it finds nothing at all (no real title shares a keyword with the question) does
+    // this fall back to the old vector-search behavior, which is still the better tool for
+    // "described but not named" questions where no title literally overlaps the question's words.
+    const containerItems = all.filter((p) => p.type === 'portfolio' || p.type === 'project');
+    const resolved = resolveContainerAnchor(question, containerItems);
+    if (resolved.ambiguous) return { ambiguous: true, candidates: resolved.candidates };
+    anchor = resolved.anchor;
+
+    if (!anchor) {
+      // Anchor = the container the user named. Restrict the vector search to portfolio/project types
+      // first: real data can have dozens of near-identically-worded TASKS (e.g. many "Team Management
+      // Tool ..." tasks), which can outrank the one actual project/portfolio in an unrestricted top-8
+      // search, leaving the "anchor" as a task with no real descendants. Only fall back to an
+      // unrestricted search if nothing scores as a portfolio/project at all.
+      const containerFilter = { should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }] };
+      const containerHits = await searchKnowledge(question, 5, containerFilter).catch(() => []);
+      const hits = containerHits.length ? containerHits : await searchKnowledge(question, 8);
+      anchor =
+        (hits.find((h) => h.payload && (h.payload.type === 'portfolio' || h.payload.type === 'project'))
+          || hits[0])?.payload;
+    }
   }
   const anchorId = num(anchor?.sharePointItemId);
   if (!anchor || !anchorId) return null;

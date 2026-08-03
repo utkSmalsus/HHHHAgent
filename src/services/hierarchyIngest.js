@@ -230,6 +230,51 @@ function structureIdFromFields(fields) {
   return fields.PortfolioStructureID ?? fields.TaskID ?? null;
 }
 
+/**
+ * DueDate is a real field on the SharePoint task list (confirmed against the SPFx app source,
+ * TaskDetailComponent.tsx — `taskDetails["DueDate"]`) that Graph already returns via `$expand=fields`,
+ * but it was never pulled into the ingested text/metadata — so "which tasks are overdue" had no
+ * choice but to decline. Parse it once here so every downstream consumer gets a real ISO date.
+ */
+function resolveDueDate(fields) {
+  const raw = fields?.DueDate;
+  if (!raw) return null;
+  const date = new Date(raw);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+/**
+ * The `Comments` field (confirmed against CommentCard.tsx) is a JSON-stringified, possibly
+ * threaded array of `{ AuthorName, Created, Description, ReplyMessages: [...] }` objects — not
+ * plain text. Ingesting it as a raw string (the old behavior, and only when Body/FeedBack were
+ * BOTH empty, since it shared a firstField() priority list with them) left comment threads either
+ * dropped entirely or embedded as unreadable JSON syntax. Flatten it into readable "Author: text"
+ * lines instead, always alongside Body/FeedBack rather than instead of them.
+ */
+function parseCommentsThread(raw, depth = 0) {
+  if (!raw || depth > 2) return [];
+  let parsed;
+  try {
+    parsed = typeof raw === 'string' ? JSON.parse(raw) : raw;
+  } catch {
+    return [];
+  }
+  if (!Array.isArray(parsed)) return [];
+
+  const lines = [];
+  for (const entry of parsed) {
+    if (!entry || typeof entry !== 'object') continue;
+    const author = valueToText(entry.AuthorName || entry.Author || '');
+    const text = valueToText(entry.Description || entry.Title || '');
+    const when = valueToText(entry.Created || '');
+    if (text) lines.push([author, when, text].filter(Boolean).join(' — '));
+    if (Array.isArray(entry.ReplyMessages)) {
+      lines.push(...parseCommentsThread(JSON.stringify(entry.ReplyMessages), depth + 1));
+    }
+  }
+  return lines;
+}
+
 export function filterMasterRows(rows, listKey) {
   return (rows || []).filter((row) => {
     const f = masterFields(row);
@@ -283,6 +328,8 @@ export function masterItemToKnowledge(row, listKey, source, masterById) {
       hierarchyPath: hierarchyPath || null,
       projectId: type === 'project' ? id : null,
       projectName: title,
+      status: status || null,
+      owner: owner || null,
       sharePointItemId: id,
       sharePointSite: source.siteAlias,
       sharePointSiteId: source.siteId,
@@ -317,7 +364,10 @@ export function taskItemToKnowledge(row, source, masterById) {
   const status = firstField(fields, ['Status', 'TaskStatus']);
   const owner = firstField(fields, ['AssignedTo', 'Responsible_x0020_Team', 'Team_x0020_Members']);
   const completion = formatPercent(fields.PercentComplete);
-  const description = firstField(fields, ['Body', 'FeedBack', 'Description', 'Comments']);
+  const description = firstField(fields, ['Body', 'FeedBack', 'Description']);
+  const commentLines = parseCommentsThread(fields.Comments);
+  const commentsText = commentLines.join(' | ');
+  const dueDate = resolveDueDate(fields);
   const taskCode = fields.TaskID != null ? String(fields.TaskID) : null;
   const projectId = resolveTaskProjectId(fields);
   const portfolioId = resolveTaskPortfolioId(fields);
@@ -344,7 +394,9 @@ export function taskItemToKnowledge(row, source, masterById) {
   if (status) parts.push(`Status: ${status}`);
   if (completion) parts.push(`Completion: ${completion}`);
   if (owner) parts.push(`Owner: ${owner}`);
+  if (dueDate) parts.push(`Due: ${dueDate.toISOString().slice(0, 10)}`);
   if (description) parts.push(description);
+  if (commentsText) parts.push(`Comments: ${commentsText}`);
 
   const meta = {
     type: 'task',
@@ -359,6 +411,9 @@ export function taskItemToKnowledge(row, source, masterById) {
     portfolioName: portfolioName || null,
     hierarchyPath: hierarchyPath || null,
     structureId: taskCode || structureIdFromFields(fields),
+    status: status || null,
+    owner: owner || null,
+    dueDate: dueDate ? dueDate.toISOString() : null,
     sharePointItemId: id,
     sharePointSite: source.siteAlias,
     sharePointSiteId: source.siteId,
@@ -378,6 +433,8 @@ export function taskItemToKnowledge(row, source, masterById) {
       owner,
       completion,
       description,
+      comments: commentLines,
+      dueDate: dueDate ? dueDate.toISOString() : null,
       taskCode,
       siteType,
       projectId,

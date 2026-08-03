@@ -103,6 +103,85 @@ function taskMatchesText(tasks, limit = 8) {
   return tasks.map(taskMatchLine).filter(Boolean).slice(0, limit).join('\n');
 }
 
+function collectRealTaskIds(tasks) {
+  const ids = new Set();
+  for (const record of tasks) {
+    const p = record.payload || record;
+    if (p.taskId != null) ids.add(String(p.taskId));
+    if (p.taskCode) {
+      ids.add(String(p.taskCode));
+      ids.add(String(p.taskCode).replace(/^T/i, ''));
+    }
+  }
+  return ids;
+}
+
+function collectRealContainerNames(tasks, containers) {
+  const names = new Set();
+  for (const record of [...tasks, ...containers]) {
+    const p = record.payload || record;
+    if (p.projectName) names.add(p.projectName.trim().toLowerCase());
+    if (p.portfolioName) names.add(p.portfolioName.trim().toLowerCase());
+    if (p.title) names.add(p.title.trim().toLowerCase());
+  }
+  return names;
+}
+
+/**
+ * Deterministic post-processing guard against fabrication. Verified live that prompt-level
+ * instructions alone don't reliably stop this local 3B model from inventing plausible-sounding
+ * project names and task IDs when it has thin/no container evidence — a second real attempt at a
+ * stronger prompt instruction made it WORSE (it started fabricating fake task IDs that weren't
+ * present before). Rather than keep guessing at prompt wording, verify the model's claims against
+ * the actual retrieved evidence after the fact and strip/flag anything that doesn't check out —
+ * the fix this situation actually needs, not more prose.
+ */
+export function validateAnswerAgainstEvidence(answer, { tasks = [], containers = [] } = {}) {
+  const realIds = collectRealTaskIds(tasks);
+  const realNames = collectRealContainerNames(tasks, containers);
+  const flagged = [];
+
+  // Verified live: the model doesn't reliably use "taskId=X" — one real run instead wrote "the
+  // exact taskId/taskCode is 12345", a fully fabricated ID (not among the 8 real retrieved IDs)
+  // that the narrower "taskId[=:]?\s*(\d+)" pattern missed entirely because of the "/taskCode is"
+  // in between. Tolerate any short connector between the label and the number.
+  let out = String(answer || '').replace(/\btaskId(?:\/taskCode)?\s*(?:is|=|:)?\s*([A-Za-z]?\d+)\b/gi, (full, id) => {
+    const norm = String(id).replace(/^T/i, '');
+    if (realIds.has(String(id)) || realIds.has(norm)) return full;
+    flagged.push(`taskId ${id}`);
+    return `[unverified taskId ${id} — not found in retrieved evidence, do not treat as confirmed]`;
+  });
+
+  // The system prompt asks for the literal template "Recommended project: X, portfolio: Y", but
+  // verified live that the model doesn't reliably stick to it — one real run instead wrote
+  // "RELATED PROJECTS/PORTFOLIOS: GitHub Structure and Code Organization (New task — none found)",
+  // a fully invented project name that a narrower "Recommended project:"-only regex let straight
+  // through. Covers every container-name-claiming label actually observed. The capitalization
+  // check is done in the callback (not as `[A-Z]` inside the pattern) because the pattern needs the
+  // `i` flag for the label itself — `[A-Z]` under `i` matches lowercase too, which let plain prose
+  // like "...project/portfolio evidence was retrieved" get flagged as a fabricated name; found via
+  // a direct unit test before this ever reached a live response.
+  const looksLikeProperNoun = (s) => /^[A-Z][A-Za-z0-9]/.test(s) && !/^(none|undetermined|n\/a|none found)$/i.test(s);
+  const checkClaim = (full, prefix, rawName, suffix = '') => {
+    const clean = String(rawName).trim().replace(/[.,]$/, '');
+    if (!clean || !looksLikeProperNoun(clean)) return full;
+    if (realNames.has(clean.toLowerCase())) return full;
+    flagged.push(`"${clean}"`);
+    return `${prefix}undetermined — "${clean}" was not found in retrieved evidence${suffix}`;
+  };
+
+  // "recommend project: X" (verified live — the model also drops the "-ed") is covered by
+  // recommend(?:ed|s)? rather than requiring the exact word the prompt asked for.
+  const labeledFieldRe =
+    /((?:recommend(?:ed|s)?\s+(?:a\s+)?project|RELATED (?:NEW )?PROJECTS?(?:\/PORTFOLIOS?)?|portfolio)\s*:\s*"?)([^\n,."]{2,70}?)("?)(?=[\n(]|$|\.\s|,\s|,$)/gi;
+  out = out.replace(labeledFieldRe, checkClaim);
+
+  const underTheProjectRe = /(\bunder the\s+"?)([^\n,."]{2,70}?)("?\s+project\b)/gi;
+  out = out.replace(underTheProjectRe, checkClaim);
+
+  return { answer: out, flagged };
+}
+
 function ensureRequiredSections(answer) {
   const text = String(answer || '').trim();
   if (/action items?/i.test(text)) return text;
@@ -213,9 +292,17 @@ export function buildUploadedMeetingAnalysisMessages({
   const taskEvidence = tasks.length
     ? tasks.map(compactRecord).join('\n\n')
     : 'No related existing task records were retrieved.';
+  // Verified live: with zero container evidence, the model invented plausible-sounding project
+  // names anyway ("SharePoint/Web Studio Tools", "URL Validation Bugs") instead of following the
+  // system prompt's own "say so instead of guessing" instruction — the rigid response template
+  // ("Recommended project: <real name>") outweighed a instruction buried in prose. Made the empty
+  // case an explicit, impossible-to-miss directive instead of leaving it to prose alone.
   const containerEvidence = containers.length
     ? containers.map(compactRecord).join('\n\n')
-    : 'No related project/portfolio records were retrieved.';
+    : 'No related project/portfolio records were retrieved. Do NOT invent or guess a project or ' +
+      'portfolio name for any new task — if a real project name appears in the RELATED EXISTING ' +
+      'TASKS evidence below and clearly matches the topic, use that instead; otherwise write ' +
+      'exactly "Recommended project: undetermined — no matching project/portfolio evidence was retrieved."';
   const userAsk = String(question || '').trim();
 
   return {
@@ -225,7 +312,7 @@ export function buildUploadedMeetingAnalysisMessages({
       'Do not stop at a summary. Always produce an Action items section, even if the transcript is exploratory; infer concrete follow-ups such as verify, test, confirm service name, validate ID/configuration, or create/update task.\n' +
       'For EVERY action item, first check the RELATED EXISTING TASKS evidence for a task that already covers it:\n' +
       '  - If one does: say plainly "This task already exists — do not create a new one" and cite its EXACT taskId/taskCode. Never propose creating a duplicate of a task that is already in the evidence.\n' +
-      '  - If none does (a genuinely new action item): mark it "New task — none found" and recommend which EXISTING project and portfolio it should be created under, using ONLY names from the RELATED EXISTING TASKS or RELATED PROJECTS/PORTFOLIOS evidence below (whichever real project/portfolio most closely matches the topic). Never invent a project or portfolio name that is not in the evidence — if genuinely nothing fits, say so instead of guessing.\n' +
+      '  - If none does (a genuinely new action item): mark it "New task — none found" and recommend which EXISTING project and portfolio it should be created under, using ONLY names from the RELATED EXISTING TASKS or RELATED PROJECTS/PORTFOLIOS evidence below (whichever real project/portfolio most closely matches the topic). NEVER invent a project or portfolio name that is not literally present in that evidence, even a plausible-sounding one — if genuinely nothing fits, write "undetermined", not a guess.\n' +
       'Do not invent task IDs, owners, dates, project names, portfolio names, or previous discussions not present in the evidence.',
     user:
       `Uploaded transcript file: ${filename || 'transcript'}\n` +
@@ -260,6 +347,11 @@ export async function analyzeUploadedTranscript(file, question = '') {
     question,
   });
   let answer = ensureRequiredSections(await generateMeetingAnalysis(messages));
+  const { answer: validatedAnswer, flagged } = validateAnswerAgainstEvidence(answer, {
+    tasks: context.tasks,
+    containers: context.containers,
+  });
+  answer = validatedAnswer;
   const matches = taskMatchesText(context.tasks);
   if (matches) {
     answer = `${answer}\n\nRelated existing task candidates from Qdrant:\n${matches}`;
@@ -269,6 +361,7 @@ export async function analyzeUploadedTranscript(file, question = '') {
     filename: file.originalname,
     transcriptChars: transcriptText.length,
     answer,
+    hallucinationFlags: flagged,
     retrieved: {
       meetings: context.meetings.length,
       tasks: context.tasks.length,

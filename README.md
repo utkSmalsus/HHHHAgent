@@ -8,6 +8,47 @@ Central intelligence layer between **SharePoint**, **Qdrant**, and **Ollama** (o
 SPFx → Node.js → Qdrant + SharePoint → Ollama (embed + chat) → Response
 ```
 
+## Running Locally (current setup — bundled Qdrant, no Docker)
+
+This is how the project actually runs day-to-day: a bundled local Qdrant binary + Node + Ollama.
+
+**One-time setup:**
+
+```bash
+nvm install 20          # this repo pins Node 20 via .nvmrc
+ollama serve             # or open the Ollama app
+./scripts/ollama-pull.sh # pulls nomic-embed-text + llama3.2
+cp .env.example .env     # then fill in your SharePoint credentials
+npm install
+```
+
+**Every time you want to run it** — two processes, each in its own terminal:
+
+```bash
+# Terminal 1 — Qdrant (vector DB)
+cd .local/qdrant && ./qdrant
+
+# Terminal 2 — the app (from the repo root)
+nvm use && node src/index.js
+```
+
+Then open:
+
+| What | URL |
+|------|-----|
+| Chat UI | http://localhost:3000/api/query/ui |
+| Ingest / backup dashboard | http://localhost:3000/api/ingest/progress/ui |
+| Health check | http://localhost:3000/health |
+| Qdrant REST API (raw JSON) | http://localhost:6333/collections/enterprise_knowledge |
+
+**Qdrant's visual dashboard is not available** on the bundled binary at `.local/qdrant/qdrant` — `/dashboard` 404s because this minimal build doesn't include the UI assets. To browse the vector data visually instead of via raw API JSON, install the full version separately:
+
+```bash
+brew install qdrant
+```
+
+That runs as a **separate** instance (different binary, different process) — it won't automatically see the data in `.local/qdrant/storage` unless you point it at that storage path.
+
 ## Ollama (recommended — local Mac)
 
 No API keys or quotas. See **[docs/OLLAMA-SETUP.md](docs/OLLAMA-SETUP.md)**.

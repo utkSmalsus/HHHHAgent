@@ -64,7 +64,18 @@ export async function resolveReferencedTopic(convoText, currentQuestion, types) 
   const lc = String(convoText || '').toLowerCase();
   if (!lc.trim()) return null;
   const all = await scrollPayloads({ types, limit: 30000 });
-  const hits = all.filter((p) => p.title && p.title.length > 4 && lc.includes(p.title.toLowerCase()));
+  // Bug found via live testing: a real record literally titled "Meeting" (generic, single-word)
+  // was matching almost EVERY question that used the word "meeting"/"meetings" at all, since
+  // "meetings" contains "meeting" as a substring — lc.includes() can't tell "the title was
+  // actually mentioned" from "a generic word happens to overlap". Require either multiple words
+  // or real length so a short generic title can't collide with ordinary phrasing this way.
+  const hits = all.filter(
+    (p) =>
+      p.title &&
+      p.title.length > 4 &&
+      (p.title.trim().includes(' ') || p.title.length >= 8) &&
+      lc.includes(p.title.toLowerCase())
+  );
   if (!hits.length) return null;
 
   // An exact named date beats everything else — "Scrum 30/07/2026" naming that literal date

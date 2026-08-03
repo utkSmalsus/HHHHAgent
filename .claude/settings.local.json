@@ -111,7 +111,13 @@
       "Bash(curl -s -m 90 -X POST http://localhost:3000/api/query -H 'Content-Type: application/json' -d '{\"question\":\"how many projects do we have\"}')",
       "Bash(curl -s -m 90 -X POST http://localhost:3000/api/query -H 'Content-Type: application/json' -d '{\"question\":\"what meetings happened this week\"}')",
       "Bash(curl -s -m 90 -X POST http://localhost:3000/api/query -H 'Content-Type: application/json' -d '{\"question\":\"hello there\"}')",
-      "Bash(curl -s -m 90 -X POST http://localhost:3000/api/query -H 'Content-Type: application/json' -d '{\"question\":\"Development Team Management System \\(Assets Accounts Permissions\\)\"}')"
+      "Bash(curl -s -m 90 -X POST http://localhost:3000/api/query -H 'Content-Type: application/json' -d '{\"question\":\"Development Team Management System \\(Assets Accounts Permissions\\)\"}')",
+      "Bash(curl -s http://localhost:6333/readyz)",
+      "Bash(curl -s http://localhost:6333/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:6333/dashboard)",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(d.get\\('status'\\)\\)\")",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:6333/dashboard/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\\\\n\" http://localhost:6333/dashboard/#/collections)"
     ]
   }
 }

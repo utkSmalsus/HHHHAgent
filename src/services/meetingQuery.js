@@ -4,6 +4,7 @@
  * so "meetings today" returns whatever is semantically near. Meeting points carry a real
  * `start` date, so for temporal meeting questions we filter/sort by that date instead.
  */
+import * as chrono from 'chrono-node';
 import { scrollPayloads } from './qdrantScroll.js';
 import { normalizeText } from '../utils/textMatch.js';
 import { resolveReferencedTopic } from '../utils/referenceResolve.js';
@@ -11,14 +12,36 @@ import { resolveReferencedTopic } from '../utils/referenceResolve.js';
 const MEETINGISH = /\b(meeting|meetings|scrum|stand[- ]?up|standup|call|sync|huddle|retro|review|1[- ]?on[- ]?1)\b/i;
 const TEMPORAL = /\b(today(?:'?s)?|yesterday(?:'?s)?|tomorrow(?:'?s)?|this week|last week|this month|last month|recent|lately|latest|most recent|last|upcoming|earlier|this morning)\b/i;
 
-export function isMeetingDateQuestion(question) {
-  const q = String(question || '');
-  return MEETINGISH.test(q) && TEMPORAL.test(q);
-}
-
 const startOfDay = (d) => { const x = new Date(d); x.setHours(0, 0, 0, 0); return x; };
 const endOfDay = (d) => { const x = new Date(d); x.setHours(23, 59, 59, 999); return x; };
 const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };
+
+/**
+ * Any date/date-range mentioned in the question, in ANY phrasing a user would actually type —
+ * "31 july", "July 31st", "31/07/2026", "next monday" — via chrono-node (a purpose-built
+ * natural-language date parser), instead of hand-rolling a regex per phrasing. Was originally just
+ * a numeric DD/MM/YYYY regex; verified live that "what meeting happened on 31 july" fell through
+ * it entirely (no numeric separators) and landed in an irrelevant general keyword search. The data
+ * FILTERING stays fully deterministic either way (below) — only the free-form PARSING step uses a
+ * library built for exactly this, not the local LLM: the LLM path was already shown unreliable at
+ * date reasoning earlier in this project (hallucinated "no meetings today" for a "yesterday"
+ * question with correct data in hand), so filtering never goes through it.
+ */
+function extractDateMention(question, now) {
+  const results = chrono.parse(String(question || ''), now, { forwardDate: false });
+  if (!results.length) return null;
+  const r = results[0];
+  const start = r.start?.date();
+  if (!start || Number.isNaN(start.getTime())) return null;
+  const end = r.end?.date();
+  return { start: startOfDay(start), end: endOfDay(end || start), label: r.text };
+}
+
+export function isMeetingDateQuestion(question, now = new Date()) {
+  const q = String(question || '');
+  if (!MEETINGISH.test(q)) return false;
+  return TEMPORAL.test(q) || Boolean(extractDateMention(q, now));
+}
 
 /** Resolve a relative date phrase to a concrete [start,end] range, or null if none stated. */
 export function parseDateRange(question, now = new Date()) {
@@ -49,7 +72,11 @@ export function parseDateRange(question, now = new Date()) {
   if (/\b(recent|lately|earlier)\b/.test(q)) {
     return mk(startOfDay(addDays(now, -7)), endOfDay(now), 'the last 7 days');
   }
-  return null; // "latest"/"last meeting" with no explicit range → handled by sorting
+  // "latest"/"last meeting" alone (no date) → null, handled by sorting. A genuine calendar date in
+  // any phrasing ("31 july", "July 31st", "31/07/2026") falls here since none of the fixed phrases
+  // above matched it.
+  const mention = extractDateMention(question, now);
+  return mention ? mk(mention.start, mention.end, mention.label) : null;
 }
 
 /**
@@ -97,6 +124,42 @@ export function isMeetingDetailFollowup(question) {
  */
 export async function resolveReferencedMeeting(convoText, currentQuestion = '') {
   return resolveReferencedTopic(convoText, currentQuestion, ['meeting']);
+}
+
+/**
+ * A calendar date embedded in prose, in ANY phrasing ("summarize the scrum 25/06/2026 meeting",
+ * "what meeting happened on 31 july", "the meeting on July 31st") names a real meeting
+ * unambiguously, but neither of the other resolvers catches all of that: isMeetingDateQuestion only
+ * recognizes RELATIVE temporal words (today/yesterday/this week) unless a date mention is also
+ * present, and the embedded-title resolver requires the real title as a verbatim substring — real
+ * titles are formatted "SCRUM - 25/06/2026" (with a dash), which never appears verbatim in casual
+ * phrasing. Resolve by the date itself instead, via the same general natural-language date
+ * extractor used everywhere else in this file: find meetings whose real `start` falls on that exact
+ * day, then break ties with title-keyword overlap (e.g. "scrum").
+ */
+export async function resolveMeetingByExplicitDate(question, now = new Date()) {
+  if (!MEETINGISH.test(question) && !/\bscrum\b/i.test(question)) return null;
+  const mention = extractDateMention(question, now);
+  if (!mention) return null;
+
+  const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
+  const matches = all.filter((mt) => {
+    if (!mt.start) return false;
+    const dt = new Date(mt.start);
+    return !Number.isNaN(dt.getTime()) && dt >= mention.start && dt <= mention.end;
+  });
+  if (matches.length === 1) return matches[0];
+  if (matches.length > 1) {
+    const qWords = normalizeText(question).split(' ').filter((w) => w.length > 2);
+    const scored = matches
+      .map((mt) => ({
+        mt,
+        score: qWords.reduce((s, w) => s + (normalizeText(mt.title || '').includes(w) ? 1 : 0), 0),
+      }))
+      .sort((a, b) => b.score - a.score);
+    if (scored.length && (scored.length === 1 || scored[0].score > scored[1].score)) return scored[0].mt;
+  }
+  return null;
 }
 
 /**

@@ -25,8 +25,17 @@ import {
   isMeetingDetailFollowup,
   resolveReferencedMeeting,
   resolveExactMeetingTitle,
+  resolveMeetingByExplicitDate,
   buildMeetingDetailPrompt,
 } from '../services/meetingQuery.js';
+import {
+  isOwnedByPersonQuestion,
+  isWhoWorksOnQuestion,
+  tasksOwnedByPerson,
+  whoWorksOnTopic,
+  buildOwnedByPersonAnswer,
+  buildWhoWorksOnAnswer,
+} from '../services/ownerLookup.js';
 import {
   isRecentWorkQuestion,
   recentWorkRetrieve,
@@ -214,14 +223,224 @@ router.post('/', async (req, res) => {
       });
     }
 
+    // "how many X do we have" — checked EARLY, before any of the more specific intent branches
+    // below, because those branches (meeting-detail, hierarchy, etc.) can otherwise intercept a
+    // count question first purely because it happens to contain a trigger word like "meetings".
+    // Tested live: "how many meetings have we had" (real answer: 144) was hijacked by the
+    // meeting-detail branch and answered "this is the first meeting... only one meeting recorded"
+    // — moving the count check ahead of it fixes that class of misrouting entirely.
+    // The true total is a fully known fact via a full collection count, but the general retrieval
+    // path only ever hands the LLM its top ~10-12 evidence records: tested "how many tasks do we
+    // have" (real answer 14,167) and the model answered "10" — it was just counting the evidence
+    // snippets it happened to see. Deterministic count, no LLM guess, same principle as every
+    // other exact-fact path this session.
+    const COUNT_RE = /\bhow many\b|\bcount of\b|\bnumber of\b|\btotal (number|count)\b/i;
+    if (COUNT_RE.test(question)) {
+      const COUNT_TYPES = [
+        { re: /\bportfolio/i, type: 'portfolio', label: 'portfolio items' },
+        { re: /\bproject/i, type: 'project', label: 'projects' },
+        { re: /\btask/i, type: 'task', label: 'tasks' },
+        { re: /\bmeeting/i, type: 'meeting', label: 'meetings' },
+        { re: /\btime ?entr/i, type: 'timeentry', label: 'time entries' },
+      ];
+      const matchedTypes = COUNT_TYPES.filter((t) => t.re.test(question));
+      const typesToCount = matchedTypes.length ? matchedTypes : COUNT_TYPES;
+      const counted = await Promise.all(
+        typesToCount.map(async (t) => ({
+          label: t.label,
+          n: (await scrollPayloads({ types: [t.type], limit: 30000 }).catch(() => [])).length,
+        }))
+      );
+      const answer = `There ${counted.length === 1 && counted[0].n === 1 ? 'is' : 'are'} ${counted
+        .map((c) => `${c.n} ${c.label}`)
+        .join(', ')} in the indexed knowledge base.`;
+      return res.json({
+        success: true,
+        answer,
+        format: 'prose',
+        confidence: 0.95,
+        intent: 'count',
+        sources: { qdrant: [], sharepoint: {} },
+      });
+    }
+
+    // "which tasks are overdue" / "what's past its deadline" — originally declined deterministically
+    // because task payloads carried no due-date field at all (confirmed by grepping the schema).
+    // Root cause turned out to be an ingestion gap, not a real data gap: the real SharePoint task
+    // list HAS a DueDate field (confirmed against the live SPFx app source, TaskDetailComponent.tsx),
+    // Graph was already returning it, it just was never pulled into the ingested text/metadata —
+    // see hierarchyIngest.js's taskItemToKnowledge. Now that it's ingested, answer for real: a task
+    // is overdue when its DueDate is in the past AND its status isn't one of the "done" states.
+    if (/\b(overdue|past due|late|behind schedule)\b/i.test(question) && /\btasks?\b/i.test(question)) {
+      const allTasks = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
+      const withDueDate = allTasks.filter((t) => t.dueDate);
+      if (!withDueDate.length) {
+        // Ingested data hasn't been re-ingested since DueDate was added — stay honest instead of
+        // silently answering "no overdue tasks" from an actually-empty dataset.
+        return res.json({
+          success: true,
+          answer:
+            "None of the currently indexed tasks have a due date recorded yet — the knowledge base needs to be re-ingested to pick up SharePoint's DueDate field before I can answer this. I can tell you each task's current status or when it was last updated instead.",
+          format: 'prose',
+          confidence: 0.6,
+          intent: 'insufficient-schema',
+          sources: { qdrant: [], sharepoint: {} },
+        });
+      }
+      const DONE_RE = /^(task completed|completed|approved|ready to go)/i;
+      const now = new Date();
+      const overdue = withDueDate
+        .filter((t) => new Date(t.dueDate) < now && !DONE_RE.test(t.status || ''))
+        .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+      if (!overdue.length) {
+        return res.json({
+          success: true,
+          answer: `No tasks are currently overdue (checked ${withDueDate.length} tasks with a recorded due date).`,
+          format: 'prose',
+          confidence: 0.95,
+          intent: 'overdue',
+          sources: { qdrant: [], sharepoint: {} },
+        });
+      }
+      // Honor "as a table"/"timeline" like every other deterministic branch does — this one was
+      // reported live as always rendering bullets regardless of what was asked, because it built
+      // its own answer text directly instead of going through the shared formatter. Built locally
+      // rather than reusing formatRows()/formatRowsAsTable() as-is: those show "Updated" (last
+      // modified), but the whole point of this view is the Due date, which itemDate() doesn't read.
+      const MAX = 30;
+      const shown = overdue.slice(0, MAX);
+      const more = overdue.length > MAX ? `\n…and ${overdue.length - MAX} more` : '';
+      let answer;
+      let answerFormat = 'bullets';
+      if (presentationFormat === 'table') {
+        const header = '| Title | Due | Status |';
+        const sep = '|---|---|---|';
+        const rows = shown.map(
+          (t) => `| ${String(t.title || 'Untitled').replace(/\|/g, '/')} | ${String(t.dueDate).slice(0, 10)} | ${t.status || '-'} |`
+        );
+        answer = [header, sep, ...rows].join('\n') + more;
+        answerFormat = 'table';
+      } else if (presentationFormat === 'timeline') {
+        const lines = shown.map((t) => `- ${String(t.dueDate).slice(0, 10)} — ${t.title || 'Untitled'}${t.status ? ` [${t.status}]` : ''}`);
+        answer = lines.join('\n') + more;
+        answerFormat = 'timeline';
+      } else {
+        const lines = shown.map((t) => `- ${t.title || 'Untitled'} — due ${String(t.dueDate).slice(0, 10)}${t.status ? ` [${t.status}]` : ''}`);
+        answer = `${overdue.length} task${overdue.length === 1 ? ' is' : 's are'} overdue:\n\n${lines.join('\n')}${more}`;
+      }
+      return res.json({
+        success: true,
+        answer,
+        format: answerFormat,
+        confidence: 0.95,
+        intent: 'overdue',
+        counts: { overdue: overdue.length, withDueDate: withDueDate.length },
+        sources: { qdrant: overdue.slice(0, 10).map((payload) => ({ payload })), sharepoint: {} },
+      });
+    }
+
+    // "which tasks belong to <person>" / "who is working on <project>" — the general
+    // hybridRetrieve → LLM path is a SUMMARIZER (deliberately, for "what's the status of X"), which
+    // tested live as vague ("coordination, preparation, follow-up activities...") for genuinely
+    // enumerable ownership questions where a real, specific answer exists in the data. Deterministic
+    // full-scan instead, same principle as exactLookup.js.
+    if (isOwnedByPersonQuestion(question)) {
+      const owned = await tasksOwnedByPerson(question).catch(() => null);
+      if (owned) {
+        return res.json({
+          success: true,
+          answer: buildOwnedByPersonAnswer(owned),
+          format: 'bullets',
+          confidence: owned.matches.length ? 0.9 : 0.5,
+          intent: 'owned-by',
+          counts: { matched: owned.matches.length },
+          sources: { qdrant: owned.matches.slice(0, 20).map((payload) => ({ payload })), sharepoint: {} },
+        });
+      }
+    }
+    if (isWhoWorksOnQuestion(question)) {
+      const who = await whoWorksOnTopic(question).catch(() => null);
+      if (who) {
+        return res.json({
+          success: true,
+          answer: buildWhoWorksOnAnswer(who),
+          format: 'prose',
+          confidence: who.owners.length ? 0.9 : 0.5,
+          intent: 'who-works-on',
+          counts: { owners: who.owners.length, tasks: who.taskCount },
+          sources: { qdrant: [{ payload: who.anchor }], sharepoint: {} },
+        });
+      }
+    }
+
+    // "what is the id of this task" / "task id for X" — a real, already-known fact (taskId/
+    // taskCode) that had no deterministic path at all: it fell through to general retrieval, which
+    // has no "return just the ID" answer shape, AND the pronoun "this task" wasn't being resolved
+    // from the conversation the way meeting/exact-lookup follow-ups already are. Verified live:
+    // this produced an 8-way disambiguation list including entirely unrelated candidates (a
+    // "Dashboard" project, an "Add New Hardware Popup" portfolio) instead of the exact task named
+    // one turn earlier in the same conversation.
+    const TASK_ID_RE = /\btask\s*(id|code)\b|\b(id|code)\s+(of|for)\s+(this|that|the)?\s*task\b/i;
+    if (TASK_ID_RE.test(question)) {
+      const qLower = String(question).toLowerCase();
+      const allTasksForId = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
+      let idTask = null;
+      for (const t of allTasksForId) {
+        const title = String(t.title || '').trim();
+        if (title.length < 8 || !qLower.includes(title.toLowerCase())) continue;
+        if (!idTask || title.length > String(idTask.title || '').length) idTask = t;
+      }
+      // Not named in THIS question — resolve "this task" from the conversation, same shared
+      // resolver used for "that meeting"/"it" follow-ups elsewhere.
+      if (!idTask && convo) {
+        idTask = await resolveReferencedTopic(convo, question, ['task']).catch(() => null);
+      }
+      if (idTask) {
+        const id = idTask.taskCode || (idTask.taskId != null ? String(idTask.taskId) : null);
+        const answer = id
+          ? `The ID of "${idTask.title}" is ${id}.`
+          : `"${idTask.title}" doesn't have a recorded task ID/code in the indexed data.`;
+        return res.json({
+          success: true,
+          answer,
+          format: 'prose',
+          confidence: id ? 0.95 : 0.5,
+          intent: 'task-id',
+          sources: { qdrant: [{ payload: idTask }], sharepoint: {} },
+        });
+      }
+    }
+
     // Follow-up about a specific meeting from the conversation ("what was discussed in that meeting?",
     // "who were the participants?") → answer from THAT meeting's full record, not a broad search.
     // Also: a bare exact meeting title with no context at all — SharePoint can have a meeting and
     // an unrelated task sharing an identical title, so this routes straight to the real meeting
     // instead of letting the type-agnostic general search possibly answer from the wrong record.
     const exactTitleMeeting = await resolveExactMeetingTitle(question).catch(() => null);
-    if (exactTitleMeeting || (convo && isMeetingDetailFollowup(question))) {
-      const meeting = exactTitleMeeting || (await resolveReferencedMeeting(convo, question).catch(() => null));
+    // "tell me about the meeting with Stefan" — not a bare exact title (extra words), not a
+    // conversational follow-up (no prior convo needed), but a real meeting's title IS embedded in
+    // the question. Confirmed by testing: real data has a MEETING, a PORTFOLIO item, and several
+    // TASKS all titled ~"Meeting with Stefan" — the general type-agnostic search pulled in the
+    // portfolio/task records instead of the actual meeting (0 of its evidence was the real
+    // meeting). Reusing resolveReferencedTopic against the question's OWN text (not conversation
+    // history) catches this: it finds the real meeting title as a substring of the question.
+    const embeddedTitleMeeting =
+      !exactTitleMeeting && /\bmeetings?\b/i.test(question)
+        ? await resolveReferencedTopic(question, question, ['meeting']).catch(() => null)
+        : null;
+    // "summarize the scrum 25/06/2026 meeting" — a literal calendar date names a real meeting even
+    // when the natural phrasing doesn't contain the real title verbatim (real titles are formatted
+    // "SCRUM - 25/06/2026"). See resolveMeetingByExplicitDate's comment for the full root cause.
+    const explicitDateMeeting =
+      !exactTitleMeeting && !embeddedTitleMeeting
+        ? await resolveMeetingByExplicitDate(question).catch(() => null)
+        : null;
+    if (exactTitleMeeting || embeddedTitleMeeting || explicitDateMeeting || (convo && isMeetingDetailFollowup(question))) {
+      const meeting =
+        exactTitleMeeting ||
+        embeddedTitleMeeting ||
+        explicitDateMeeting ||
+        (await resolveReferencedMeeting(convo, question).catch(() => null));
       if (meeting) {
         let answer =
           sanitizeEnterpriseAnswer(
@@ -326,6 +545,17 @@ router.post('/', async (req, res) => {
       // named ONE specific project. Only fall back to the broader matching below when no single
       // anchor resolves (e.g. the question doesn't actually name one real project/portfolio).
       const structural = await structuralRetrieve(question, { anchorOverride: pronounAnchor }).catch(() => null);
+      if (structural?.ambiguous) {
+        return res.json({
+          success: true,
+          answer: buildDisambiguationAnswer(structural.candidates),
+          format: 'bullets',
+          confidence: 0,
+          intent: 'disambiguation',
+          suggestions: buildDisambiguationSuggestions(structural.candidates),
+          sources: { qdrant: structural.candidates.map((payload) => ({ payload })), sharepoint: {} },
+        });
+      }
       if (structural && (structural.masters.length > 1 || structural.tasks.length > 0)) {
         const answer =
           sanitizeEnterpriseAnswer(
@@ -404,6 +634,17 @@ router.post('/', async (req, res) => {
           ? await resolveReferencedTopic(convo, question, ['portfolio', 'project']).catch(() => null)
           : null;
       const structural = await structuralRetrieve(question, { anchorOverride: hierarchyAnchor }).catch(() => null);
+      if (structural?.ambiguous) {
+        return res.json({
+          success: true,
+          answer: buildDisambiguationAnswer(structural.candidates),
+          format: 'bullets',
+          confidence: 0,
+          intent: 'disambiguation',
+          suggestions: buildDisambiguationSuggestions(structural.candidates),
+          sources: { qdrant: structural.candidates.map((payload) => ({ payload })), sharepoint: {} },
+        });
+      }
       if (structural && (structural.masters.length > 1 || structural.tasks.length)) {
         const formatted = presentationFormat
           ? formatRows(presentationFormat, [...structural.masters, ...structural.tasks])
@@ -469,7 +710,22 @@ router.post('/', async (req, res) => {
       // recentWork's, catches it. Only paid on the failure path, not on every query.
       if (qNorm) {
         const allEntities = await scrollPayloads({ types: ['portfolio', 'project', 'task'], limit: 30000 }).catch(() => []);
-        const hit = allEntities.find((p) => normalizeText(p.title || '') === qNorm);
+        let hit = allEntities.find((p) => normalizeText(p.title || '') === qNorm);
+        // Tested live: "what is the status of Bug - Cancel button not working of smart favorite
+        // popup" (a real, exact title with a natural question wrapped around it) still fell
+        // through to disambiguation, because the check above requires the WHOLE question to equal
+        // the title — it only ever caught bare-title-only questions. Fall back to "the real title
+        // appears verbatim inside the question", same principle as the meeting embedded-title fix
+        // above; require length >= 8 for the same reason (avoid short generic titles colliding
+        // with ordinary phrasing) and prefer the LONGEST embedded match if more than one qualifies.
+        if (!hit) {
+          const qLower = String(question).toLowerCase();
+          for (const p of allEntities) {
+            const t = String(p.title || '').trim();
+            if (t.length < 8 || !qLower.includes(t.toLowerCase())) continue;
+            if (!hit || t.length > String(hit.title || '').length) hit = p;
+          }
+        }
         if (hit) exactMatch = hit;
       }
     }
