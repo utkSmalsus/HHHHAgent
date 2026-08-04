@@ -10,6 +10,9 @@ import assert from 'node:assert/strict';
 import { rankBm25Candidates } from '../src/services/hybridSearch.js';
 import { scoreRecordMatch, bm25Score } from '../src/utils/textMatch.js';
 import { chunkText } from '../src/utils/chunking.js';
+import { isHierarchyQuestion } from '../src/services/structuralRetrieve.js';
+import { isOwnedByPersonQuestion } from '../src/services/ownerLookup.js';
+import { isExactLookupQuestion } from '../src/services/exactLookup.js';
 
 // ---------------------------------------------------------------------------
 // Fix 1 — BM25 candidates were dropped because the filter/sort read `r.bm25`
@@ -44,6 +47,60 @@ test('BM25 actually orders results (comparator returned NaN before the fix)', ()
     'the stronger BM25/keyword match must sort first'
   );
   assert.ok(ranked[0].bm25Score >= ranked[1].bm25Score, 'results must be ordered by real scores');
+});
+
+// ---------------------------------------------------------------------------
+// Entity-scoped phrasings must route to the deterministic tree walk rather than
+// the generic capped hybrid path (which returns ~10 similarity-ranked chunks and
+// silently omits most of a project's real tasks).
+// ---------------------------------------------------------------------------
+test('"going on in / happening in / status of / update on X" route to the tree walk', () => {
+  for (const q of [
+    'what is going on in Development Team Management System',
+    "what's going on in Team Management Tools",
+    'what is happening in the Meeting Tool project',
+    'status of Team Management Tools',
+    'update on Task Profile Migration SPA',
+  ]) {
+    assert.ok(isHierarchyQuestion(q), `should route to structural retrieval: "${q}"`);
+  }
+});
+
+test('the new patterns do not swallow ownership or exact-lookup questions', () => {
+  // These are handled by earlier branches in query.js; they must keep matching there.
+  for (const q of ['which tasks belong to Deepak Trivedi', 'tasks owned by Ranu Trivedi']) {
+    assert.ok(isOwnedByPersonQuestion(q), `ownership question must still match: "${q}"`);
+  }
+  for (const q of ['show me the comments on Team Management issues', 'description of the SmartSearch task']) {
+    assert.ok(isExactLookupQuestion(q), `exact-lookup question must still match: "${q}"`);
+  }
+  // A plain topical question with no container phrasing must NOT be forced down the walk.
+  assert.ok(!isHierarchyQuestion('who attended the SCRUM meeting'), 'plain question should not route structurally');
+});
+
+// ---------------------------------------------------------------------------
+// A week/month-scale period is a LIST question and must not be resolved to one
+// meeting (the NL date parser collapses "last week" to a single day).
+// ---------------------------------------------------------------------------
+test('period phrases do not resolve to a single meeting', async () => {
+  const { resolveMeetingByExplicitDate } = await import('../src/services/meetingQuery.js');
+  const now = new Date('2026-08-04T12:00:00Z');
+  for (const q of [
+    'What meetings happened last week?',
+    'what meetings did we have this week',
+    'meetings last month',
+    'recent meetings',
+  ]) {
+    assert.equal(await resolveMeetingByExplicitDate(q, now), null, `must not pick one meeting for: "${q}"`);
+  }
+});
+
+test('a genuine single calendar date still resolves to its meeting', async () => {
+  const { resolveMeetingByExplicitDate } = await import('../src/services/meetingQuery.js');
+  const now = new Date('2026-08-04T12:00:00Z');
+  const hit = await resolveMeetingByExplicitDate('summarize the scrum 25/06/2026 meeting', now);
+  assert.ok(hit, 'an explicit date must still resolve a meeting');
+  assert.match(hit.title, /25\/06\/2026/, `expected the 25/06/2026 meeting, got "${hit.title}"`);
 });
 
 // ---------------------------------------------------------------------------

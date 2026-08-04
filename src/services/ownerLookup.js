@@ -60,16 +60,40 @@ function extractTopicPhrase(question) {
  * anchors — a task title embedded in the question never had a chance to win. Checked first, before
  * falling back to the portfolio/project tree walk, so a named task always answers about itself.
  */
+// Real task titles in this data routinely end with the date they were raised — "Feedback - Asset
+// Management System (Hardware/Software and Licenses) 09-07-2025" — which users don't type when
+// naming the task. Requiring the FULL stored title to appear in the question therefore never
+// matched those tasks, so "who is working on <task name>" fell through to the portfolio/project
+// tree walk and answered with the owners of an entire 81-task portfolio instead of that one task.
+// Matching the date-stripped title as well keeps the question anchored to the task the user named.
+const TITLE_DATE_SUFFIX_RE = /[\s,–-]+\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}\s*$/;
+
 async function resolveExactTaskMatch(question) {
   const qLower = String(question || '').toLowerCase();
   const tasks = await scrollPayloads({ types: ['task'], limit: 30000 });
-  let best = null;
+
+  const matches = [];
   for (const t of tasks) {
     const title = String(t.title || '').trim();
-    if (title.length < 8 || !qLower.includes(title.toLowerCase())) continue;
-    if (!best || title.length > String(best.title || '').length) best = t;
+    if (title.length < 8) continue;
+    const bare = title.replace(TITLE_DATE_SUFFIX_RE, '').trim();
+    let matchedLen = 0;
+    if (qLower.includes(title.toLowerCase())) matchedLen = title.length;
+    else if (bare.length >= 8 && qLower.includes(bare.toLowerCase())) matchedLen = bare.length;
+    if (matchedLen) matches.push({ task: t, matchedLen });
   }
-  return best;
+  if (!matches.length) return null;
+
+  // Longest named title wins (most specific). Several real tasks can share one name and differ only
+  // by their date suffix — prefer one that actually has an owner recorded, then the most recent, so
+  // "who is working on it" reports a real person when any of them names one.
+  const maxLen = Math.max(...matches.map((m) => m.matchedLen));
+  const longest = matches.filter((m) => m.matchedLen === maxLen);
+  const withOwner = longest.filter((m) => ownerOf(m.task));
+  const pool = withOwner.length ? withOwner : longest;
+  return pool.sort((a, b) =>
+    String(b.task.timestamp || '').localeCompare(String(a.task.timestamp || ''))
+  )[0].task;
 }
 
 /** @returns {Promise<{ name: string, matches: object[] } | null>} */

@@ -26,8 +26,18 @@ const DEBUG_RAG = process.env.DEBUG_RAG !== 'false';
 // in query.js's branch order, so it never reaches this check; and if a container question here
 // somehow names something that isn't a real project/portfolio, structuralRetrieve's anchor
 // resolution just comes back empty and the caller falls through to general retrieval as before.
+// "what is going on in X" / "what's happening in X" / "status of X" / "update on X" were a real,
+// verified gap: they name ONE specific container but matched none of the patterns above, so they
+// fell through to the generic capped hybrid path (8000 candidates squeezed to ~10 by similarity).
+// Live check on "what is going on in Development Team Management System": the answer was a vague
+// thematic summary that never mentioned the project's own actively-worked task, updated that same
+// day, while the deterministic walk below returns the real subtree with no top-K cap. Safe to add:
+// ownership phrasings ("tasks owned by <person>") are caught by isOwnedByPersonQuestion earlier in
+// query.js's branch order, "feedback/comments/description of X" by isExactLookupQuestion, and if
+// the named thing isn't a real project/portfolio the anchor resolution just comes back empty and
+// the caller falls through to general retrieval exactly as before.
 const HIERARCHY_RE =
-  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of)|(tasks?|projects?|items?|features?|components?)\s+(for|of)\s)\b/i;
+  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of)|(tasks?|projects?|items?|features?|components?)\s+(for|of)\s|what(?:'?s| is)?\s+(?:going\s+on|happening)\s+(?:in|on|with|for)\s|status\s+of\s|update\s+on\s)\b/i;
 
 export function isHierarchyQuestion(question) {
   return HIERARCHY_RE.test(String(question || ''));
@@ -92,6 +102,36 @@ function resolveContainerAnchor(question, containerItems) {
   if (tied.length > 1) {
     const active = tied.filter((s) => s.group.items.some((i) => i.status && i.status !== 'Not Started'));
     if (active.length && active.length < tied.length) tied = active;
+  }
+
+  // Real data nests near-identically named containers — e.g. project "Development Team Management
+  // System" (3 tasks) is a direct CHILD of "Development Team Management System (Assets Accounts
+  // Permissions)" (68 tasks). Both tie on keyword overlap, and the ratio tiebreak below then picks
+  // the child purely for having the shorter, exact-looking title — answering about 3 tasks while
+  // silently hiding the other 65. When one tied candidate is an ancestor of another, the ancestor's
+  // tree walk already CONTAINS the descendant's, so preferring the ancestor is a strict superset:
+  // it cannot lose information, only add the rest of the subtree the user asked about.
+  if (tied.length > 1) {
+    const byId = new Map();
+    for (const item of containerItems) {
+      const id = Number(item.sharePointItemId);
+      if (Number.isFinite(id) && !byId.has(id)) byId.set(id, item);
+    }
+    const tiedIds = new Set(
+      tied.map((s) => Number(s.group.items[0]?.sharePointItemId)).filter(Number.isFinite)
+    );
+    const descendsFromAnotherTied = (item) => {
+      const seen = new Set();
+      let parent = Number(item?.parentId);
+      while (Number.isFinite(parent) && parent > 0 && !seen.has(parent)) {
+        if (tiedIds.has(parent)) return true;
+        seen.add(parent);
+        parent = Number(byId.get(parent)?.parentId);
+      }
+      return false;
+    };
+    const ancestors = tied.filter((s) => !descendsFromAnotherTied(s.group.items[0]));
+    if (ancestors.length && ancestors.length < tied.length) tied = ancestors;
   }
 
   if (tied.length === 1) {

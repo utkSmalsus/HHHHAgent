@@ -140,8 +140,19 @@ export async function resolveReferencedMeeting(convoText, currentQuestion = '') 
  * extractor used everywhere else in this file: find meetings whose real `start` falls on that exact
  * day, then break ties with title-keyword overlap (e.g. "scrum").
  */
+// A week/month-scale phrase names a PERIOD, not one meeting — "what meetings happened last week"
+// is a list question. The natural-language date extractor collapses such a phrase to a single
+// representative day ("last week" -> the date exactly one week ago), so without this guard the
+// resolver looked up that one day, found the single meeting that happened to fall on it, and
+// answered as if it were the only meeting of the whole week — verified live: 6 real meetings
+// existed that week and the answer named one and claimed there were no others. parseDateRange
+// already expands these phrases into true ranges, so they belong to the date-range branch.
+const PERIOD_PHRASE_RE =
+  /\b(this|last|past|previous)\s+(week|month|fortnight|quarter|year)\b|\b(recent(ly)?|lately|earlier)\b/i;
+
 export async function resolveMeetingByExplicitDate(question, now = new Date()) {
   if (!MEETINGISH.test(question) && !/\bscrum\b/i.test(question)) return null;
+  if (PERIOD_PHRASE_RE.test(question)) return null;
   const mention = extractDateMention(question, now);
   if (!mention) return null;
 
