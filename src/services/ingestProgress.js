@@ -161,11 +161,12 @@ export function tick(listKey, itemTitle) {
   }
 }
 
-export function completeList(listKey, ingested) {
+export function completeList(listKey, ingested, audit = null) {
   if (state.lists[listKey]) {
     state.lists[listKey].status = 'done';
     state.lists[listKey].ingested = ingested;
     state.lists[listKey].percent = 100;
+    if (audit) state.lists[listKey].audit = audit;
   }
   emit();
   logProgress();

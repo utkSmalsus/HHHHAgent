@@ -10,6 +10,9 @@ const send = document.getElementById('send');
 const sendIcon = document.getElementById('sendIcon');
 const stopIcon = document.getElementById('stopIcon');
 const themeToggle = document.getElementById('themeToggle');
+const providerSelect = document.getElementById('providerSelect');
+providerSelect.value = localStorage.getItem('omt_provider') || 'ollama';
+providerSelect.addEventListener('change', () => localStorage.setItem('omt_provider', providerSelect.value));
 
 const MAX = 20; // keep last 20 messages; 21st added → oldest dropped, stays 20
 let history = [];
@@ -379,13 +382,14 @@ form.addEventListener('submit', async (e) => {
     if (pickedFile) {
       const fd = new FormData();
       fd.append('file', pickedFile);
+      fd.append('provider', providerSelect.value);
       if (question) fd.append('question', question);
       r = await fetch('/api/meetings/analyze', { method: 'POST', body: fd, signal: controller.signal });
     } else {
       r = await fetch('/api/query', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ question, history: priorHistory }),
+        body: JSON.stringify({ question, history: priorHistory, provider: providerSelect.value }),
         signal: controller.signal,
       });
     }
@@ -398,7 +402,9 @@ form.addEventListener('submit', async (e) => {
         : sources.length;
       const text = cleanDisplayText(data.answer) || '(no answer)';
       const meta = pickedFile
-        ? 'transcript analysis · ' + (data.retrieved?.meetings || 0) + ' meeting sources · ' + (data.retrieved?.tasks || 0) + ' task sources'
+        ? (data.retrieved
+            ? 'transcript analysis · ' + (data.retrieved.meetings || 0) + ' meeting sources · ' + (data.retrieved.tasks || 0) + ' task sources'
+            : 'transcript analysis · direct search')
         : 'intent: ' + (data.intent || '?') + ' · format: ' + (data.format || 'prose') + ' · confidence: ' + (data.confidence ?? '?') + ' · ' + srcCount + ' sources';
 
       thinking.classList.remove('loading', 'typing-dots');

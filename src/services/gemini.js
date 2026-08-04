@@ -23,9 +23,13 @@ function parseRetrySeconds(err) {
   return match ? Math.min(120, Math.ceil(Number(match[1])) + 2) : 40;
 }
 
-export async function generateAnswer(prompt) {
+export async function generateAnswer(promptOrMessages) {
   const ai = getClient();
   const model = ai.getGenerativeModel({ model: config.gemini.chatModel });
+  const isObject = promptOrMessages && typeof promptOrMessages === 'object';
+  const prompt = isObject
+    ? `${promptOrMessages.system || ''}\n\n${promptOrMessages.user || ''}`.trim()
+    : String(promptOrMessages || '');
   const truncated = prompt.slice(0, config.gemini.maxPromptChars);
   const maxAttempts = config.gemini.maxRetries;
 

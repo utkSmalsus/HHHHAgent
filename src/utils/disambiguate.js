@@ -33,7 +33,7 @@ export function plausibleGroups(groups, question) {
   });
 }
 
-const tsOf = (p) => Date.parse(p?.timestamp || p?.start || '') || 0;
+export const tsOf = (p) => Date.parse(p?.timestamp || p?.start || '') || 0;
 
 /** One representative candidate per group (its most recently updated item), newest first. */
 export function toCandidates(groups, limit = 8) {

@@ -74,6 +74,18 @@ export function acronymTokens(query) {
     .filter((word) => !STOP_WORDS.has(word));
 }
 
+// Generic recency/time-intent detector — used where "the user asked for the LATEST/newest one"
+// should bias candidate resolution toward recency, without hardcoding any particular topic.
+// Deliberately broader than isRecentWorkQuestion() in recentWork.js (which drives a different,
+// already-tested top-level routing decision) — this one only feeds a local ranking tiebreak, so a
+// false positive here just means "recency gets a bit more weight than needed", not a mis-route.
+const TEMPORAL_INTENT_RE =
+  /\b(latest|newest|new|recent(?:ly)?|current(?:ly)?|today|yesterday|this week|last week|this month|last month|last updated|last modified|modified|updated|up[- ]?to[- ]?date|last few)\b/i;
+
+export function hasTemporalIntent(question) {
+  return TEMPORAL_INTENT_RE.test(String(question || ''));
+}
+
 export function extractKeywords(question) {
   const tokens = queryTokens(question);
   const acronyms = acronymTokens(question);

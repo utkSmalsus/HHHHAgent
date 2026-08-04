@@ -254,6 +254,22 @@ export async function hybridRetrieve(question, { limit = 12 } = {}) {
       ? top.reduce((s, r) => s + (r.confidence || 0), 0) / top.length
       : 0;
 
+  if (process.env.DEBUG_RAG !== 'false') {
+    console.log(
+      `[RETRIEVAL] query="${String(question).slice(0, 80)}" intent=${intent.intent} ` +
+        `entityTypes=[${intent.entityTypes.join(',')}] scrollTypes=[${scrollTypes.join(',')}] ` +
+        `vectorHits=${vectorResults.length} scrollHits=${scrolled.length} gated=${gated.length} ` +
+        `bm25=${bm25Ranked.length} fused=${fused.length} returned=${top.length}`
+    );
+    top.slice(0, 5).forEach((r, i) => {
+      const p = r.payload || r;
+      console.log(
+        `  #${i + 1} score=${(r.combinedScore || 0).toFixed(3)} source=${p.title || p.projectName || p.sharePointItemId} ` +
+          `chunk=${(p.chunkIndex ?? 0) + 1}/${p.totalChunks || 1}`
+      );
+    });
+  }
+
   return {
     intent,
     results: top,

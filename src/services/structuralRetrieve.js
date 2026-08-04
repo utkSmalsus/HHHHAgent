@@ -8,8 +8,10 @@
  */
 import { scrollPayloads } from './qdrantScroll.js';
 import { searchKnowledge } from './qdrant.js';
-import { queryTokens, extractKeywords, normalizeText } from '../utils/textMatch.js';
-import { groupByEntity, toCandidates } from '../utils/disambiguate.js';
+import { queryTokens, extractKeywords, normalizeText, hasTemporalIntent } from '../utils/textMatch.js';
+import { groupByEntity, toCandidates, tsOf } from '../utils/disambiguate.js';
+
+const DEBUG_RAG = process.env.DEBUG_RAG !== 'false';
 
 // "belongs? to" was previously a trigger here too, but it's genuinely ambiguous — "which tasks
 // belong to Deepak Trivedi" means OWNERSHIP (a person), not CONTAINMENT (a project/portfolio),
@@ -17,8 +19,15 @@ import { groupByEntity, toCandidates } from '../utils/disambiguate.js';
 // project called "Tasks View Page" and presented those tasks as "belonging to" the named person.
 // Removed — "part of"/"contained in"/"under"/"within" already cover genuine container questions
 // unambiguously, without swallowing ownership questions that happen to share the phrase.
+// "tasks/projects for X" (no "under"/"all"/"list" prefix) was a real, verified gap: "show tasks
+// for Team Management Tools project" (56 real tasks) fell through to the generic vector-search
+// path capped at ~10 results instead of this deterministic tree walk. Safe to add unconditionally
+// — "tasks for <person>" (ownership, not containment) is caught by isOwnedByPersonQuestion earlier
+// in query.js's branch order, so it never reaches this check; and if a container question here
+// somehow names something that isn't a real project/portfolio, structuralRetrieve's anchor
+// resolution just comes back empty and the caller falls through to general retrieval as before.
 const HIERARCHY_RE =
-  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of))\b/i;
+  /\b(under|within|inside|structure of|break\s?down|hierarchy|children of|child items|sub[- ]?(items|components|tasks|features)|all (tasks|projects|items|features|components|sub ?components)\b.*\b(in|under|of|for|below)|part of|contained in|what'?s (in|under)|list (the )?(tasks|projects|items|features|components)\b.*\b(in|under|for|of)|(tasks?|projects?|items?|features?|components?)\s+(for|of)\s)\b/i;
 
 export function isHierarchyQuestion(question) {
   return HIERARCHY_RE.test(String(question || ''));
@@ -72,8 +81,32 @@ function resolveContainerAnchor(question, containerItems) {
 
   const topScore = scored[0].score;
   let tied = scored.filter((s) => s.score === topScore);
+
+  // Among candidates tied on raw keyword overlap, a dormant placeholder ("Not Started", never
+  // touched) shouldn't silently outrank one that's actually being worked on just because its
+  // title is shorter/more "exact" — the ratio tiebreak below can't tell "the real thing everyone
+  // means" from "a barely-started stub that happens to share the same two words". Verified live:
+  // "Team Management Tool" tied "Team Management" (Not Started, dormant since 2023) against
+  // "Team Management System (Hardware/Software and Licenses)" (In Progress, touched today) —
+  // ratio picked the dormant one purely for having a shorter, exact-looking title.
+  if (tied.length > 1) {
+    const active = tied.filter((s) => s.group.items.some((i) => i.status && i.status !== 'Not Started'));
+    if (active.length && active.length < tied.length) tied = active;
+  }
+
   if (tied.length === 1) {
     return { anchor: tied[0].group.items[0] };
+  }
+
+  // "latest/newest/updated yesterday/..." — the question is explicitly asking about recency, so
+  // the strict title-ratio tier below (which exists to prefer exact-looking names for ordinary
+  // questions) is the wrong tiebreak here: it would silently drop a longer-titled but genuinely
+  // current record (e.g. "Development Team Management System", updated yesterday) in favor of a
+  // shorter-titled but stale one, purely because its title has one extra word. Only takes this
+  // branch when the query itself signals recency — ordinary questions ("Team Management") are
+  // completely unaffected and keep the exact ratio-tiebreak behavior below.
+  if (hasTemporalIntent(question)) {
+    return resolveByRecency(tied, question);
   }
 
   const topRatio = Math.max(...tied.map((s) => s.ratio));
@@ -98,6 +131,49 @@ function resolveContainerAnchor(question, containerItems) {
   }
 
   return { ambiguous: true, candidates: toCandidates(tied.map((s) => s.group)) };
+}
+
+/**
+ * Recency-aware resolution for temporal-intent questions ("latest X", "X updated yesterday").
+ * `tied` are candidates that already tied on raw keyword-overlap SCORE (equally relevant by that
+ * measure) — the only thing separating them here is title length/precision (ratio). Rather than
+ * keep only the single tightest-ratio tier (which is what silently drops a real, currently-active
+ * record just for having one extra word in its title), keep every candidate whose ratio is still
+ * reasonably close to the best one in this tie group, then let real Modified/Updated timestamps —
+ * not vector similarity — decide the winner. A candidate that never matched the topic at all was
+ * already excluded upstream (score > 0 filter), so an unrelated-but-newer record can't win here.
+ */
+function resolveByRecency(tied, question) {
+  const topRatio = Math.max(...tied.map((s) => s.ratio));
+  // ponytail: relative floor (not an absolute number) so this scales with title length instead of
+  // being tuned to one topic; revisit if a real case needs a stricter/looser cutoff than 65%.
+  const RELEVANCE_FLOOR = 0.65;
+  const qualified = tied.filter((s) => s.ratio >= topRatio * RELEVANCE_FLOOR);
+  const pool = qualified.length ? qualified : tied;
+
+  const ranked = pool
+    .map((s) => {
+      const newest = [...s.group.items].sort((a, b) => tsOf(b) - tsOf(a))[0];
+      return { ...s, newest, ts: tsOf(newest) };
+    })
+    .sort((a, b) => b.ts - a.ts);
+
+  if (DEBUG_RAG) {
+    console.log(
+      `[RETRIEVAL] anchor-resolution (temporal) query="${String(question).slice(0, 80)}" ` +
+        `tied=${tied.length} qualified=${qualified.length}/${tied.length} (ratio>=${(topRatio * RELEVANCE_FLOOR).toFixed(3)}) ` +
+        `winner="${ranked[0].newest.title}" (${ranked[0].newest.type}, ratio=${ranked[0].ratio.toFixed(3)}, ` +
+        `updated=${String(ranked[0].newest.timestamp || ranked[0].newest.start || '').slice(0, 10)})`
+    );
+    ranked.forEach((r, i) => {
+      console.log(
+        `  #${i + 1} ${r.newest.title} ratio=${r.ratio.toFixed(3)} ` +
+          `updated=${String(r.newest.timestamp || r.newest.start || '').slice(0, 10)}`
+      );
+    });
+  }
+
+  return { anchor: ranked[0].newest };
 }
 
 const num = (v) => {
@@ -180,6 +256,14 @@ export async function structuralRetrieve(question, { anchorOverride } = {}) {
   const tasks = all.filter(
     (p) => p.type === 'task' && (descendantIds.has(num(p.projectId)) || descendantIds.has(num(p.portfolioId)))
   );
+
+  if (process.env.DEBUG_RAG !== 'false') {
+    console.log(
+      `[RETRIEVAL] entity-question query="${String(question).slice(0, 80)}" ` +
+        `anchor="${anchor.title}" (${anchor.type}, id=${anchorId}) ` +
+        `descendantContainers=${masters.length} tasks=${tasks.length} — deterministic tree walk, no top-K limit`
+    );
+  }
 
   return { anchor, masters, tasks, descendantIds };
 }

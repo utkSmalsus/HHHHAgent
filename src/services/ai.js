@@ -18,14 +18,21 @@ export async function embedText(text, options = {}) {
 }
 
 export async function generateAnswer(prompt, options = {}) {
-  if (config.chat.provider === 'ollama') {
+  const provider = options.provider || config.chat.provider;
+
+  if (provider === 'ollama') {
     const { generateAnswer: ollamaChat } = await import('./ollama.js');
     return ollamaChat(prompt, options);
   }
 
-  if (config.chat.provider === 'huggingface') {
+  if (provider === 'huggingface') {
     const { generateAnswer: hfChat } = await import('./huggingfaceChat.js');
     return hfChat(prompt);
+  }
+
+  if (provider === 'hermes') {
+    const { generateAnswer: hermesChat } = await import('./hermes.js');
+    return hermesChat(prompt);
   }
 
   try {

@@ -2,6 +2,7 @@ import { config } from '../config.js';
 import {
   INSUFFICIENT_DATA_MESSAGE,
   sanitizeEnterpriseAnswer,
+  normalizePlainBusinessAnswer,
 } from '../utils/answerSanitizer.js';
 
 async function ollamaFetch(path, body, timeoutMs = 300000, externalSignal) {
@@ -57,45 +58,6 @@ export async function checkOllama() {
   } catch (err) {
     return { ok: false, error: err.message };
   }
-}
-
-function normalizePlainBusinessAnswer(answer) {
-  const headingPattern =
-    /^(verdict|key findings|recommendation|recommendations|next steps|summary|overall conclusion|business understanding|key insights|query intent|recent activity|enterprise project intelligence report):?$/i;
-  const lines = answer
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => line.replace(/^\*\*(.+?)\*\*:?\s*$/, '$1:').trim())
-    .filter((line) => !headingPattern.test(line.replace(/:$/, '')))
-    .map((line) => line.replace(/^[-*•]\s+/, '').trim())
-    .map((line) => line.replace(/^\d+\.\s+/, '').trim())
-    .map((line) => line.replace(/^Task\s*\d+\s*[:.)-]?\s*/i, '').trim())
-    .filter(Boolean);
-
-  let text = lines.join(' ');
-  text = text
-    .replace(/\[[^\]]*\]/g, '')
-    .replace(/\*\*/g, '')
-    .replace(/^Summary of [^:]+:\s*/i, '')
-    .replace(/\bConclusion:\s*/gi, 'Overall, ')
-    .replace(/Based on the provided context and evidence,\s*/gi, '')
-    .replace(/Based on the provided Qdrant context and SharePoint structured data,\s*/gi, '')
-    .replace(/Based on the provided context,\s*/gi, '')
-    .replace(/The key findings include:\s*/gi, '')
-    .replace(/Overall,\s*:\s*/gi, 'Overall, ')
-    .replace(/\s+\d+\.\s+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .replace(/The tasks related to ([^.]+?) include:/i, 'The work around $1 includes')
-    .replace(/The overall conclusion is that\s+/i, 'Overall, ')
-    .trim();
-
-  const sentences = text.match(/[^.!?]+[.!?]+/g);
-  if (sentences?.length > 4) {
-    text = sentences.slice(0, 4).join(' ').trim();
-  }
-
-  return text || answer;
 }
 
 export async function embedText(text) {

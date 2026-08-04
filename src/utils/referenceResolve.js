@@ -97,8 +97,29 @@ export async function resolveReferencedTopic(convoText, currentQuestion, types) 
     }
   }
 
-  hits.sort((a, b) => (b.title.length || 0) - (a.title.length || 0));
-  return hits[0] || null;
+  // A hit whose title is wholly CONTAINED in another hit's title (e.g. "SmartMetaSearch" the
+  // portfolio vs "Feedback - SmartMetaSearch 28-09-2021" the task that names it) is the same real
+  // mention, not a separate one — always keep the longer, more specific one. Otherwise the
+  // shorter substring's start position naturally sits further right (it begins partway INTO the
+  // longer title), which would make it look "more recent" by pure text position despite being
+  // strictly less specific. Drop those before ranking by recency.
+  const nonRedundant = hits.filter(
+    (h) => !hits.some((o) => o !== h && o.title.length > h.title.length && o.title.toLowerCase().includes(h.title.toLowerCase()))
+  );
+
+  // No distinguishing word in the current question — fall back to whichever hit was named most
+  // RECENTLY in the conversation (its title's last occurrence sits furthest right in convoText),
+  // not whichever happens to have the longest title. Verified live: "what are the comments in it"
+  // after asking about "Feedback - SmartMetaSearch 28-09-2021" (the immediately preceding turn)
+  // was resolving to "Create Onboarding Guide für User and Team Management" instead — mentioned
+  // only in passing two turns earlier, but its longer title won on pure length.
+  nonRedundant.sort((a, b) => {
+    const idxA = lc.lastIndexOf(a.title.toLowerCase());
+    const idxB = lc.lastIndexOf(b.title.toLowerCase());
+    if (idxA !== idxB) return idxB - idxA;
+    return (b.title.length || 0) - (a.title.length || 0);
+  });
+  return nonRedundant[0] || hits[0] || null;
 }
 
 /**

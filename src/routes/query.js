@@ -81,6 +81,12 @@ router.get('/ui', (_req, res) => {
   <header>
     <span class="brand">HHHH Agent</span>
     <span class="actions">
+      <select id="providerSelect" title="Chat model" aria-label="Chat model">
+        <option value="ollama">Ollama (local)</option>
+        <option value="gemini">Gemini</option>
+        <option value="hermes">Hermes</option>
+        <option value="gemini-flash">Gemini Flash</option>
+      </select>
       <button class="hdr-btn" id="themeToggle" type="button" title="Toggle theme" aria-label="Toggle theme">
         <svg id="iconMoon" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
         <svg id="iconSun" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" hidden><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>
@@ -132,10 +138,25 @@ router.post('/', async (req, res) => {
   const { signal } = abortController;
 
   try {
-    const { question: rawQuestion, limit = 8, history = [] } = req.body;
+    const { question: rawQuestion, limit = 8, history = [], provider } = req.body;
+    const opts = { signal, provider };
 
     if (!rawQuestion) {
       return res.status(400).json({ success: false, error: 'question is required' });
+    }
+
+    // Testing mode: the model searches Qdrant itself (via a tool call) and answers directly —
+    // bypasses every intent-detection/entity-resolution branch below entirely.
+    const DIRECT_SEARCH_MODULES = {
+      hermes: '../services/hermes.js',
+      'gemini-flash': '../services/hfFlash.js',
+    };
+    if (DIRECT_SEARCH_MODULES[provider]) {
+      const { searchAndAnswer } = await import(DIRECT_SEARCH_MODULES[provider]);
+      const answer = await searchAndAnswer(rawQuestion, history).catch(
+        (err) => `Error: ${err.message}`
+      );
+      return res.json({ success: true, answer, format: 'prose', confidence: 1, intent: `${provider}-direct` });
     }
 
     // Conversation memory: recent turns the client sent (last ~8, capped for prompt size).
@@ -210,7 +231,7 @@ router.post('/', async (req, res) => {
           'Do NOT invent any project, task, or people data. ' +
           'Briefly invite them to ask about their portfolio, projects, or tasks.',
         user: String(question).trim(),
-      }), { signal }).catch(() => null);
+      }), opts).catch(() => null);
       return res.json({
         success: true,
         answer:
@@ -442,9 +463,10 @@ router.post('/', async (req, res) => {
         explicitDateMeeting ||
         (await resolveReferencedMeeting(convo, question).catch(() => null));
       if (meeting) {
+        const meetingPrompt = await buildMeetingDetailPrompt(question, meeting, presentationFormat);
         let answer =
           sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildMeetingDetailPrompt(question, meeting, presentationFormat)), { signal }),
+            await generateAnswer(withHistory(meetingPrompt), opts),
             question,
             Boolean(presentationFormat)
           ) || INSUFFICIENT_DATA_MESSAGE;
@@ -559,7 +581,7 @@ router.post('/', async (req, res) => {
       if (structural && (structural.masters.length > 1 || structural.tasks.length > 0)) {
         const answer =
           sanitizeEnterpriseAnswer(
-            await generateAnswer(buildStructuralPrompt(question, structural), { signal }),
+            await generateAnswer(buildStructuralPrompt(question, structural), opts),
             question
           ) || INSUFFICIENT_DATA_MESSAGE;
         return res.json({
@@ -605,7 +627,7 @@ router.post('/', async (req, res) => {
         const answer =
           formatted ||
           sanitizeEnterpriseAnswer(
-            await generateAnswer(buildRecentWorkPrompt(question, recent), { signal }),
+            await generateAnswer(buildRecentWorkPrompt(question, recent), opts),
             question
           ) ||
           INSUFFICIENT_DATA_MESSAGE;
@@ -652,7 +674,7 @@ router.post('/', async (req, res) => {
         const answer =
           formatted ||
           sanitizeEnterpriseAnswer(
-            await generateAnswer(withHistory(buildStructuralPrompt(question, structural)), { signal }),
+            await generateAnswer(withHistory(buildStructuralPrompt(question, structural)), opts),
             question
           ) ||
           INSUFFICIENT_DATA_MESSAGE;
@@ -790,7 +812,7 @@ router.post('/', async (req, res) => {
         contextPack,
         recency: wantsRecent,
       }));
-      answer = sanitizeEnterpriseAnswer(await generateAnswer(messages, { signal }), question);
+      answer = sanitizeEnterpriseAnswer(await generateAnswer(messages, opts), question);
     }
 
     if (!answer) {

@@ -5,7 +5,7 @@
  * `start` date, so for temporal meeting questions we filter/sort by that date instead.
  */
 import * as chrono from 'chrono-node';
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, dedupeBySource, getFullRecordText } from './qdrantScroll.js';
 import { normalizeText } from '../utils/textMatch.js';
 import { resolveReferencedTopic } from '../utils/referenceResolve.js';
 
@@ -93,7 +93,10 @@ function isPlaceholderMeetingDate(meeting, now) {
 
 /** @returns {Promise<{ meetings: object[], range: object|null, now: Date, wantsLatest: boolean }>} */
 export async function meetingDateRetrieve(question, now = new Date()) {
-  const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
+  // A long transcript is now split across several chunk-points sharing one meeting — dedupe to
+  // one row per real meeting (every chunk carries the same title/status/date metadata) so a
+  // chunked meeting doesn't get listed N times.
+  const all = dedupeBySource(await scrollPayloads({ types: ['meeting'], limit: 5000 }));
   const range = parseDateRange(question, now);
   const wantsLatest = /\b(latest|most recent|last)\b/i.test(question);
 
@@ -142,7 +145,7 @@ export async function resolveMeetingByExplicitDate(question, now = new Date()) {
   const mention = extractDateMention(question, now);
   if (!mention) return null;
 
-  const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
+  const all = dedupeBySource(await scrollPayloads({ types: ['meeting'], limit: 5000 }));
   const matches = all.filter((mt) => {
     if (!mt.start) return false;
     const dt = new Date(mt.start);
@@ -172,7 +175,7 @@ export async function resolveMeetingByExplicitDate(question, now = new Date()) {
 export async function resolveExactMeetingTitle(question) {
   const q = normalizeText(question);
   if (!q || q.length < 4) return null;
-  const all = await scrollPayloads({ types: ['meeting'], limit: 5000 });
+  const all = dedupeBySource(await scrollPayloads({ types: ['meeting'], limit: 5000 }));
   return all.find((m) => m.title && normalizeText(m.title) === q) || null;
 }
 
@@ -198,18 +201,72 @@ const FORMAT_INSTRUCTION = {
     '- Second item goes here.\nDo not write any prose paragraphs.',
 };
 
-/** Prompt to answer a detail question about ONE specific meeting from its full record. */
-export function buildMeetingDetailPrompt(question, meeting, format = null) {
+/**
+ * Prompt to answer a detail question about ONE specific meeting from its full record. Reassembles
+ * text from every chunk when the meeting was long enough to be chunked — `meeting.text` alone is
+ * only ONE chunk's worth (the resolved point's own payload), which for a long transcript would
+ * silently reintroduce the exact "can't see past ~8000 chars" problem this fix addresses.
+ */
+// The prompt-size safety limit downstream (config.ollama.maxPromptChars, default 8000) silently
+// truncates whatever this builds — reassembling and sending a whole long transcript would just
+// get cut off again before the LLM ever saw the part being asked about, live-verified on a real
+// 149k-char meeting where a question about its final minutes got "no such discussion" back
+// because the reassembled text's relevant part sat past char 8000. Budget generously under that
+// ceiling so the rest of the prompt (system message, question, instructions) always has room too.
+const MEETING_DETAIL_TEXT_BUDGET = 6000;
+
+export async function buildMeetingDetailPrompt(question, meeting, format = null) {
   const formatNote = FORMAT_INSTRUCTION[format] ? `\n${FORMAT_INSTRUCTION[format]}` : '';
   const system =
     'You are HHHH Agent. Answer the question about this specific meeting using ONLY ' +
     'the meeting record below (its summary, participants, transcript). Be specific and concise. ' +
     'If the record does not contain the answer, say so — do not pull in other meetings or tasks.' +
     formatNote;
+
+  const isChunked = (meeting.totalChunks || 1) > 1;
+  let recordText = meeting.text || '';
+
+  if (isChunked && meeting.sourceKey) {
+    // Semantically search WITHIN this one meeting's own chunks for the actual question, instead
+    // of reassembling and blindly concatenating every chunk — the same "search, don't dump"
+    // principle the rest of this app already uses, just scoped to one resolved entity's chunks
+    // rather than the whole collection.
+    const { searchKnowledge } = await import('./qdrant.js');
+    // Ask for up to this meeting's own chunk count (capped by searchKnowledge's internal limit),
+    // not an arbitrary fixed K — a small fixed K can rank the actual best-matching chunk just
+    // outside the cutoff when a source has many chunks scoring similarly (chunking overlap makes
+    // neighbors look alike). The text budget below still controls what actually reaches the LLM.
+    const relevant = await searchKnowledge(question, meeting.totalChunks || 8, {
+      must: [{ key: 'sourceKey', match: { value: meeting.sourceKey } }],
+    }).catch(() => []);
+
+    // relevant is already sorted by relevance (combinedScore desc) — spend the budget on the
+    // best-matching chunks first, THEN reorder just the picked subset by chunkIndex so the excerpt
+    // reads chronologically. Sorting by chunkIndex before picking (the old order) would spend the
+    // whole budget on the earliest chunks regardless of relevance, since it reads front-to-back.
+    const byRelevance = relevant.map((r) => r.payload).filter(Boolean);
+
+    let budget = MEETING_DETAIL_TEXT_BUDGET;
+    const pickedPayloads = [];
+    for (const p of byRelevance) {
+      if (budget <= 0) break;
+      pickedPayloads.push(p);
+      budget -= (p.text || '').length;
+    }
+    pickedPayloads.sort((a, b) => (a.chunkIndex ?? 0) - (b.chunkIndex ?? 0));
+    const picked = pickedPayloads.map(
+      (p) => `[part ${(p.chunkIndex ?? 0) + 1}/${p.totalChunks || 1}] ${p.text || ''}`
+    );
+    recordText = picked.length
+      ? picked.join('\n\n---\n\n')
+      : (await getFullRecordText(meeting.sourceKey))?.slice(0, MEETING_DETAIL_TEXT_BUDGET) || meeting.text || '';
+  }
+
   const user =
     `USER QUESTION: ${question}\n\n` +
-    `MEETING RECORD for "${meeting.title}":\n${String(meeting.text || '').slice(0, 7000)}\n\n` +
-    `Answer using only this meeting's record.`;
+    `MEETING RECORD for "${meeting.title}" (most relevant parts to this question):\n${recordText}\n\n` +
+    `Answer using only this meeting's record. If these excerpts don't cover the question, say so ` +
+    `rather than guessing.`;
   return { system, user };
 }
 

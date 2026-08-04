@@ -64,6 +64,19 @@ export const config = {
     maxPromptChars: Number(process.env.GEMINI_MAX_PROMPT_CHARS) || 6000,
     maxRetries: Number(process.env.GEMINI_MAX_RETRIES) || 2,
   },
+  /** Local Hermes CLI's OpenAI-compatible proxy (`hermes proxy start`), default port 8645 */
+  hermes: {
+    baseUrl: process.env.HERMES_BASE_URL || 'http://127.0.0.1:8645/v1',
+    chatModel: process.env.HERMES_CHAT_MODEL || 'tencent/hy3:free',
+    maxPromptChars: Number(process.env.HERMES_MAX_PROMPT_CHARS) || 8000,
+  },
+  /** "Gemini Flash" in the dropdown — actually Hugging Face's Inference Providers router, a
+   *  non-reasoning model chosen for speed over the Nous-backed Hermes path. */
+  hfFlash: {
+    baseUrl: process.env.HF_FLASH_BASE_URL || 'https://router.huggingface.co/v1',
+    apiKey: process.env.HUGGINGFACE_API_KEY || process.env.HF_API_KEY,
+    chatModel: process.env.HF_FLASH_CHAT_MODEL || 'meta-llama/Llama-3.3-70B-Instruct:together',
+  },
   qdrant: {
     url: process.env.QDRANT_URL || 'http://localhost:6333',
     collection: process.env.QDRANT_COLLECTION || 'enterprise_knowledge',

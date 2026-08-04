@@ -19,6 +19,18 @@ export async function ingestFromSharePoint(listKey, { trackProgress = true } = {
 
   const results = [];
   const skipped = [];
+  // Aggregate audit numbers per requirement: records fetched vs. actually chunked/embedded/
+  // stored, so a 100% progress bar can't silently mean "some records lost data along the way".
+  const audit = {
+    recordsFetched: items.length,
+    recordsProcessed: 0,
+    recordsFailed: 0,
+    recordsChunked: 0,
+    totalChunksCreated: 0,
+    embeddingsOk: 0,
+    embeddingsFailed: 0,
+  };
+
   for (const item of items) {
     if (trackProgress && progress.isCancelRequested()) break;
     try {
@@ -27,6 +39,11 @@ export async function ingestFromSharePoint(listKey, { trackProgress = true } = {
         metadata: item.metadata,
       });
       results.push(stored);
+      audit.recordsProcessed += 1;
+      if (stored.stats?.chunked) audit.recordsChunked += 1;
+      audit.totalChunksCreated += stored.stats?.totalChunks || 1;
+      audit.embeddingsOk += stored.stats?.embeddingsOk || 0;
+      audit.embeddingsFailed += stored.stats?.embeddingsFailed || 0;
       if (trackProgress) {
         progress.tick(listKey, item.metadata?.title || item.metadata?.projectName || item.text?.slice(0, 50));
       }
@@ -38,15 +55,30 @@ export async function ingestFromSharePoint(listKey, { trackProgress = true } = {
         'unknown';
       console.warn(`Ingest skip [${listKey}] ${label}:`, err.message);
       skipped.push({ id: label, error: err.message });
+      audit.recordsFailed += 1;
       if (trackProgress) {
         progress.tick(listKey, `skipped: ${label}`);
       }
     }
   }
 
-  if (trackProgress) progress.completeList(listKey, results.length);
+  const status = audit.recordsFailed === 0 && audit.embeddingsFailed === 0 ? 'SUCCESS' : audit.recordsProcessed > 0 ? 'PARTIAL' : 'FAILED';
+  console.log(
+    `[INGEST AUDIT] ${listKey}: fetched=${audit.recordsFetched} processed=${audit.recordsProcessed} ` +
+      `failed=${audit.recordsFailed} chunked=${audit.recordsChunked} chunks=${audit.totalChunksCreated} ` +
+      `embeddings=${audit.embeddingsOk}/${audit.embeddingsOk + audit.embeddingsFailed} status=${status}`
+  );
 
-  return { ingested: results.length, skipped: skipped.length, skipErrors: skipped.slice(0, 20), points: results, sources };
+  if (trackProgress) progress.completeList(listKey, results.length, audit);
+
+  return {
+    ingested: results.length,
+    skipped: skipped.length,
+    skipErrors: skipped.slice(0, 20),
+    points: results,
+    sources,
+    audit: { ...audit, status },
+  };
 }
 
 export async function ingestManualItems(items) {
@@ -75,21 +107,39 @@ export async function runIngestAll(listKeys) {
   const settled = await Promise.allSettled(listKeys.map((listKey) => ingestFromSharePoint(listKey)));
 
   const results = {};
+  const combinedAudit = {
+    recordsFetched: 0,
+    recordsProcessed: 0,
+    recordsFailed: 0,
+    recordsChunked: 0,
+    totalChunksCreated: 0,
+    embeddingsOk: 0,
+    embeddingsFailed: 0,
+  };
   settled.forEach((outcome, i) => {
     const listKey = listKeys[i];
     if (outcome.status === 'fulfilled') {
       const result = outcome.value;
-      results[listKey] = { ingested: result.ingested, sources: result.sources, message: result.message };
+      results[listKey] = { ingested: result.ingested, sources: result.sources, message: result.message, audit: result.audit };
+      if (result.audit) {
+        for (const key of Object.keys(combinedAudit)) combinedAudit[key] += result.audit[key] || 0;
+      }
     } else {
       const message = outcome.reason?.message || String(outcome.reason);
       console.error(`Ingest ${listKey} failed:`, message);
       results[listKey] = { ingested: 0, message };
     }
   });
+  const auditStatus = combinedAudit.recordsFailed === 0 && combinedAudit.embeddingsFailed === 0 ? 'SUCCESS' : 'PARTIAL';
+  console.log(
+    `[INGEST AUDIT] FULL: fetched=${combinedAudit.recordsFetched} processed=${combinedAudit.recordsProcessed} ` +
+      `failed=${combinedAudit.recordsFailed} chunked=${combinedAudit.recordsChunked} chunks=${combinedAudit.totalChunksCreated} ` +
+      `embeddings=${combinedAudit.embeddingsOk}/${combinedAudit.embeddingsOk + combinedAudit.embeddingsFailed} status=${auditStatus}`
+  );
 
   if (progress.isCancelRequested()) {
     progress.cancelJob();
-    return { success: true, jobId, cancelled: true, totalIngested: progress.getProgress().totalIngested, results };
+    return { success: true, jobId, cancelled: true, totalIngested: progress.getProgress().totalIngested, results, audit: { ...combinedAudit, status: auditStatus } };
   }
 
   if (settled.every((o) => o.status === 'rejected')) {
@@ -99,7 +149,7 @@ export async function runIngestAll(listKeys) {
   }
 
   progress.finishJob();
-  return { success: true, jobId, totalIngested: progress.getProgress().totalIngested, results };
+  return { success: true, jobId, totalIngested: progress.getProgress().totalIngested, results, audit: { ...combinedAudit, status: auditStatus } };
 }
 
 export async function runIngestOne(listKey) {
