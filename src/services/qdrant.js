@@ -238,6 +238,9 @@ export async function searchKnowledge(query, limit = 5, filter = null) {
     .map((r) => {
       const keywordScore = lexicalScore(query, r.payload);
       return {
+        // Qdrant point id — lets a caller re-fetch this exact chunk's FULL text later (see the
+        // qdrant_get_chunk tool), instead of being stuck with whatever preview it was handed.
+        id: r.id,
         score: r.score,
         keywordScore,
         combinedScore: r.score + keywordScore * 0.25,

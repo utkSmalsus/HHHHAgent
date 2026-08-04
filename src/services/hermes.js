@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { runToolLoop, buildSearchMessages, buildTranscriptMessages } from './qdrantToolLoop.js';
+import { runToolLoop, buildSearchMessages, buildTranscriptRequest } from './qdrantToolLoop.js';
 
 /**
  * Bypasses this app's own intent-detection/retrieval pipeline entirely — the model searches
@@ -24,11 +24,14 @@ export async function searchAndAnswer(question, history = []) {
  * itself instead of being handed a fixed pre-retrieved context blob.
  */
 export async function analyzeTranscript(transcriptText, filename = 'transcript', question = '') {
+  const { messages, tools, executors } = buildTranscriptRequest(transcriptText, filename, question);
   return runToolLoop({
     baseUrl: config.hermes.baseUrl,
     apiKey: 'local',
     model: config.hermes.chatModel,
-    messages: buildTranscriptMessages(transcriptText, filename, question),
+    messages,
+    extraTools: tools,
+    extraExecutors: executors,
     // Nous Portal sits behind a Cloudflare timeout (~100s) — verified live that the full 10-turn
     // cap + a large transcript slice reliably tipped past it (524 Gateway Timeout) on longer/more
     // complex transcripts. Fewer turns finishes faster at some cost to how much it cross-references.

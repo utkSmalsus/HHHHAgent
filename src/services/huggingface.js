@@ -81,7 +81,8 @@ async function embedViaRouterApi(text, { isQuery = false } = {}) {
 }
 
 export async function embedText(text, options = {}) {
-  let truncated = text.slice(0, 8000);
+  // No truncation here — services/ai.js rejects oversized input before it reaches any provider.
+  let truncated = String(text ?? '');
   const model = config.huggingface.embeddingModel;
   if (model.toLowerCase().includes('bge')) {
     truncated = `${options.isQuery ? 'query' : 'passage'}: ${truncated}`;

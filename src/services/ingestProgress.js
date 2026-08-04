@@ -80,6 +80,41 @@ function buildMessage(s, percent) {
   return `Embedding ${s.currentList}: ${s.processed}/${s.total} (${percent}%)`;
 }
 
+const DB_LIST_TYPE = { portfolio: 'portfolio', projects: 'project', tasks: 'task', timeentries: 'timeentry', meetings: 'meeting' };
+
+/**
+ * The in-memory `state` above only knows about ingest jobs run in THIS server process — restart
+ * the app (not Qdrant, which is a separate persistent service) and it resets to "idle" with empty
+ * `lists`, even though the real data is still sitting in Qdrant untouched. That made the ingest UI
+ * look empty right after a restart. Only queries Qdrant when there's nothing in-memory to show
+ * (idle, no lists yet) — an active run keeps using the fast in-memory counters unchanged.
+ */
+export async function getProgressWithDbState() {
+  const p = getProgress();
+  if (p.status !== 'idle' || Object.keys(p.lists).length) return p;
+
+  try {
+    const { getRecordCounts } = await import('./qdrantScroll.js');
+    const counts = await getRecordCounts();
+    const total = Object.values(counts).reduce((s, n) => s + n, 0);
+    if (!total) return p;
+
+    const lists = {};
+    for (const [uiKey, type] of Object.entries(DB_LIST_TYPE)) {
+      const n = counts[type] || 0;
+      lists[uiKey] = { status: 'done', fetched: n, ingested: n, percent: 100 };
+    }
+    return {
+      ...p,
+      lists,
+      totalIngested: total,
+      message: `${total} items already in Qdrant from a previous ingest. POST /api/ingest/all to refresh.`,
+    };
+  } catch {
+    return p;
+  }
+}
+
 export function isRunning() {
   return state.status === 'running';
 }

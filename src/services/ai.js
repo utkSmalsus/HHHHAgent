@@ -1,6 +1,24 @@
 import { config } from '../config.js';
+import { MAX_CHUNK_CHARS } from '../utils/chunking.js';
+
+// Every embedding provider used to silently do `text.slice(0, 8000)`, so anything longer lost its
+// tail with no error, no warning and no trace — the exact class of bug that made long transcripts
+// only partially searchable. Ingestion chunks before embedding (chunks top out at MAX_CHUNK_CHARS),
+// and queries are short, so nothing legitimate comes close to this ceiling. Headroom of 2x absorbs
+// provider-side prefixes (e.g. the "passage: " that huggingface.js prepends) without masking a real
+// bug: if oversized text ever reaches here it means a caller bypassed chunkText(), and failing loudly
+// is strictly better than silently embedding a fraction of the content and calling it indexed.
+const MAX_EMBED_CHARS = MAX_CHUNK_CHARS * 2;
 
 export async function embedText(text, options = {}) {
+  const input = String(text ?? '');
+  if (input.length > MAX_EMBED_CHARS) {
+    throw new Error(
+      `embedText received ${input.length} chars, exceeding the ${MAX_EMBED_CHARS}-char limit. ` +
+        'Long text must be split with chunkText() before embedding — refusing to silently truncate.'
+    );
+  }
+
   switch (config.embeddings.provider) {
     case 'ollama': {
       const { embedText: ollamaEmbed } = await import('./ollama.js');

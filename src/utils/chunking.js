@@ -12,6 +12,11 @@ const CHARS_PER_TOKEN = 4;
 const DEFAULT_CHUNK_CHARS = 850 * CHARS_PER_TOKEN; // ~850 tokens, within the requested 700-1000
 const DEFAULT_OVERLAP_CHARS = 125 * CHARS_PER_TOKEN; // ~125 tokens, within the requested 100-150
 
+/** Largest chunk chunkText() can emit — the hard-split fallback in flush() only splits once a
+ *  run exceeds this, so a single chunk can legitimately reach it. Exported so the embedding-layer
+ *  size guard (see services/ai.js) stays in sync with what chunking actually produces. */
+export const MAX_CHUNK_CHARS = Math.ceil(DEFAULT_CHUNK_CHARS * 1.5);
+
 export function estimateTokens(text) {
   return Math.ceil(String(text || '').length / CHARS_PER_TOKEN);
 }
@@ -71,7 +76,7 @@ export function chunkText(text, { chunkChars = DEFAULT_CHUNK_CHARS, overlapChars
     // Fallback for a single unit still longer than the chunk target (e.g. one huge unbroken
     // line with no sentence punctuation) — hard-split by character as a last resort.
     let rest = current;
-    while (rest.length > chunkChars * 1.5) {
+    while (rest.length > Math.ceil(chunkChars * 1.5)) {
       chunks.push(rest.slice(0, chunkChars));
       rest = tailOverlap(rest.slice(0, chunkChars), overlapChars) + rest.slice(chunkChars);
     }

@@ -40,8 +40,8 @@ function tensorToVector(output) {
 
 export async function embedText(text) {
   const pipe = await getExtractor();
-  const truncated = text.slice(0, 8000);
-  const output = await pipe(truncated, { pooling: 'mean', normalize: true });
+  // No truncation here — services/ai.js rejects oversized input before it reaches any provider.
+  const output = await pipe(String(text ?? ''), { pooling: 'mean', normalize: true });
   const vec = tensorToVector(output);
   if (!vec.length) {
     throw new Error('Local embedding returned empty vector');

@@ -1,5 +1,5 @@
 import { config } from '../config.js';
-import { runToolLoop, buildSearchMessages, buildTranscriptMessages } from './qdrantToolLoop.js';
+import { runToolLoop, buildSearchMessages, buildTranscriptRequest } from './qdrantToolLoop.js';
 
 /**
  * Same "model searches Qdrant itself" pattern as hermes.js, but talking directly to a
@@ -17,11 +17,14 @@ export async function searchAndAnswer(question, history = []) {
 }
 
 export async function analyzeTranscript(transcriptText, filename = 'transcript', question = '') {
+  const { messages, tools, executors } = buildTranscriptRequest(transcriptText, filename, question);
   return runToolLoop({
     baseUrl: config.hfFlash.baseUrl,
     apiKey: config.hfFlash.apiKey,
     model: config.hfFlash.chatModel,
-    messages: buildTranscriptMessages(transcriptText, filename, question),
+    messages,
+    extraTools: tools,
+    extraExecutors: executors,
     maxTurns: 6,
     providerLabel: 'HF Flash',
   });

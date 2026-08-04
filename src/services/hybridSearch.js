@@ -23,7 +23,7 @@ function passesKeywordGate(query, payload, intent) {
   return score >= 0.2;
 }
 
-function rankBm25Candidates(query, payloads, intent) {
+export function rankBm25Candidates(query, payloads, intent) {
   const keywords = extractKeywords(query);
   if (!keywords.length && (intent.intent === 'count' || intent.intent === 'list')) {
     return payloads.map((payload) => ({
@@ -57,8 +57,12 @@ function rankBm25Candidates(query, payloads, intent) {
         match,
       };
     })
-    .filter((r) => r.bm25 > 0 || r.match.score > 0.2)
-    .sort((a, b) => b.bm25 + b.match.score - (a.bm25 + a.match.score));
+    // The property built above is `bm25Score`, not `bm25` — reading `r.bm25` yielded undefined, so
+    // the filter's first clause was always false (a strong BM25 match with match.score <= 0.2 got
+    // dropped), and the comparator returned NaN (undefined + number), leaving the list effectively
+    // unsorted. BM25 contributed nothing to either gate or order until this was corrected.
+    .filter((r) => r.bm25Score > 0 || r.match.score > 0.2)
+    .sort((a, b) => b.bm25Score + b.match.score - (a.bm25Score + a.match.score));
 }
 
 function fuseResults(vectorResults, bm25Ranked, limit) {

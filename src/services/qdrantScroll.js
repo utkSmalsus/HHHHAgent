@@ -80,6 +80,27 @@ export async function getFullRecordText(sourceKey) {
   return sorted.map((p) => p.text || '').join('\n\n');
 }
 
+/**
+ * Real per-type record counts currently sitting in Qdrant — dedupe applied so a chunked record
+ * (several points sharing one sourceKey) counts once, matching what a completed ingest run's own
+ * `lists[key].ingested` number means (real records, not chunk points). Used to make the ingest UI
+ * show what's actually already stored when idle, instead of looking empty just because no job has
+ * run in this particular server process yet (Qdrant itself is a separate, persistent service).
+ */
+export async function getRecordCounts() {
+  const payloads = await scrollPayloads({
+    types: ['portfolio', 'project', 'task', 'timeentry', 'meeting'],
+    limit: 60000,
+  });
+  const deduped = dedupeBySource(payloads);
+  const counts = {};
+  for (const p of deduped) {
+    if (!p?.type) continue;
+    counts[p.type] = (counts[p.type] || 0) + 1;
+  }
+  return counts;
+}
+
 export async function scrollPayloads({ types, limit = 15000 } = {}) {
   await ensureCollection();
   const qdrant = getClient();

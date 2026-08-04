@@ -7,7 +7,7 @@ import {
   runIngestOne,
 } from '../services/ingestion.js';
 import { getSharePointSitesConfig } from '../services/sharepoint.js';
-import { getProgress, isRunning, onProgress, requestCancel } from '../services/ingestProgress.js';
+import { getProgress, getProgressWithDbState, isRunning, onProgress, requestCancel } from '../services/ingestProgress.js';
 import { config } from '../config.js';
 
 const router = Router();
@@ -17,8 +17,8 @@ router.get('/config', (_req, res) => {
 });
 
 /** Live progress JSON — poll every 1–2s while ingest runs */
-router.get('/progress', (_req, res) => {
-  res.json({ success: true, ...getProgress() });
+router.get('/progress', async (_req, res) => {
+  res.json({ success: true, ...(await getProgressWithDbState()) });
 });
 
 /** Stop the running ingest after its current item — remaining items/lists are skipped. */
@@ -31,7 +31,7 @@ router.post('/stop', (_req, res) => {
 });
 
 /** Server-Sent Events — live progress stream in browser/terminal */
-router.get('/progress/stream', (req, res) => {
+router.get('/progress/stream', async (req, res) => {
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
@@ -41,7 +41,7 @@ router.get('/progress/stream', (req, res) => {
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
 
-  send(getProgress());
+  send(await getProgressWithDbState());
   const unsubscribe = onProgress(send);
 
   req.on('close', () => {

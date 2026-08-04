@@ -2,3 +2,11 @@ node_modules/
 .env
 .DS_Store
 *.log
+
+# Local Qdrant database — binary segment/index files containing ingested enterprise content.
+# Never belongs in Git: huge binary churn, merge conflicts, and it puts real SharePoint data
+# (task text, meeting transcripts) into repository history.
+.local/qdrant/storage/
+# Downloaded Qdrant binary + archive (~93MB), reproducible from the official release.
+.local/qdrant/qdrant
+.local/qdrant/qdrant.tar.gz

@@ -61,12 +61,14 @@ export async function checkOllama() {
 }
 
 export async function embedText(text) {
-  const truncated = text.slice(0, 8000);
+  // No truncation here: oversized input is rejected up front by services/ai.js (the single entry
+  // point every caller routes through), so anything arriving here is already a bounded chunk.
+  const input = String(text ?? '');
 
   try {
     const data = await ollamaFetch(
       '/api/embed',
-      { model: config.ollama.embedModel, input: truncated },
+      { model: config.ollama.embedModel, input },
       120000
     );
     const embedding = data.embeddings?.[0];
@@ -77,7 +79,7 @@ export async function embedText(text) {
 
   const legacy = await ollamaFetch(
     '/api/embeddings',
-    { model: config.ollama.embedModel, prompt: truncated },
+    { model: config.ollama.embedModel, prompt: input },
     120000
   );
   const embedding = legacy.embedding;
