@@ -1,0 +1,78 @@
+
+### EVAL: paraphrase-multi
+collection: bench_paraphrase (3000 points) | dataset: 45 cases
+
+id   lang            type          rank  vec     kw     bm25   expected
+------------------------------------------------------------------------------------------------------------
+M01  en->en          begin            1   0.637   0.45   0.98  Hermese Meeting with Stefan and Utkarsh
+M02  en->en          begin            2   0.542   0.09   1.43  Hermese Meeting with Stefan and Utkarsh
+M03  en->en          middle           1   0.739   0.06   1.43  Hermese Meeting with Stefan and Utkarsh
+M04  en->en          middle           2   0.493   0.08   2.16  Hermese Meeting with Stefan and Utkarsh
+M05  en->en          middle           1   0.560   0.08   1.84  Hermese Meeting with Stefan and Utkarsh
+M06  en->en          end            >20     -     0.06   0.39  Hermese Meeting with Stefan and Utkarsh
+M07  en->en          action-item      2   0.546   0.09   1.43  Hermese Meeting with Stefan and Utkarsh
+M08  en->en          begin            2   0.618   0.09   1.40  SCRUM - 25/06/2026
+M09  en->hi          middle         >20     -     0.06   0.94  SCRUM - 25/06/2026
+M10  en->hinglish    end            >20     -     0.04   1.08  SCRUM - 25/06/2026
+M11  en->hi          end              1   0.620   0.01   0.00  SCRUM - 25/06/2026
+M12  en->en          begin            1   0.594   0.04   0.34  Loveable KT
+M13  en->hi          middle         >20     -     0.04   0.41  Loveable KT
+M14  en->hi          end              6   0.525   0.03   0.63  Loveable KT
+M15  en->en          begin            1   0.757   0.07   2.12  SPA Development and Deployment Guidelines
+M16  en->hi          middle          10   0.446   0.05   0.88  SPA Development and Deployment Guidelines
+H01  hi->hi          paraphrased      2   0.668   0.10   0.00  SCRUM - 25/06/2026
+H02  hi->hi          middle         >20     -     0.10   0.00  SCRUM - 25/06/2026
+H03  hinglish->hi    end            >20     -     0.01   0.00  SCRUM - 25/06/2026
+H04  hi->hi          paraphrased      1   0.666   0.10   0.00  Loveable KT
+H05  hinglish->hi    middle          18   0.457   0.03   0.41  Loveable KT
+S01  en->en          exact-title      1   0.752   1.95   1.53  Add & Connect Tool Migration
+S02  en->en          exact-title      2   0.724   1.95   1.86  Webstudio - User Management & Governance S
+S03  en->en          exact-title      1   0.747   0.45   1.32  Development - Tasks By Team View
+S04  en->en          exact-title      1   0.853   1.95   1.99  Gruene Contact Database via PnP Provisioni
+S05  en->en          exact-title      1   0.780   0.45   2.24  Show Monthly & Weekly Attendance on User C
+S06  en->en          exact-title      1   0.821   1.95   1.52  HR Admin Page - Global Attendance
+S07  en->en          paraphrased    >20     -     0.07   1.44  Feedback - SmartSearch filter on Team port
+S08  en->en          paraphrased      3   0.611   0.04   1.83  Bug - New Tagged Portfolio and Project doe
+S09  en->en          paraphrased      1   0.727   0.07   2.71  Bug - Team Members Disappearing After Clic
+S10  en->en          paraphrased      1   0.837   1.23   1.89  Webstudio - Manage PHP Framework
+S11  en->en          paraphrased      1   0.600   0.27   0.79  Team Management System (Hardware/Software 
+S12  en->en          paraphrased      1   0.665   0.28   0.80  Generate Weekly Report
+S13  en->en          person         >20     -     0.05   1.42  Show Monthly & Weekly Attendance on User C
+S14  en->en          person           9   0.638   0.06   1.69  Development - Tasks By Team View
+S15  en->en          person           3   0.543   0.07   2.28  Portfolio Profile Page Bug
+S16  en->en          status         >20     -     0.06   1.18  Show Monthly & Weekly Attendance on User C
+S17  en->en          status           2   0.620   0.27   2.26  SDC Project Tools Migration to SP Online
+S18  en->en          recent           2   0.707   0.31   1.52  SDC Project Tools Migration to SP Online
+S19  en->en          recent           1   0.784   0.36   1.36  Task Profile Migration SPA
+S20  en->en          date           >20     -     0.28   1.93  Bug - New Tagged Portfolio and Project doe
+S21  en->en          date             7   0.690   0.08   3.19  Feedback - SPFX profile pages Client categ
+S22  en->en          action-item     10   0.616   0.04   1.09  Development - Tasks By Team View
+S23  en->en          semantic         1   0.646   0.33   0.73  HR Admin Page - Global Attendance
+S24  en->en          semantic         2   0.728   0.36   1.19  Add & Connect Tool Migration
+
+────────────────────────── OVERALL ──────────────────────────
+ALL                        n= 45  R@1  40.0%  R@5  64.4%  R@10  75.6%  R@20  77.8%  MRR 0.530
+
+────────────────────── BY LANGUAGE ───────────────────────
+English (en->en)           n= 34  R@1  47.1%  R@5  76.5%  R@10  85.3%  R@20  85.3%  MRR 0.618
+Hindi/Hinglish (all)       n= 11  R@1  18.2%  R@5  27.3%  R@10  45.5%  R@20  54.5%  MRR 0.257
+  en->hi / en->hinglish    n=  6  R@1  16.7%  R@5  16.7%  R@10  50.0%  R@20  50.0%  MRR 0.211
+  hi->hi / hinglish->hi    n=  5  R@1  20.0%  R@5  40.0%  R@10  40.0%  R@20  60.0%  MRR 0.311
+
+────────────────────── BY CATEGORY ───────────────────────
+Meeting transcript         n= 21  R@1  33.3%  R@5  57.1%  R@10  66.7%  R@20  71.4%  MRR 0.468
+Structured SharePoint      n= 24  R@1  45.8%  R@5  70.8%  R@10  83.3%  R@20  83.3%  MRR 0.584
+
+──────────────────── BY QUERY TYPE ───────────────────────
+Exact keyword/title        n=  6  R@1  83.3%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.917
+Semantic/paraphrased       n= 10  R@1  60.0%  R@5  90.0%  R@10  90.0%  R@20  90.0%  MRR 0.733
+Person/owner               n=  3  R@1   0.0%  R@5  33.3%  R@10  66.7%  R@20  66.7%  MRR 0.148
+Status                     n=  2  R@1   0.0%  R@5  50.0%  R@10  50.0%  R@20  50.0%  MRR 0.250
+Latest/recent              n=  2  R@1  50.0%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.750
+Date-specific              n=  2  R@1   0.0%  R@5   0.0%  R@10  50.0%  R@20  50.0%  MRR 0.071
+Action-item                n=  2  R@1   0.0%  R@5  50.0%  R@10 100.0%  R@20 100.0%  MRR 0.300
+Transcript begin           n=  5  R@1  60.0%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.800
+Transcript middle          n=  8  R@1  25.0%  R@5  37.5%  R@10  50.0%  R@20  62.5%  MRR 0.332
+Transcript end             n=  5  R@1  20.0%  R@5  20.0%  R@10  40.0%  R@20  40.0%  MRR 0.233
+
+wrote eval/results/bench_paraphrase.json

@@ -1,0 +1,824 @@
+{
+  "label": "bge-m3",
+  "collection": "bench_bge_m3",
+  "overall": {
+    "n": 45,
+    "Recall@1": 0.5111111111111111,
+    "Recall@5": 0.6888888888888889,
+    "Recall@10": 0.7333333333333333,
+    "Recall@20": 0.7555555555555555,
+    "MRR": 0.5876543209876542
+  },
+  "rows": [
+    {
+      "id": "M01",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "begin",
+      "question": "What was the Hermes meeting with Stefan and Utkarsh about?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "open-source AI agent framework"
+      },
+      "explanation": "Executive summary in the first chunk: evaluating Hermes, an open-source AI agent framework, for task generation and workflow automation.",
+      "rank": 3,
+      "vectorScore": 0.56570005,
+      "keywordScore": 0.45,
+      "bm25": 0.982105934766882,
+      "targetChunks": 1,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M02",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "begin",
+      "question": "What server infrastructure and RAM was discussed for hosting Hermes?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "16GB RAM"
+      },
+      "explanation": "Summary states Delgado hosting with 16GB RAM.",
+      "rank": 1,
+      "vectorScore": 0.62366605,
+      "keywordScore": 0.0875,
+      "bm25": 1.4279429684860765,
+      "targetChunks": 3,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M03",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "middle",
+      "question": "How should Hermes memory be retained beyond its built-in storage limits?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "retention beyond built-in storage"
+      },
+      "explanation": "Mid-transcript: export memory data periodically and re-import it to maintain continuous organizational learning.",
+      "rank": 2,
+      "vectorScore": 0.6446753,
+      "keywordScore": 0.05833333333333333,
+      "bm25": 1.4288828636810926,
+      "targetChunks": 2,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M04",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "middle",
+      "question": "Who said the meeting should be created using out-of-the-box tools rather than by Hermes?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "should not be Hermes who creates the meeting"
+      },
+      "explanation": "Stefan Hochhuth argues the meeting should be created by out-of-the-box tools, not Hermes.",
+      "rank": 4,
+      "vectorScore": 0.5912701,
+      "keywordScore": 0.07636363636363636,
+      "bm25": 2.1561295713022526,
+      "targetChunks": 2,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M05",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "middle",
+      "question": "What happens to the knowledge and memory when you switch between different LLM models?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "switch in between the models"
+      },
+      "explanation": "Discussion that Hermes owns the memory/knowledge so models can be switched underneath it.",
+      "rank": 1,
+      "vectorScore": 0.6002472,
+      "keywordScore": 0.08166666666666667,
+      "bm25": 1.8411412642178961,
+      "targetChunks": 2,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M06",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "end",
+      "question": "How did the Hermes meeting with Stefan end?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "Anything else or we"
+      },
+      "explanation": "Final chunk: Stefan asks \"Anything else or we're fine?\" and the meeting closes.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.063,
+      "bm25": 0.38890115267319253,
+      "targetChunks": 2,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M07",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "action-item",
+      "question": "What was the plan for integrating Hermes with the new SPA architecture?",
+      "expect": {
+        "meetingTitle": "Hermese Meeting with Stefan and Utkarsh",
+        "marker": "integrating Hermes with new SPA"
+      },
+      "explanation": "Action item: develop strategy to integrate Hermes with the new SPA architecture in an initial phase.",
+      "rank": 1,
+      "vectorScore": 0.5446851,
+      "keywordScore": 0.0875,
+      "bm25": 1.4288828636810926,
+      "targetChunks": 2,
+      "topHit": "Hermese Meeting with Stefan and Utkarsh"
+    },
+    {
+      "id": "M08",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "begin",
+      "question": "Who were the participants in the SCRUM 25/06/2026 meeting?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "Prashant Kumar, Deepak Trivedi"
+      },
+      "explanation": "Participants are listed in the English metadata header of the first chunk.",
+      "rank": 1,
+      "vectorScore": 0.67700183,
+      "keywordScore": 0.08999999999999998,
+      "bm25": 1.399528562261918,
+      "targetChunks": 1,
+      "topHit": "SCRUM - 25/06/2026"
+    },
+    {
+      "id": "M09",
+      "category": "meeting-transcript",
+      "language": "en->hi",
+      "queryType": "middle",
+      "question": "What was said about task points being added to the tasks in the SCRUM 25/06/2026 meeting?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "टास्क प्वाइंट"
+      },
+      "explanation": "Anshu Mishra says the task points were not filled in earlier and have now been added.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.05833333333333333,
+      "bm25": 0.937294722506405,
+      "targetChunks": 2,
+      "topHit": "SCRUM - 25/06/2026"
+    },
+    {
+      "id": "M10",
+      "category": "meeting-transcript",
+      "language": "en->hinglish",
+      "queryType": "end",
+      "question": "Near the end of the SCRUM 25/06/2026 meeting, what did Deepak say about not being satisfied and continuing to look at AI options?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "डोन्ट बी सटिस्फीएड"
+      },
+      "explanation": "Deepak: \"don't be satisfied, keep looking at options\" — spoken in Hinglish transliterated into Devanagari.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.03705882352941176,
+      "bm25": 1.0767102968001718,
+      "targetChunks": 1,
+      "topHit": "SCRUM - 25/06/2026"
+    },
+    {
+      "id": "M11",
+      "category": "meeting-transcript",
+      "language": "en->hi",
+      "queryType": "end",
+      "question": "What did Deepak say about using AI to help with testing and watching videos about it?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "टेस्टिंग में भी हेल्प करते है"
+      },
+      "explanation": "Deepak notes development AI tools also help with testing and asks the team to watch related videos.",
+      "rank": 4,
+      "vectorScore": 0.59412247,
+      "keywordScore": 0.013125,
+      "bm25": 0,
+      "targetChunks": 2,
+      "topHit": "AI Prompting Standards Guidelines"
+    },
+    {
+      "id": "M12",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "begin",
+      "question": "Who attended the Loveable KT session?",
+      "expect": {
+        "meetingTitle": "Loveable KT",
+        "marker": "Jatin Rai"
+      },
+      "explanation": "Participant list in the English metadata header of the first chunk.",
+      "rank": 1,
+      "vectorScore": 0.5845892,
+      "keywordScore": 0.041999999999999996,
+      "bm25": 0.3423070152909449,
+      "targetChunks": 1,
+      "topHit": "Loveable KT"
+    },
+    {
+      "id": "M13",
+      "category": "meeting-transcript",
+      "language": "en->hi",
+      "queryType": "middle",
+      "question": "In the Loveable KT meeting, what was said about changes being reverted?",
+      "expect": {
+        "meetingTitle": "Loveable KT",
+        "marker": "रिवर्ट भी होता जा रहा"
+      },
+      "explanation": "Kamal Kishore observes that things are also getting reverted.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.04499999999999999,
+      "bm25": 0.4061497550723453,
+      "targetChunks": 2,
+      "topHit": "Loveable KT"
+    },
+    {
+      "id": "M14",
+      "category": "meeting-transcript",
+      "language": "en->hi",
+      "queryType": "end",
+      "question": "At the end of the Loveable KT meeting, what was said about building a component to display a team member?",
+      "expect": {
+        "meetingTitle": "Loveable KT",
+        "marker": "टीम मेंबर दिखाने का एक कम्पोनेन्ट"
+      },
+      "explanation": "Discussion that without project knowledge the AI will produce a wrong component when asked to build a team-member display component.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.0315,
+      "bm25": 0.6308259176453436,
+      "targetChunks": 2,
+      "topHit": "Loveable KT"
+    },
+    {
+      "id": "M15",
+      "category": "meeting-transcript",
+      "language": "en->en",
+      "queryType": "begin",
+      "question": "What was the SPA development and deployment guidelines meeting meant to cover?",
+      "expect": {
+        "meetingTitle": "SPA Development and Deployment Guidelines",
+        "marker": "Discuss the SPA development process"
+      },
+      "explanation": "Description field: SPA development process, deployment workflow, QA validation and coding standards.",
+      "rank": 1,
+      "vectorScore": 0.69095427,
+      "keywordScore": 0.075,
+      "bm25": 2.122533293506024,
+      "targetChunks": 1,
+      "topHit": "SPA Development and Deployment Guidelines"
+    },
+    {
+      "id": "M16",
+      "category": "meeting-transcript",
+      "language": "en->hi",
+      "queryType": "middle",
+      "question": "In the SPA guidelines meeting, what was said about the UI breaking when something was clicked?",
+      "expect": {
+        "meetingTitle": "SPA Development and Deployment Guidelines",
+        "marker": "फटने लग गया"
+      },
+      "explanation": "Complaint that clicking caused the layout to break; agreement that it should not happen.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.0525,
+      "bm25": 0.8779815408477963,
+      "targetChunks": 2,
+      "topHit": "SPA Development and Deployment Guidelines"
+    },
+    {
+      "id": "H01",
+      "category": "meeting-transcript",
+      "language": "hi->hi",
+      "queryType": "paraphrased",
+      "question": "दीपक ने ए आई टेस्टिंग के बारे में क्या कहा?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "टेस्टिंग में भी हेल्प करते है"
+      },
+      "explanation": "Hindi query for the same Hindi content as M11 — tests same-language retrieval.",
+      "rank": 4,
+      "vectorScore": 0.5238011,
+      "keywordScore": 0.1,
+      "bm25": 0,
+      "targetChunks": 2,
+      "topHit": "Scrum 21/07/2026"
+    },
+    {
+      "id": "H02",
+      "category": "meeting-transcript",
+      "language": "hi->hi",
+      "queryType": "middle",
+      "question": "मीटिंग में टास्क प्वाइंट के बारे में क्या बात हुई?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "टास्क प्वाइंट"
+      },
+      "explanation": "Hindi query for the task-points discussion (same target as M09).",
+      "rank": 9,
+      "vectorScore": 0.6018176,
+      "keywordScore": 0.1,
+      "bm25": 0,
+      "targetChunks": 2,
+      "topHit": "Scrum 30/07/2026"
+    },
+    {
+      "id": "H03",
+      "category": "meeting-transcript",
+      "language": "hinglish->hi",
+      "queryType": "end",
+      "question": "Deepak ne AI options ke baare mein kya kaha, satisfied nahi hone ke baare mein?",
+      "expect": {
+        "meetingTitle": "SCRUM - 25/06/2026",
+        "marker": "डोन्ट बी सटिस्फीएड"
+      },
+      "explanation": "Romanized Hinglish query for Devanagari-transliterated Hinglish content (same target as M10).",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.010499999999999999,
+      "bm25": 0,
+      "targetChunks": 1,
+      "topHit": "Scrum 01/07/2026"
+    },
+    {
+      "id": "H04",
+      "category": "meeting-transcript",
+      "language": "hi->hi",
+      "queryType": "paraphrased",
+      "question": "टीम मेंबर दिखाने वाले कम्पोनेन्ट के बारे में क्या चर्चा हुई?",
+      "expect": {
+        "meetingTitle": "Loveable KT",
+        "marker": "टीम मेंबर दिखाने का एक कम्पोनेन्ट"
+      },
+      "explanation": "Hindi query for the team-member component discussion (same target as M14).",
+      "rank": 6,
+      "vectorScore": 0.54128504,
+      "keywordScore": 0.1,
+      "bm25": 0,
+      "targetChunks": 2,
+      "topHit": "Run Scripts to Verify Tools - 14-08-25"
+    },
+    {
+      "id": "H05",
+      "category": "meeting-transcript",
+      "language": "hinglish->hi",
+      "queryType": "middle",
+      "question": "Loveable KT meeting mein revert hone ke baare mein kya kaha gaya?",
+      "expect": {
+        "meetingTitle": "Loveable KT",
+        "marker": "रिवर्ट भी होता जा रहा"
+      },
+      "explanation": "Hinglish query for the revert discussion (same target as M13).",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.0315,
+      "bm25": 0.4061497550723453,
+      "targetChunks": 2,
+      "topHit": "Loveable KT"
+    },
+    {
+      "id": "S01",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "Add & Connect Tool Migration",
+      "expect": {
+        "type": "project",
+        "titleExact": "Add & Connect Tool Migration"
+      },
+      "explanation": "Exact project title lookup; project 16798, In Progress.",
+      "rank": 1,
+      "vectorScore": 0.6949749,
+      "keywordScore": 1.95,
+      "bm25": 1.5266816545080721,
+      "targetChunks": 1,
+      "topHit": "Add & Connect Tool Migration"
+    },
+    {
+      "id": "S02",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "Webstudio - User Management & Governance Setup",
+      "expect": {
+        "type": "portfolio",
+        "titleExact": "Webstudio - User Management & Governance Setup"
+      },
+      "explanation": "Exact portfolio title lookup; portfolio 16343.",
+      "rank": 2,
+      "vectorScore": 0.73836,
+      "keywordScore": 1.95,
+      "bm25": 1.864634614213612,
+      "targetChunks": 1,
+      "topHit": "Webstudio - User Management & Governance Setup"
+    },
+    {
+      "id": "S03",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "Development - Tasks By Team View",
+      "expect": {
+        "type": "task",
+        "titleExact": "Development - Tasks By Team View"
+      },
+      "explanation": "Exact task title lookup; task 8151, owned by Ranu Trivedi.",
+      "rank": 1,
+      "vectorScore": 0.7015185,
+      "keywordScore": 0.45,
+      "bm25": 1.320092229455144,
+      "targetChunks": 1,
+      "topHit": "Development - Tasks By Team View"
+    },
+    {
+      "id": "S04",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "Gruene Contact Database via PnP Provisioning",
+      "expect": {
+        "type": "project",
+        "titleExact": "Gruene Contact Database via PnP Provisioning"
+      },
+      "explanation": "Exact project title lookup; project 14708.",
+      "rank": 1,
+      "vectorScore": 0.8023068,
+      "keywordScore": 1.95,
+      "bm25": 1.9930134029635063,
+      "targetChunks": 1,
+      "topHit": "Gruene Contact Database via PnP Provisioning"
+    },
+    {
+      "id": "S05",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "Show Monthly & Weekly Attendance on User Click",
+      "expect": {
+        "type": "task",
+        "titleExact": "Show Monthly & Weekly Attendance on User Click"
+      },
+      "explanation": "Exact task title lookup; task 33384, In QA Review, owner Devendra Dixit.",
+      "rank": 1,
+      "vectorScore": 0.7338135,
+      "keywordScore": 0.45,
+      "bm25": 2.2394385791076563,
+      "targetChunks": 1,
+      "topHit": "Show Monthly & Weekly Attendance on User Click"
+    },
+    {
+      "id": "S06",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "exact-title",
+      "question": "HR Admin Page - Global Attendance",
+      "expect": {
+        "type": "project",
+        "titleExact": "HR Admin Page - Global Attendance"
+      },
+      "explanation": "Exact project title lookup; project 16444.",
+      "rank": 1,
+      "vectorScore": 0.79377544,
+      "keywordScore": 1.95,
+      "bm25": 1.5207832974539883,
+      "targetChunks": 1,
+      "topHit": "HR Admin Page - Global Attendance"
+    },
+    {
+      "id": "S07",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "The selected item count shown at the top does not match how many items are actually selected",
+      "expect": {
+        "type": "task",
+        "titleExact": "Feedback - SmartSearch filter on Team portfolio page"
+      },
+      "explanation": "Task 11120 describes 10 items selected but the counter showing 11.",
+      "rank": 1,
+      "vectorScore": 0.63655484,
+      "keywordScore": 0.06999999999999999,
+      "bm25": 1.4390938584166855,
+      "targetChunks": 1,
+      "topHit": "Feedback - SmartSearch filter on Team portfolio page"
+    },
+    {
+      "id": "S08",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "After tagging a portfolio and project it only appears once the page is reloaded",
+      "expect": {
+        "type": "task",
+        "titleExact": "Bug - New Tagged Portfolio and Project does not Showing Task Profile Page"
+      },
+      "explanation": "Task 24044: tagged portfolio/project only reflects after reloading the Task Profile page.",
+      "rank": 1,
+      "vectorScore": 0.69820136,
+      "keywordScore": 0.04499999999999999,
+      "bm25": 1.8333660205171227,
+      "targetChunks": 1,
+      "topHit": "Bug - New Tagged Portfolio and Project does not Showing Task Profile Page"
+    },
+    {
+      "id": "S09",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "Assigned team members vanish from the portfolio popup after saving",
+      "expect": {
+        "type": "task",
+        "titleExact": "Bug - Team Members Disappearing After Clicking Save Button"
+      },
+      "explanation": "Task 13058: team members disappeared after clicking save in the portfolio popup.",
+      "rank": 1,
+      "vectorScore": 0.7315542,
+      "keywordScore": 0.075,
+      "bm25": 2.7142506991663526,
+      "targetChunks": 1,
+      "topHit": "Bug - Team Members Disappearing After Clicking Save Button"
+    },
+    {
+      "id": "S10",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "managing PHP framework work for the Webstudio site",
+      "expect": {
+        "type": "project",
+        "titleExact": "Webstudio - Manage PHP Framework"
+      },
+      "explanation": "Project 15155, working on it.",
+      "rank": 1,
+      "vectorScore": 0.73087645,
+      "keywordScore": 1.2333333333333334,
+      "bm25": 1.8888257116713105,
+      "targetChunks": 1,
+      "topHit": "Webstudio - Manage PHP Framework"
+    },
+    {
+      "id": "S11",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "software and hardware licence tracking for staff equipment",
+      "expect": {
+        "type": "portfolio",
+        "titleExact": "Team Management System (Hardware/Software and Licenses)"
+      },
+      "explanation": "Portfolio 14779 covers hardware/software and licence management.",
+      "rank": 2,
+      "vectorScore": 0.58759713,
+      "keywordScore": 0.2683333333333333,
+      "bm25": 0.7899360859167662,
+      "targetChunks": 1,
+      "topHit": "Manage - Team Management System (Hardware/Software and Licenses)"
+    },
+    {
+      "id": "S12",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "paraphrased",
+      "question": "building a weekly report generation capability",
+      "expect": {
+        "type": "portfolio",
+        "titleExact": "Generate Weekly Report"
+      },
+      "explanation": "Portfolio 16538.",
+      "rank": 1,
+      "vectorScore": 0.6639792,
+      "keywordScore": 0.2835,
+      "bm25": 0.7963481939422463,
+      "targetChunks": 1,
+      "topHit": "Generate Weekly Report"
+    },
+    {
+      "id": "S13",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "person",
+      "question": "Which tasks are owned by Devendra Dixit?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Show Monthly & Weekly Attendance on User Click"
+      },
+      "explanation": "Task 33384 is owned by Devendra Dixit.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.0525,
+      "bm25": 1.4234532897849008,
+      "targetChunks": 1,
+      "topHit": "Feedback - Task Dashboard page"
+    },
+    {
+      "id": "S14",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "person",
+      "question": "Tasks assigned to Ranu Trivedi about team views",
+      "expect": {
+        "type": "task",
+        "titleExact": "Development - Tasks By Team View"
+      },
+      "explanation": "Task 8151, owner Ranu Trivedi.",
+      "rank": 12,
+      "vectorScore": 0.58123094,
+      "keywordScore": 0.063,
+      "bm25": 1.6870558213402425,
+      "targetChunks": 1,
+      "topHit": "Ranu Trivedi — 1.5h — 18/05/2026"
+    },
+    {
+      "id": "S15",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "person",
+      "question": "What did Stefan Hochhuth report about the portfolio profile page?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Portfolio Profile Page Bug"
+      },
+      "explanation": "Task 875, owner Stefan Hochhuth.",
+      "rank": 1,
+      "vectorScore": 0.6919248,
+      "keywordScore": 0.06999999999999999,
+      "bm25": 2.2761232354842837,
+      "targetChunks": 5,
+      "topHit": "Portfolio Profile Page Bug"
+    },
+    {
+      "id": "S16",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "status",
+      "question": "Which attendance task is currently in QA review?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Show Monthly & Weekly Attendance on User Click"
+      },
+      "explanation": "Task 33384 has status \"In QA Review\".",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.063,
+      "bm25": 1.1751732016552277,
+      "targetChunks": 1,
+      "topHit": "Feedback - Reoccurring Task Date Concept 26-03-2025"
+    },
+    {
+      "id": "S17",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "status",
+      "question": "Which SDC tooling project has not been started yet?",
+      "expect": {
+        "type": "project",
+        "titleExact": "SDC Project Tools Migration to SP Online"
+      },
+      "explanation": "Project 16727, status Not Started.",
+      "rank": 1,
+      "vectorScore": 0.5666325,
+      "keywordScore": 0.2654166666666667,
+      "bm25": 2.2588096483627553,
+      "targetChunks": 1,
+      "topHit": "SDC Project Tools Migration to SP Online"
+    },
+    {
+      "id": "S18",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "recent",
+      "question": "What is the most recent SDC project tools migration work?",
+      "expect": {
+        "type": "project",
+        "titleExact": "SDC Project Tools Migration to SP Online"
+      },
+      "explanation": "Project 16727, updated 2026-07-31 — the newest SDC migration project.",
+      "rank": 1,
+      "vectorScore": 0.6470505,
+      "keywordScore": 0.30625,
+      "bm25": 1.5207832974539883,
+      "targetChunks": 1,
+      "topHit": "SDC Project Tools Migration to SP Online"
+    },
+    {
+      "id": "S19",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "recent",
+      "question": "latest task profile migration work for the SPA",
+      "expect": {
+        "type": "project",
+        "titleExact": "Task Profile Migration SPA"
+      },
+      "explanation": "Project 16821, Acknowledged, updated 2026-07-28.",
+      "rank": 1,
+      "vectorScore": 0.7212539,
+      "keywordScore": 0.36312500000000003,
+      "bm25": 1.3586335252338,
+      "targetChunks": 1,
+      "topHit": "Task Profile Migration SPA"
+    },
+    {
+      "id": "S20",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "date",
+      "question": "Which tagging bug was due on 2 December 2024?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Bug - New Tagged Portfolio and Project does not Showing Task Profile Page"
+      },
+      "explanation": "Task 24044 has dueDate 2024-12-02.",
+      "rank": null,
+      "vectorScore": null,
+      "keywordScore": 0.28291666666666665,
+      "bm25": 1.9303648888973732,
+      "targetChunks": 1,
+      "topHit": "Bug - Subcomponents"
+    },
+    {
+      "id": "S21",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "date",
+      "question": "Which SPFX profile pages feedback task was due in June 2023?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Feedback - SPFX profile pages Client category"
+      },
+      "explanation": "Task 7802, dueDate 2023-06-02, owner Ranu Trivedi.",
+      "rank": 1,
+      "vectorScore": 0.6369045,
+      "keywordScore": 0.07874999999999999,
+      "bm25": 3.185424267344393,
+      "targetChunks": 1,
+      "topHit": "Feedback - SPFX profile pages Client category"
+    },
+    {
+      "id": "S22",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "action-item",
+      "question": "What needs to be implemented for showing today's working tasks grouped by team?",
+      "expect": {
+        "type": "task",
+        "titleExact": "Development - Tasks By Team View"
+      },
+      "explanation": "Task 8151 asks to implement a \"Todays Tasks By Team\" view.",
+      "rank": 1,
+      "vectorScore": 0.6577746,
+      "keywordScore": 0.04499999999999999,
+      "bm25": 1.0908667644250278,
+      "targetChunks": 1,
+      "topHit": "Development - Tasks By Team View"
+    },
+    {
+      "id": "S23",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "semantic",
+      "question": "attendance reporting for the HR admin area",
+      "expect": {
+        "type": "project",
+        "titleExact": "HR Admin Page - Global Attendance"
+      },
+      "explanation": "Project 16444.",
+      "rank": 1,
+      "vectorScore": 0.6730285,
+      "keywordScore": 0.32899999999999996,
+      "bm25": 0.7308472115372222,
+      "targetChunks": 1,
+      "topHit": "HR Admin Page - Global Attendance"
+    },
+    {
+      "id": "S24",
+      "category": "structured",
+      "language": "en->en",
+      "queryType": "semantic",
+      "question": "migrating the add and connect tool",
+      "expect": {
+        "type": "project",
+        "titleExact": "Add & Connect Tool Migration"
+      },
+      "explanation": "Project 16798, In Progress.",
+      "rank": 2,
+      "vectorScore": 0.66027904,
+      "keywordScore": 0.36312500000000003,
+      "bm25": 1.189693770536895,
+      "targetChunks": 1,
+      "topHit": "Add & Connect Tool"
+    }
+  ]
+}

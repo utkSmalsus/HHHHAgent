@@ -1,0 +1,78 @@
+
+### EVAL: current (nomic-embed-text)
+collection: enterprise_knowledge (26608 points) | dataset: 45 cases
+
+id   lang            type          rank  vec     kw     bm25   expected
+------------------------------------------------------------------------------------------------------------
+M01  en->en          begin            2   0.713   0.45   0.98  Hermese Meeting with Stefan and Utkarsh
+M02  en->en          begin            1   0.703   0.09   1.43  Hermese Meeting with Stefan and Utkarsh
+M03  en->en          middle           4   0.663   0.06   1.43  Hermese Meeting with Stefan and Utkarsh
+M04  en->en          middle           1   0.753   0.08   2.16  Hermese Meeting with Stefan and Utkarsh
+M05  en->en          middle           3   0.586   0.08   1.84  Hermese Meeting with Stefan and Utkarsh
+M06  en->en          end            >20     -     0.06   0.39  Hermese Meeting with Stefan and Utkarsh
+M07  en->en          action-item      3   0.662   0.09   1.43  Hermese Meeting with Stefan and Utkarsh
+M08  en->en          begin          >20     -     0.09   1.40  SCRUM - 25/06/2026
+M09  en->hi          middle         >20     -     0.06   0.94  SCRUM - 25/06/2026
+M10  en->hinglish    end            >20     -     0.04   1.08  SCRUM - 25/06/2026
+M11  en->hi          end            >20     -     0.01   0.00  SCRUM - 25/06/2026
+M12  en->en          begin           19   0.613   0.04   0.34  Loveable KT
+M13  en->hi          middle         >20     -     0.04   0.41  Loveable KT
+M14  en->hi          end            >20     -     0.03   0.63  Loveable KT
+M15  en->en          begin            1   0.775   0.07   2.12  SPA Development and Deployment Guidelines
+M16  en->hi          middle         >20     -     0.05   0.88  SPA Development and Deployment Guidelines
+H01  hi->hi          paraphrased    >20     -     0.10   0.00  SCRUM - 25/06/2026
+H02  hi->hi          middle         >20     -     0.10   0.00  SCRUM - 25/06/2026
+H03  hinglish->hi    end            >20     -     0.01   0.00  SCRUM - 25/06/2026
+H04  hi->hi          paraphrased    >20     -     0.10   0.00  Loveable KT
+H05  hinglish->hi    middle         >20     -     0.03   0.41  Loveable KT
+S01  en->en          exact-title      1   0.810   1.95   1.53  Add & Connect Tool Migration
+S02  en->en          exact-title      5   0.784   1.95   1.86  Webstudio - User Management & Governance S
+S03  en->en          exact-title      1   0.819   0.45   1.32  Development - Tasks By Team View
+S04  en->en          exact-title      1   0.872   1.95   1.99  Gruene Contact Database via PnP Provisioni
+S05  en->en          exact-title      1   0.789   0.45   2.24  Show Monthly & Weekly Attendance on User C
+S06  en->en          exact-title      1   0.846   1.95   1.52  HR Admin Page - Global Attendance
+S07  en->en          paraphrased    >20     -     0.07   1.44  Feedback - SmartSearch filter on Team port
+S08  en->en          paraphrased      2   0.756   0.04   1.83  Bug - New Tagged Portfolio and Project doe
+S09  en->en          paraphrased      1   0.827   0.07   2.71  Bug - Team Members Disappearing After Clic
+S10  en->en          paraphrased      1   0.811   1.23   1.89  Webstudio - Manage PHP Framework
+S11  en->en          paraphrased      5   0.660   0.27   0.79  Team Management System (Hardware/Software 
+S12  en->en          paraphrased      1   0.755   0.28   0.80  Generate Weekly Report
+S13  en->en          person         >20     -     0.05   1.42  Show Monthly & Weekly Attendance on User C
+S14  en->en          person         >20     -     0.06   1.69  Development - Tasks By Team View
+S15  en->en          person           9   0.709   0.07   2.28  Portfolio Profile Page Bug
+S16  en->en          status         >20     -     0.06   1.18  Show Monthly & Weekly Attendance on User C
+S17  en->en          status           9   0.706   0.27   2.26  SDC Project Tools Migration to SP Online
+S18  en->en          recent           2   0.804   0.31   1.52  SDC Project Tools Migration to SP Online
+S19  en->en          recent           1   0.807   0.36   1.36  Task Profile Migration SPA
+S20  en->en          date           >20     -     0.28   1.93  Bug - New Tagged Portfolio and Project doe
+S21  en->en          date           >20     -     0.08   3.19  Feedback - SPFX profile pages Client categ
+S22  en->en          action-item      2   0.753   0.04   1.09  Development - Tasks By Team View
+S23  en->en          semantic         1   0.740   0.33   0.73  HR Admin Page - Global Attendance
+S24  en->en          semantic         1   0.780   0.36   1.19  Add & Connect Tool Migration
+
+────────────────────────── OVERALL ──────────────────────────
+ALL                        n= 45  R@1  31.1%  R@5  51.1%  R@10  55.6%  R@20  57.8%  MRR 0.391
+
+────────────────────── BY LANGUAGE ───────────────────────
+English (en->en)           n= 34  R@1  41.2%  R@5  67.6%  R@10  73.5%  R@20  76.5%  MRR 0.517
+Hindi/Hinglish (all)       n= 11  R@1   0.0%  R@5   0.0%  R@10   0.0%  R@20   0.0%  MRR 0.000
+  en->hi / en->hinglish    n=  6  R@1   0.0%  R@5   0.0%  R@10   0.0%  R@20   0.0%  MRR 0.000
+  hi->hi / hinglish->hi    n=  5  R@1   0.0%  R@5   0.0%  R@10   0.0%  R@20   0.0%  MRR 0.000
+
+────────────────────── BY CATEGORY ───────────────────────
+Meeting transcript         n= 21  R@1  14.3%  R@5  33.3%  R@10  33.3%  R@20  38.1%  MRR 0.213
+Structured SharePoint      n= 24  R@1  45.8%  R@5  66.7%  R@10  75.0%  R@20  75.0%  MRR 0.547
+
+──────────────────── BY QUERY TYPE ───────────────────────
+Exact keyword/title        n=  6  R@1  83.3%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.867
+Semantic/paraphrased       n= 10  R@1  50.0%  R@5  70.0%  R@10  70.0%  R@20  70.0%  MRR 0.570
+Person/owner               n=  3  R@1   0.0%  R@5   0.0%  R@10  33.3%  R@20  33.3%  MRR 0.037
+Status                     n=  2  R@1   0.0%  R@5   0.0%  R@10  50.0%  R@20  50.0%  MRR 0.056
+Latest/recent              n=  2  R@1  50.0%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.750
+Date-specific              n=  2  R@1   0.0%  R@5   0.0%  R@10   0.0%  R@20   0.0%  MRR 0.000
+Action-item                n=  2  R@1   0.0%  R@5 100.0%  R@10 100.0%  R@20 100.0%  MRR 0.417
+Transcript begin           n=  5  R@1  40.0%  R@5  60.0%  R@10  60.0%  R@20  80.0%  MRR 0.511
+Transcript middle          n=  8  R@1  12.5%  R@5  37.5%  R@10  37.5%  R@20  37.5%  MRR 0.198
+Transcript end             n=  5  R@1   0.0%  R@5   0.0%  R@10   0.0%  R@20   0.0%  MRR 0.000
+
+wrote eval/results/baseline.json
