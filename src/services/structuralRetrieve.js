@@ -23,7 +23,12 @@ const DEBUG_RAG = process.env.DEBUG_RAG !== 'false';
 // .js's resolveContainerFilter sanitized before calling resolveContainerAnchor, but structuralRetrieve()
 // below called it directly on the raw question — the hierarchy/recent-work branches never got the
 // same protection the count/overdue/date-list branches did.
-const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|today|yesterday|tomorrow|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
+// "last"/"next" added (Phase 13): live-caught the same collision class on "how many meetings
+// happened LAST week" anchoring to a real project literally titled "Last Modified Views MIgration
+// SPA" — "last" alone, unweighted and unstripped, won a confident single-word match. Same pattern
+// as every other entry in this list: a common relative-time word that happens to also be someone's
+// real title.
+const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|today|yesterday|tomorrow|last|next|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
 const STATUS_VOCAB_RE = /\b(overdue|past due|late|behind schedule|completed|done|finished|pending|in progress|working on it|active)\b/gi;
 const ENTITY_TYPE_VOCAB_RE = /\b(portfolios?|projects?|tasks?|meetings?|time ?entr(?:y|ies)|timesheets?)\b/gi;
 const BARE_NUMBER_RE = /\b\d{3,}\b/g;

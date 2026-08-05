@@ -311,10 +311,14 @@ export function unresolvedContainerAnswer(candidateText) {
 //   project:    timestamp only (no separate created/due field exists in the ingested schema)
 //   portfolio:  timestamp only (same)
 //   timeentry:  timeDate (the date the time was logged for) vs timestamp
-//   meeting:    NOT handled here — meetingQuery.js already owns meeting date questions (real `start`/
-//               `end` fields distinct from `timestamp`, its own tested today/yesterday/this-week/
-//               last-week logic) and this module must not duplicate or shadow that, so meeting
-//               questions are intentionally left alone.
+//   meeting:    start — when the meeting actually happened, never `timestamp` (SharePoint's record
+//               Modified||Created, unrelated to the meeting's occurrence date). Confirmed live
+//               (Phase 13): "how many meetings happened this week" was filtering by `timestamp`
+//               instead, silently substituting record-modification time for occurrence time.
+//               The RANGE parsing for fixed phrases (today/yesterday/this week/...) still comes
+//               from meetingQuery.js's own parseDateRange() (imported below) — the ONE tested
+//               implementation of "what does 'yesterday' mean", shared rather than reimplemented.
+//               Only the FIELD NAME was ever meeting-unaware; that's what's fixed here.
 // "created" has no distinct field in this schema (ingestion sets timestamp = Modified||Created) —
 // mapped to `timestamp` rather than invented, and the field name is disclosed so no false precision
 // is implied.
@@ -336,6 +340,10 @@ function pickDateField(entityType, question) {
   const q = String(question || '').toLowerCase();
   if (entityType === 'task' && DUE_RE.test(q)) return 'dueDate';
   if (entityType === 'timeentry' && LOGGED_RE.test(q)) return 'timeDate';
+  // Unlike task ("due" vs "modified"), a meeting has no rival everyday sense of "timestamp" a real
+  // user would mean — any temporal question about a meeting (happened/held/on a date) is asking
+  // about when it occurred, so this is unconditional, not phrasing-gated like DUE_RE/LOGGED_RE above.
+  if (entityType === 'meeting') return 'start';
   return 'timestamp'; // Modified||Created — the only "when was this touched" field project/portfolio have.
 }
 

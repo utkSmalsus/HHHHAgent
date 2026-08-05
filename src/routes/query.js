@@ -55,6 +55,12 @@ import {
   buildRecentWorkPrompt,
 } from '../services/recentWork.js';
 import {
+  isComparisonQuestion,
+  resolveComparison,
+  buildComparisonAnswer,
+  buildComparisonBlockedAnswer,
+} from '../services/comparisonQuery.js';
+import {
   isExactLookupQuestion,
   extractLookupPhrase,
   resolveReferencedEntity,
@@ -284,7 +290,14 @@ router.post('/', async (req, res) => {
       // tasks are there" — this branch only ever parsed the entity-TYPE keyword, never a person or
       // project. Resolve EVERY structured constraint through the shared resolver and fail closed
       // on anything that doesn't cleanly resolve — never fall back to the unscoped count.
-      const sf = await resolveStructuredFilters(question, 'task');
+      //
+      // entityType was previously hardcoded to 'task' regardless of what's actually being counted —
+      // harmless for status/overdue/person/container (task-shaped concepts anyway), but WRONG for
+      // the date field: a single, specifically-named type ("how many MEETINGS happened this week")
+      // must resolve its date field against that real type (`start` for meetings), not silently
+      // fall back to task's default (`timestamp`, SharePoint's modification time — confirmed live,
+      // Phase 13, as the root cause of a meeting count silently using the wrong field).
+      const sf = await resolveStructuredFilters(question, typesToCount.length === 1 ? typesToCount[0].type : 'task');
       const blocked = checkStructuredFiltersBlocked(sf);
       if (blocked.blocked) {
         return res.json({ success: true, ...buildBlockedResponse(blocked) });
@@ -294,7 +307,11 @@ router.post('/', async (req, res) => {
       const counted = await Promise.all(
         typesToCount.map(async (t) => {
           const items = await scrollPayloads({ types: [t.type], limit: 30000 }).catch(() => []);
-          return { label: t.label, n: applyStructuredFilters(items, sf).length };
+          // Counting several types at once (no explicit type word in the question) means one
+          // shared date field can't be right for all of them — re-resolve the date portion per
+          // type in that case only; the single-type case above already resolved it correctly.
+          const filters = typesToCount.length === 1 ? sf : { ...sf, dateFilter: resolveDateFilter(question, t.type) };
+          return { label: t.label, n: applyStructuredFilters(items, filters).length };
         })
       );
       const scope = buildScopeText(sf);
@@ -694,6 +711,38 @@ router.post('/', async (req, res) => {
           });
         }
       }
+    }
+
+    // "which is more recently updated, A or B" / "compare A and B" / "is A newer than B" / "which
+    // has more tasks, A or B" — two INDEPENDENTLY named entities, not a parent/child anchor+subtree
+    // question. Checked before isRecentWorkQuestion below, which is what this shape used to fall
+    // into ("recently" triggers it): its single-anchor resolver picked ONE of the two names and
+    // treated the other as if it must be that anchor's own child. See comparisonQuery.js's own doc.
+    if (isComparisonQuestion(question)) {
+      const comparison = await resolveComparison(question).catch(() => null);
+      if (comparison?.blocked) {
+        const isAmbiguous = comparison.blocked.kind === 'ambiguous-entity';
+        return res.json({
+          success: true,
+          answer: buildComparisonBlockedAnswer(comparison.blocked),
+          format: isAmbiguous ? 'bullets' : 'prose',
+          confidence: isAmbiguous ? 0 : 0.2,
+          intent: isAmbiguous ? 'disambiguation' : 'unresolved-comparison',
+          sources: { qdrant: [], sharepoint: {} },
+        });
+      }
+      if (comparison) {
+        return res.json({
+          success: true,
+          answer: buildComparisonAnswer(comparison),
+          format: 'prose',
+          confidence: 0.9,
+          intent: 'comparison',
+          sources: { qdrant: comparison.entities.map((e) => ({ payload: e.anchor })), sharepoint: {} },
+        });
+      }
+      // comparison === null: matched the comparison trigger vocabulary but couldn't split into two
+      // distinct entity-reference segments — fall through to general retrieval rather than block.
     }
 
     // "Latest / recent work on X" for tasks & projects.
