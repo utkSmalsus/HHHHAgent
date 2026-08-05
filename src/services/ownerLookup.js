@@ -14,9 +14,21 @@
  */
 import { scrollPayloads } from './qdrantScroll.js';
 import { structuralRetrieve } from './structuralRetrieve.js';
+import {
+  resolveStructuredFilters,
+  checkStructuredFiltersBlocked,
+  applyStructuredFilters,
+  resolveContainerFilter,
+} from './structuredFilters.js';
 
+// Possessive form ("Ranu Trivedi's tasks", "Ranu's completed tasks", "Ranu's tasks due this week")
+// is a generic pattern — ANY capitalized 1-3 word name followed by "'s <=4 words> task(s)" — not
+// tied to one person or one modifier. Was originally just "'s (overdue) tasks" (only "overdue"
+// allowed in between), so "Ranu's COMPLETED tasks" and "Ranu's tasks DUE THIS WEEK" never matched
+// this trigger at all; widened to allow any short modifier run so status/date phrasing composes
+// the same way it already does for the "how many" branches.
 const OWNED_BY_RE =
-  /\b(which |what )?tasks?\s+(belong|belongs)\s+to\b|\btasks?\s+(owned|assigned)\s+(by|to)\b|\bwhose\s+tasks?\b/i;
+  /\b(which |what )?tasks?\s+(belong|belongs)\s+to\b|\btasks?\s+(owned|assigned)\s+(by|to)\b|\bwhose\s+tasks?\b|\b[A-Z][\p{L}'-]+(?:\s+[A-Z][\p{L}'-]+){0,2}'s\s+(?:\w+\s+){0,4}tasks?\b/u;
 const WORKING_ON_RE =
   /\bwho\s+(is|are|'?s)\s+(working|assigned)\s+on\b|\bwho\s+owns\b|\bwho'?s?\s+responsible\s+for\b|\bwho\s+is\s+responsible\s+for\b/i;
 
@@ -32,14 +44,6 @@ function ownerOf(payload) {
   if (payload.owner) return payload.owner;
   const m = String(payload.text || '').match(/Owner:\s*([^.]+?)(?:\.|$)/);
   return m ? m[1].trim() : '';
-}
-
-/** Extract a capitalized 1-3 word name following the trigger phrase. */
-function extractPersonName(question) {
-  const m = String(question || '').match(
-    /(?:belongs?\s+to|owned\s+by|assigned\s+to|whose)\s+([A-Z][\p{L}'-]+(?:\s+[A-Z][\p{L}'-]+){0,2})/u
-  );
-  return m ? m[1].trim() : null;
 }
 
 /** Whatever's left of the question after stripping the "who is working on" style trigger. */
@@ -96,20 +100,44 @@ async function resolveExactTaskMatch(question) {
   )[0].task;
 }
 
-/** @returns {Promise<{ name: string, matches: object[] } | null>} */
+/**
+ * @returns {Promise<{ name: string, matches: object[] } | { blocked: object } | null>}
+ * `null` means this question named no person at all (caller should try other branches).
+ * `{ blocked }` means SOME structured constraint (person, project/portfolio, or date) failed to
+ * resolve or was genuinely ambiguous — caller must surface it via buildBlockedResponse(), never
+ * fall through to an unscoped answer.
+ *
+ * Routed through the same centralized resolver every other deterministic branch uses (see
+ * structuredFilters.js) — this used to run its OWN separate person-extraction and only ever
+ * applied overdue/status on top, silently ignoring a container ("Ranu Trivedi's tasks in Team
+ * Management Tools" returned ALL of Ranu's tasks, the project qualifier was dropped). A dedicated
+ * grammar-based extractor for "belongs to X"/"owned by X" existed here too, but resolvePersonFilter
+ * already finds a name ANYWHERE in the question (any 2-3 consecutive capitalized words), so it
+ * covers that phrasing on its own — removed as redundant rather than kept as a second, divergent
+ * path that could resolve a different (unvalidated, not real-data-checked) name than this module's
+ * shared resolver would.
+ */
 export async function tasksOwnedByPerson(question) {
-  const name = extractPersonName(question);
-  if (!name) return null;
-  const nameWords = name.toLowerCase().split(/\s+/).filter(Boolean);
+  const sf = await resolveStructuredFilters(question, 'task');
+  if (!sf.personFilter.requested) return null;
+
+  const blocked = checkStructuredFiltersBlocked(sf);
+  if (blocked.blocked) return { blocked };
+
   const tasks = await scrollPayloads({ types: ['task'], limit: 30000 });
-  const matches = tasks.filter((t) => {
-    const owner = ownerOf(t).toLowerCase();
-    return owner && nameWords.every((w) => owner.includes(w));
-  });
-  return { name, matches };
+  const matches = applyStructuredFilters(tasks, sf);
+  return { name: sf.personFilter.resolvedName, matches };
 }
 
 /** @returns {Promise<{ anchor: object, owners: string[], taskCount: number, exact?: boolean } | null>} */
+/**
+ * @returns {Promise<{ anchor, owners, taskCount, exact? } | { blocked: object } | null>}
+ * `null` means no real topic was named at all (e.g. an unresolved pronoun like "this project" with
+ * no conversation context available here) — this function does NOT resolve conversational pronouns
+ * itself; see the doc comment above the call site in query.js for that limitation.
+ * `{ blocked }` means the named project/portfolio was genuinely ambiguous — caller must surface it,
+ * never silently fall through to an unrelated branch (verified live: this used to happen).
+ */
 export async function whoWorksOnTopic(question) {
   const exactTask = await resolveExactTaskMatch(question).catch(() => null);
   if (exactTask) {
@@ -122,24 +150,50 @@ export async function whoWorksOnTopic(question) {
 
   const topic = extractTopicPhrase(question);
   if (!topic || topic.length < 2) return null;
-  const structural = await structuralRetrieve(topic).catch(() => null);
-  if (!structural || structural.ambiguous) return null;
+
+  // Routed through resolveContainerFilter (the same collision-avoided resolver every other
+  // deterministic branch uses) instead of calling structuralRetrieve()/resolveContainerAnchor()
+  // directly — this used to skip ALL of the temporal/status/bare-number vocabulary stripping and
+  // the pure-scaffolding-question guard those fixes added, so "who is working on X" was exposed to
+  // the exact "Team"/"Management" generic-word-overlap risk the rest of the app no longer has.
+  const containerFilter = await resolveContainerFilter(topic);
+  if (containerFilter.ambiguous) {
+    // Previously returned null here and silently fell through to whatever branch ran next —
+    // verified live as a real instance of "constraint detected, then silently dropped".
+    return { blocked: { kind: 'ambiguous-container', containerFilter } };
+  }
+  if (containerFilter.requested && !containerFilter.resolved) {
+    return { blocked: { kind: 'unresolved-container', containerFilter } };
+  }
+  if (!containerFilter.resolved) return null;
+
+  const allTasks = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
+  const ids = containerFilter.resolved.descendantIds;
+  const tasks = allTasks.filter((t) => ids.has(Number(t.projectId)) || ids.has(Number(t.portfolioId)));
 
   const owners = new Map();
-  for (const t of structural.tasks) {
+  for (const t of tasks) {
     const raw = ownerOf(t);
     if (!raw) continue;
     for (const single of raw.split(/,|;|\band\b/i).map((s) => s.trim()).filter(Boolean)) {
       owners.set(single.toLowerCase(), single);
     }
   }
-  return { anchor: structural.anchor, owners: [...owners.values()], taskCount: structural.tasks.length };
+  return {
+    anchor: { title: containerFilter.resolved.title, type: containerFilter.resolved.type, sharePointItemId: containerFilter.resolved.id },
+    owners: [...owners.values()],
+    taskCount: tasks.length,
+  };
 }
 
 /** Deterministic, no-LLM rendering — real titles/names, not a paraphrase. */
 export function buildOwnedByPersonAnswer({ name, matches }) {
   if (!matches.length) {
-    return `I couldn't find any tasks with an owner matching "${name}" in the indexed knowledge base.`;
+    // The name itself is a real, resolved owner (checked before this is ever called) — zero
+    // matches here means an additional filter (overdue/status) excluded everything, not that the
+    // owner doesn't exist. Saying "no owner matching X" in that case would misleadingly imply X
+    // has no tasks at all.
+    return `${name} has no tasks matching that in the indexed knowledge base.`;
   }
   const MAX = 30;
   const lines = matches

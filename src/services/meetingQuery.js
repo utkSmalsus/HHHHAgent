@@ -226,7 +226,7 @@ const FORMAT_INSTRUCTION = {
 // ceiling so the rest of the prompt (system message, question, instructions) always has room too.
 const MEETING_DETAIL_TEXT_BUDGET = 6000;
 
-export async function buildMeetingDetailPrompt(question, meeting, format = null) {
+export async function buildMeetingDetailPrompt(question, meeting, format = null, temporalFact = null) {
   const formatNote = FORMAT_INSTRUCTION[format] ? `\n${FORMAT_INSTRUCTION[format]}` : '';
   const system =
     'You are HHHH Agent. Answer the question about this specific meeting using ONLY ' +
@@ -273,11 +273,21 @@ export async function buildMeetingDetailPrompt(question, meeting, format = null)
       : (await getFullRecordText(meeting.sourceKey))?.slice(0, MEETING_DETAIL_TEXT_BUDGET) || meeting.text || '';
   }
 
+  // A relative-date phrase in the question ("yesterday") was already deterministically resolved to
+  // this exact meeting by the caller — stated as an established fact so the model doesn't
+  // separately try to work out "is this meeting's date actually yesterday" from the raw record
+  // (verified live: it sometimes got that arithmetic wrong even with the correct record in hand).
+  const temporalNote = temporalFact
+    ? `\n\nRESOLVED FACT (already determined, do not recompute or contradict this): this meeting's ` +
+      `date is ${temporalFact.meetingDate}, which IS "${temporalFact.label}" relative to today. Treat this as settled.`
+    : '';
+
   const user =
     `USER QUESTION: ${question}\n\n` +
     `MEETING RECORD for "${meeting.title}" (most relevant parts to this question):\n${recordText}\n\n` +
     `Answer using only this meeting's record. If these excerpts don't cover the question, say so ` +
-    `rather than guessing.`;
+    `rather than guessing.` +
+    temporalNote;
   return { system, user };
 }
 

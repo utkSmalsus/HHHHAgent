@@ -27,6 +27,7 @@ import {
   resolveExactMeetingTitle,
   resolveMeetingByExplicitDate,
   buildMeetingDetailPrompt,
+  parseDateRange,
 } from '../services/meetingQuery.js';
 import {
   isOwnedByPersonQuestion,
@@ -36,6 +37,18 @@ import {
   buildOwnedByPersonAnswer,
   buildWhoWorksOnAnswer,
 } from '../services/ownerLookup.js';
+import {
+  taskIsOverdue,
+  resolveDateFilter,
+  applyDateSort,
+  buildQueryPlan,
+  logQueryPlan,
+  resolveStructuredFilters,
+  checkStructuredFiltersBlocked,
+  buildBlockedResponse,
+  applyStructuredFilters,
+  buildScopeText,
+} from '../services/structuredFilters.js';
 import {
   isRecentWorkQuestion,
   recentWorkRetrieve,
@@ -266,21 +279,42 @@ router.post('/', async (req, res) => {
       ];
       const matchedTypes = COUNT_TYPES.filter((t) => t.re.test(question));
       const typesToCount = matchedTypes.length ? matchedTypes : COUNT_TYPES;
+
+      // "how many tasks does RANU TRIVEDI have" was previously indistinguishable from "how many
+      // tasks are there" — this branch only ever parsed the entity-TYPE keyword, never a person or
+      // project. Resolve EVERY structured constraint through the shared resolver and fail closed
+      // on anything that doesn't cleanly resolve — never fall back to the unscoped count.
+      const sf = await resolveStructuredFilters(question, 'task');
+      const blocked = checkStructuredFiltersBlocked(sf);
+      if (blocked.blocked) {
+        return res.json({ success: true, ...buildBlockedResponse(blocked) });
+      }
+      const { personFilter, containerFilter, statusFilter, overdueRequested, dateFilter } = sf;
+
       const counted = await Promise.all(
-        typesToCount.map(async (t) => ({
-          label: t.label,
-          n: (await scrollPayloads({ types: [t.type], limit: 30000 }).catch(() => [])).length,
-        }))
+        typesToCount.map(async (t) => {
+          const items = await scrollPayloads({ types: [t.type], limit: 30000 }).catch(() => []);
+          return { label: t.label, n: applyStructuredFilters(items, sf).length };
+        })
       );
+      const scope = buildScopeText(sf);
       const answer = `There ${counted.length === 1 && counted[0].n === 1 ? 'is' : 'are'} ${counted
         .map((c) => `${c.n} ${c.label}`)
-        .join(', ')} in the indexed knowledge base.`;
+        .join(', ')}${scope} in the indexed knowledge base.`;
+
+      const plan = buildQueryPlan({
+        operation: 'count', entityType: typesToCount.map((t) => t.type).join('+'),
+        personFilter, containerFilter, statusFilter, overdueRequested, dateFilter,
+      });
+      logQueryPlan(question, plan);
+
       return res.json({
         success: true,
         answer,
         format: 'prose',
         confidence: 0.95,
         intent: 'count',
+        counts: { scoped: Boolean(personFilter.resolvedName || containerFilter.resolved || statusFilter.requested || overdueRequested || dateFilter.range) },
         sources: { qdrant: [], sharepoint: {} },
       });
     }
@@ -293,30 +327,43 @@ router.post('/', async (req, res) => {
     // see hierarchyIngest.js's taskItemToKnowledge. Now that it's ingested, answer for real: a task
     // is overdue when its DueDate is in the past AND its status isn't one of the "done" states.
     if (/\b(overdue|past due|late|behind schedule)\b/i.test(question) && /\btasks?\b/i.test(question)) {
+      // Same class of bug as the count branch above: "does RANU TRIVEDI have overdue tasks IN
+      // TEAM MANAGEMENT TOOLS" was silently answering with the global 1104-task overdue list — this
+      // branch supported a person filter but had no idea a project could also be named. Routed
+      // through the same centralized resolver as every other deterministic branch now, so a
+      // constraint supported here is automatically supported everywhere, and vice versa.
+      const sf = await resolveStructuredFilters(question, 'task');
+      const blocked = checkStructuredFiltersBlocked(sf);
+      if (blocked.blocked) {
+        return res.json({ success: true, ...buildBlockedResponse(blocked) });
+      }
+      const { personFilter, containerFilter } = sf;
+      const scopeLabel = buildScopeText(sf);
+
       const allTasks = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
-      const withDueDate = allTasks.filter((t) => t.dueDate);
+      const scoped = applyStructuredFilters(allTasks, { ...sf, overdueRequested: false });
+      const withDueDate = scoped.filter((t) => t.dueDate);
       if (!withDueDate.length) {
         // Ingested data hasn't been re-ingested since DueDate was added — stay honest instead of
         // silently answering "no overdue tasks" from an actually-empty dataset.
         return res.json({
           success: true,
-          answer:
-            "None of the currently indexed tasks have a due date recorded yet — the knowledge base needs to be re-ingested to pick up SharePoint's DueDate field before I can answer this. I can tell you each task's current status or when it was last updated instead.",
+          answer: personFilter.resolvedName || containerFilter.resolved
+            ? `None of the matching indexed tasks${scopeLabel} have a due date recorded, so I can't determine overdue status for them.`
+            : "None of the currently indexed tasks have a due date recorded yet — the knowledge base needs to be re-ingested to pick up SharePoint's DueDate field before I can answer this. I can tell you each task's current status or when it was last updated instead.",
           format: 'prose',
           confidence: 0.6,
           intent: 'insufficient-schema',
           sources: { qdrant: [], sharepoint: {} },
         });
       }
-      const DONE_RE = /^(task completed|completed|approved|ready to go)/i;
-      const now = new Date();
       const overdue = withDueDate
-        .filter((t) => new Date(t.dueDate) < now && !DONE_RE.test(t.status || ''))
+        .filter((t) => taskIsOverdue(t))
         .sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
       if (!overdue.length) {
         return res.json({
           success: true,
-          answer: `No tasks are currently overdue (checked ${withDueDate.length} tasks with a recorded due date).`,
+          answer: `No tasks are currently overdue${scopeLabel} (checked ${withDueDate.length} task${withDueDate.length === 1 ? '' : 's'} with a recorded due date).`,
           format: 'prose',
           confidence: 0.95,
           intent: 'overdue',
@@ -347,7 +394,7 @@ router.post('/', async (req, res) => {
         answerFormat = 'timeline';
       } else {
         const lines = shown.map((t) => `- ${t.title || 'Untitled'} — due ${String(t.dueDate).slice(0, 10)}${t.status ? ` [${t.status}]` : ''}`);
-        answer = `${overdue.length} task${overdue.length === 1 ? ' is' : 's are'} overdue:\n\n${lines.join('\n')}${more}`;
+        answer = `${overdue.length} task${overdue.length === 1 ? ' is' : 's are'} overdue${scopeLabel}:\n\n${lines.join('\n')}${more}`;
       }
       return res.json({
         success: true,
@@ -355,9 +402,90 @@ router.post('/', async (req, res) => {
         format: answerFormat,
         confidence: 0.95,
         intent: 'overdue',
-        counts: { overdue: overdue.length, withDueDate: withDueDate.length },
+        counts: { overdue: overdue.length, withDueDate: withDueDate.length, scoped: Boolean(personFilter.resolvedName || containerFilter.resolved) },
         sources: { qdrant: overdue.slice(0, 10).map((payload) => ({ payload })), sharepoint: {} },
       });
+    }
+
+    // "which projects were updated yesterday" / "show the latest 5 projects" / "which tasks are
+    // due today" / "most recently updated project" — deterministic date-filtered/recency-sorted
+    // LIST, not vector search or an LLM summary. Checked early for the same reason COUNT_RE is:
+    // verified live that the generic anchor resolver otherwise tries to match "today"/"yesterday"/
+    // "latest" as if they were entity NAMES, producing nonsense disambiguation candidates instead
+    // of actually filtering/sorting by date. Meetings are deliberately excluded — meetingQuery.js
+    // already owns meeting date questions with their own real `start`/`end` fields and tested
+    // today/yesterday/this-week/last-week logic; duplicating that here would risk the two
+    // disagreeing on what "yesterday" means.
+    const LIST_ENTITY_TYPES = [
+      { re: /\bportfolios?\b/i, type: 'portfolio', label: 'portfolio items' },
+      { re: /\bprojects?\b/i, type: 'project', label: 'projects' },
+      { re: /\btasks?\b/i, type: 'task', label: 'tasks' },
+    ];
+    const listEntityMatch = LIST_ENTITY_TYPES.find((t) => t.re.test(question));
+    if (listEntityMatch) {
+      const probeDate = resolveDateFilter(question, listEntityMatch.type);
+      const hasRecency = /\b(latest|newest|most recently updated|most recent|last updated)\b/i.test(question);
+      const isListPhrasing = /\b(which|what|show|list)\b/i.test(question);
+
+      if (isListPhrasing && (probeDate.requested || hasRecency)) {
+        // Full resolution (person/container/status/overdue/date) through the SAME centralized
+        // path the count and overdue branches use — a filter supported there is automatically
+        // supported here too, rather than this branch needing its own separate implementation.
+        const sf = await resolveStructuredFilters(question, listEntityMatch.type);
+        const blocked = checkStructuredFiltersBlocked(sf);
+        if (blocked.blocked) {
+          return res.json({ success: true, ...buildBlockedResponse(blocked) });
+        }
+        const { personFilter, containerFilter, statusFilter, overdueRequested, dateFilter } = sf;
+
+        let items = await scrollPayloads({ types: [listEntityMatch.type], limit: 30000 }).catch(() => []);
+        items = applyStructuredFilters(items, sf);
+        if (dateFilter.sort) items = applyDateSort(items, dateFilter);
+
+        const limitMatch = question.match(/\b(?:latest|top)\s+(\d+)\b/i);
+        const limit = limitMatch ? Number(limitMatch[1]) : dateFilter.sort ? 1 : 30;
+        const shown = items.slice(0, limit);
+
+        const plan = buildQueryPlan({
+          operation: 'list', entityType: listEntityMatch.type,
+          personFilter, containerFilter, statusFilter, overdueRequested, dateFilter,
+        });
+        logQueryPlan(question, plan);
+
+        if (!shown.length) {
+          return res.json({
+            success: true,
+            answer: `No ${listEntityMatch.label} matched that.`,
+            format: 'prose',
+            confidence: 0.9,
+            intent: 'date-list',
+            sources: { qdrant: [], sharepoint: {} },
+          });
+        }
+        const dateLabel = dateFilter.field === 'dueDate' ? 'due' : 'updated';
+        const lines = shown.map(
+          (i) => `- ${i.title || 'Untitled'}${i.status ? ` [${i.status}]` : ''} — ${dateLabel} ${String(i[dateFilter.field] || '').slice(0, 10)}`
+        );
+        const more = items.length > shown.length ? ` (showing ${shown.length})` : '';
+        // Per-item lines already say "updated", never "created" — but if the QUESTION asked about
+        // "created" and the answer doesn't say anywhere that only Modified||Created is tracked, a
+        // reader could reasonably believe these dates ARE true creation dates. No separate Created
+        // field exists in the ingested schema (see resolveDateFilter's own doc); disclose it here
+        // rather than silently answer as if the distinction didn't matter.
+        const createdCaveat = dateFilter.field === 'timestamp' && /\bcreated\b/i.test(question)
+          ? ' (no separate "created" field is tracked — dates shown are Modified-or-Created)'
+          : '';
+        const answer = `${items.length} ${listEntityMatch.label}${more}${createdCaveat}:\n\n${lines.join('\n')}`;
+        return res.json({
+          success: true,
+          answer,
+          format: 'bullets',
+          confidence: 0.95,
+          intent: 'date-list',
+          counts: { matched: items.length },
+          sources: { qdrant: shown.map((payload) => ({ payload })), sharepoint: {} },
+        });
+      }
     }
 
     // "which tasks belong to <person>" / "who is working on <project>" — the general
@@ -367,6 +495,9 @@ router.post('/', async (req, res) => {
     // full-scan instead, same principle as exactLookup.js.
     if (isOwnedByPersonQuestion(question)) {
       const owned = await tasksOwnedByPerson(question).catch(() => null);
+      if (owned?.blocked) {
+        return res.json({ success: true, ...buildBlockedResponse(owned.blocked) });
+      }
       if (owned) {
         return res.json({
           success: true,
@@ -381,6 +512,9 @@ router.post('/', async (req, res) => {
     }
     if (isWhoWorksOnQuestion(question)) {
       const who = await whoWorksOnTopic(question).catch(() => null);
+      if (who?.blocked) {
+        return res.json({ success: true, ...buildBlockedResponse(who.blocked) });
+      }
       if (who) {
         return res.json({
           success: true,
@@ -463,7 +597,23 @@ router.post('/', async (req, res) => {
         explicitDateMeeting ||
         (await resolveReferencedMeeting(convo, question).catch(() => null));
       if (meeting) {
-        const meetingPrompt = await buildMeetingDetailPrompt(question, meeting, presentationFormat);
+        // If the meeting was resolved via a RELATIVE date phrase ("yesterday", "this week"), that
+        // relation is already a known, deterministic fact — don't make the generation LLM
+        // re-derive "is this actually yesterday" from the meeting's own raw timestamp. Verified
+        // live: it sometimes got this wrong even when handed the correctly-resolved record ("no
+        // meetings happened yesterday" about a record that WAS yesterday's). Only meaningful when
+        // THIS meeting is the one explicitDateMeeting resolved — an exact-title or embedded-title
+        // match names no date relation at all, so there's nothing deterministic to state for those.
+        const temporalFact =
+          meeting === explicitDateMeeting
+            ? (() => {
+                const parsed = parseDateRange(question, new Date());
+                return parsed?.label && (meeting.start || meeting.timestamp)
+                  ? { label: parsed.label, meetingDate: String(meeting.start || meeting.timestamp).slice(0, 10) }
+                  : null;
+              })()
+            : null;
+        const meetingPrompt = await buildMeetingDetailPrompt(question, meeting, presentationFormat, temporalFact);
         let answer =
           sanitizeEnterpriseAnswer(
             await generateAnswer(withHistory(meetingPrompt), opts),

@@ -64,7 +64,32 @@ export function isHierarchyQuestion(question) {
 // function only excluded portfolio/project and NOT task, which let "task" in a question like
 // "what are the latest task under team management tool project" pull "Team Task Management" and
 // "Task Management Tool" into a false top-scoring tie ahead of the plain "Team Management" match.
-function resolveContainerAnchor(question, containerItems) {
+/** BFS descendant portfolio/project ids from `anchorId` (inclusive) — shared by structuralRetrieve()
+ *  and the structured-filter container resolver so both walk the exact same tree the exact same way. */
+export function descendantContainerIds(anchorId, containerItems) {
+  const childrenOf = new Map();
+  for (const p of containerItems) {
+    const par = num(p.parentId);
+    if (!par) continue;
+    if (!childrenOf.has(par)) childrenOf.set(par, []);
+    childrenOf.get(par).push(p);
+  }
+  const descendantIds = new Set([anchorId]);
+  const queue = [anchorId];
+  while (queue.length) {
+    const cur = queue.shift();
+    for (const child of childrenOf.get(cur) || []) {
+      const cid = num(child.sharePointItemId);
+      if (cid && !descendantIds.has(cid)) {
+        descendantIds.add(cid);
+        queue.push(cid);
+      }
+    }
+  }
+  return descendantIds;
+}
+
+export function resolveContainerAnchor(question, containerItems) {
   const qWords = extractKeywords(question);
   if (!qWords.length) return { anchor: null };
 
@@ -268,29 +293,8 @@ export async function structuralRetrieve(question, { anchorOverride } = {}) {
   const anchorId = num(anchor?.sharePointItemId);
   if (!anchor || !anchorId) return null;
 
-  // Master tree: children keyed by parentId.
-  const childrenOf = new Map();
-  for (const p of all) {
-    if (p.type !== 'portfolio' && p.type !== 'project') continue;
-    const par = num(p.parentId);
-    if (!par) continue;
-    if (!childrenOf.has(par)) childrenOf.set(par, []);
-    childrenOf.get(par).push(p);
-  }
-
-  // BFS descendant master ids (anchor included).
-  const descendantIds = new Set([anchorId]);
-  const queue = [anchorId];
-  while (queue.length) {
-    const cur = queue.shift();
-    for (const child of childrenOf.get(cur) || []) {
-      const cid = num(child.sharePointItemId);
-      if (cid && !descendantIds.has(cid)) {
-        descendantIds.add(cid);
-        queue.push(cid);
-      }
-    }
-  }
+  const containersOnly = all.filter((p) => p.type === 'portfolio' || p.type === 'project');
+  const descendantIds = descendantContainerIds(anchorId, containersOnly);
 
   const masters = [...descendantIds].map((id) => byId.get(id)).filter(Boolean);
   const tasks = all.filter(
