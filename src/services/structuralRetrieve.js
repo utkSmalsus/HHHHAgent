@@ -6,7 +6,7 @@
  * tasks via projectId/portfolioId), so we resolve an anchor by vector search, then
  * walk descendants by ID and hand the real subtree to the LLM. No re-ingest needed.
  */
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, uniqueBusinessEntities } from './qdrantScroll.js';
 import { searchKnowledge } from './qdrant.js';
 import { queryTokens, extractKeywords, normalizeText, hasTemporalIntent } from '../utils/textMatch.js';
 import { groupByEntity, toCandidates, tsOf } from '../utils/disambiguate.js';
@@ -497,9 +497,15 @@ export async function structuralRetrieve(question, { anchorOverride } = {}) {
   const containersOnly = all.filter((p) => p.type === 'portfolio' || p.type === 'project');
   const descendantIds = descendantContainerIds(anchorId, containersOnly);
 
+  // `masters` is already effectively one point per real portfolio/project (byId keeps only the
+  // first-seen point per sharePointItemId, above). `tasks` filters the RAW scroll directly, so a
+  // chunked task's several points would each count/list separately — FILTER FIRST (hierarchy
+  // membership, same as everywhere else) then DEDUPE (Phase 14) so counts:{tasks} and the
+  // "TASKS UNDER IT (N total)" prompt line the LLM reads (and can quote back — confirmed live)
+  // reflect real tasks, not Qdrant points.
   const masters = [...descendantIds].map((id) => byId.get(id)).filter(Boolean);
-  const tasks = all.filter(
-    (p) => p.type === 'task' && (descendantIds.has(num(p.projectId)) || descendantIds.has(num(p.portfolioId)))
+  const tasks = uniqueBusinessEntities(
+    all.filter((p) => p.type === 'task' && (descendantIds.has(num(p.projectId)) || descendantIds.has(num(p.portfolioId))))
   );
 
   if (process.env.DEBUG_RAG !== 'false') {

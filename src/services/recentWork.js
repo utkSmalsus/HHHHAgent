@@ -6,7 +6,7 @@
  * Tool") is never pulled in. Here we keyword-match ALL tasks/projects on the topic, then sort by
  * their updated date — mirroring a manual "find matching tasks, newest first" search.
  */
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, uniqueBusinessEntities } from './qdrantScroll.js';
 import { extractKeywords, normalizeText } from '../utils/textMatch.js';
 import { groupByEntity, toCandidates } from '../utils/disambiguate.js';
 
@@ -81,7 +81,9 @@ export async function recentWorkRetrieve(topicText) {
       .join(' ');
     const exactGroup = groups.find((g) => normalizeText(g.title) === strippedTopic);
     if (exactGroup) {
-      const pool = [...exactGroup.items].sort((a, b) => tsMs(b) - tsMs(a));
+      // FILTER FIRST (keyword/phrase match already applied above), then DEDUPE (Phase 14) — a
+      // chunked task/project must not eat two of the 15 "latest" slots or appear twice.
+      const pool = uniqueBusinessEntities(exactGroup.items).sort((a, b) => tsMs(b) - tsMs(a));
       return { items: pool.slice(0, 15), keywords };
     }
   }
@@ -94,7 +96,8 @@ export async function recentWorkRetrieve(topicText) {
     return { ambiguous: true, candidates: toCandidates(groups), keywords };
   }
 
-  const pool = matched.map((x) => x.p);
+  // FILTER FIRST (keyword match already applied above), then DEDUPE (Phase 14) — same reasoning.
+  const pool = uniqueBusinessEntities(matched.map((x) => x.p));
   pool.sort((a, b) => tsMs(b) - tsMs(a)); // newest first
 
   return { items: pool.slice(0, 15), keywords };

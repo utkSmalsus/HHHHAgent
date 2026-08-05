@@ -12,7 +12,7 @@
  * Reads the `Owner:` value straight out of `.text` (not just the `owner` metadata field) so this
  * works on data ingested before `owner` was added to task/master metadata, not only after a re-ingest.
  */
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, uniqueBusinessEntities } from './qdrantScroll.js';
 import { structuralRetrieve } from './structuralRetrieve.js';
 import {
   resolveStructuredFilters,
@@ -169,7 +169,12 @@ export async function whoWorksOnTopic(question) {
 
   const allTasks = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
   const ids = containerFilter.resolved.descendantIds;
-  const tasks = allTasks.filter((t) => ids.has(Number(t.projectId)) || ids.has(Number(t.portfolioId)));
+  // FILTER FIRST (hierarchy membership), then DEDUPE (Phase 14) — a chunked task's points share
+  // identical projectId/portfolioId/owner, so this can't drop a real task and fixes `taskCount`
+  // from counting Qdrant points instead of real tasks.
+  const tasks = uniqueBusinessEntities(
+    allTasks.filter((t) => ids.has(Number(t.projectId)) || ids.has(Number(t.portfolioId)))
+  );
 
   const owners = new Map();
   for (const t of tasks) {

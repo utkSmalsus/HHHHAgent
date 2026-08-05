@@ -14,7 +14,7 @@
  * Each is resolved on its own, through the SAME safe resolver (resolveContainerAnchor) used
  * everywhere else — never a confident wrong pick; unresolved or ambiguous fails closed.
  */
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, countBusinessEntities } from './qdrantScroll.js';
 import { resolveContainerAnchor, descendantContainerIds } from './structuralRetrieve.js';
 
 const COMPARE_RE = /\bcompare\b/i;
@@ -61,12 +61,16 @@ function detectAspect(question) {
   return null; // plain "compare A and B" — no specific aspect named, show real facts side by side.
 }
 
+// FILTER FIRST (hierarchy membership), then DEDUPE (Phase 14) — same ordering and reasoning as
+// applyStructuredFilters in structuredFilters.js: a chunked task's points share identical
+// projectId/portfolioId, so membership-filtering before deduping can't drop a real task.
 async function countTasksUnder(anchor, containerItems) {
   const anchorId = Number(anchor.sharePointItemId);
   if (!Number.isFinite(anchorId)) return 0;
   const ids = descendantContainerIds(anchorId, containerItems);
   const tasks = await scrollPayloads({ types: ['task'], limit: 30000 }).catch(() => []);
-  return tasks.filter((t) => ids.has(Number(t.projectId)) || ids.has(Number(t.portfolioId))).length;
+  const underAnchor = tasks.filter((t) => ids.has(Number(t.projectId)) || ids.has(Number(t.portfolioId)));
+  return countBusinessEntities(underAnchor);
 }
 
 /**

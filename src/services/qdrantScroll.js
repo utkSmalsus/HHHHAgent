@@ -22,28 +22,59 @@ function typeFilter(types) {
 }
 
 /**
- * Long records (mainly meeting transcripts) are now split across multiple chunk points sharing
- * one `sourceKey`. Most retrieval paths only need ONE representative row per record (e.g. listing
- * meetings by date just needs title/status/date, which every chunk carries identically in its
- * metadata) — dedupe to the lowest chunkIndex per sourceKey so a chunked record doesn't appear
- * N times in a list. Records that were never chunked (chunkIndex/totalChunks absent or 1) pass
- * through unchanged.
+ * The stable identity of the real BUSINESS RECORD a Qdrant point represents — the same composite
+ * key ingestion itself builds (qdrant.js's sourceKeyFor(): site+list+item+type) for point-ID
+ * generation and stale-chunk cleanup, so this isn't a new invented identity, it's reading back the
+ * one ingestion already uses. Falls back to type+sharePointItemId for the small number of legacy
+ * points ingested before `sourceKey` existed — verified live against production (Phase 14 audit):
+ * <0.1% of points per type (1 task, 1 portfolio, 15 timeentries out of ~26,600 points total), every
+ * one of them already carrying a valid sharePointItemId. Returns null only when NEITHER identity is
+ * available; callers must never merge two null-key points with each other (see dedupeBySource).
+ */
+export function getBusinessEntityKey(payload) {
+  if (payload?.sourceKey) return payload.sourceKey;
+  if (payload?.sharePointItemId != null && payload?.type) return `${payload.type}:${payload.sharePointItemId}`;
+  return null;
+}
+
+/**
+ * Long records (mainly meeting transcripts) are split across multiple chunk points sharing one
+ * business identity (see getBusinessEntityKey). Most retrieval paths only need ONE representative
+ * row per record (e.g. listing meetings by date just needs title/status/date, which every chunk
+ * carries identically in its metadata — verified live, Phase 14: zero examples across 5 types of
+ * two points sharing an identity with different title/sharePointItemId) — dedupe to the lowest
+ * chunkIndex per identity so a chunked record doesn't appear N times in a list OR get counted N
+ * times (this is also THE dedup step every deterministic COUNT must apply — see
+ * countBusinessEntities below — so there's exactly one dedup implementation, not a second one for
+ * counting). A point with no identity at all (neither sourceKey nor sharePointItemId) passes
+ * through on its own rather than risk merging two records we can't prove are the same.
  */
 export function dedupeBySource(payloads) {
-  const bestBySource = new Map();
-  const passthrough = [];
+  const bestByKey = new Map();
+  const noIdentity = [];
   for (const p of payloads) {
-    const key = p?.sourceKey;
-    if (!key || (p.totalChunks || 1) <= 1) {
-      passthrough.push(p);
+    const key = getBusinessEntityKey(p);
+    if (!key) {
+      noIdentity.push(p);
       continue;
     }
-    const existing = bestBySource.get(key);
+    const existing = bestByKey.get(key);
     if (!existing || (p.chunkIndex ?? 0) < (existing.chunkIndex ?? 0)) {
-      bestBySource.set(key, p);
+      bestByKey.set(key, p);
     }
   }
-  return [...passthrough, ...bestBySource.values()];
+  return [...noIdentity, ...bestByKey.values()];
+}
+
+/** Alias, named for the call sites that care about counting/uniqueness rather than "source" —
+ *  same one dedup implementation as dedupeBySource, not a parallel mechanism. */
+export const uniqueBusinessEntities = dedupeBySource;
+
+/** Qdrant points != business records (a chunked meeting transcript can be dozens of points for ONE
+ *  real meeting). Every deterministic COUNT of real entities must use this instead of raw
+ *  `items.length` once items may include multiple points per record. */
+export function countBusinessEntities(payloads) {
+  return uniqueBusinessEntities(payloads).length;
 }
 
 /**

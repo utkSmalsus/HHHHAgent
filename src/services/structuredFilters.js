@@ -18,7 +18,7 @@
  * "requested but unresolved", which callers must surface explicitly rather than silently drop.
  */
 import * as chrono from 'chrono-node';
-import { scrollPayloads } from './qdrantScroll.js';
+import { scrollPayloads, uniqueBusinessEntities } from './qdrantScroll.js';
 import {
   resolveContainerAnchor,
   descendantContainerIds,
@@ -604,7 +604,17 @@ export function buildBlockedResponse(blocked) {
 }
 
 /** Applies every resolved filter (person/container/status/overdue/date range) to a payload list —
- *  the one place filtering logic lives, so it can't diverge between branches. */
+ *  the one place filtering logic lives, so it can't diverge between branches.
+ *
+ * FILTER FIRST, then DEDUPE (Phase 14): a chunked record's points all carry identical metadata
+ * (status/owner/dates/container — verified live against production, zero counter-examples across
+ * all 5 types), so filtering before deduping can never drop a real match. Deduping AFTER guarantees
+ * "if ANY of a record's points survives the filters, the record counts once" instead of betting on
+ * which single (possibly filtered-out) point a dedupe-first pass would have kept. This is also the
+ * ONE place every caller's count/list ultimately flows through (count branch, overdue branch,
+ * date-list branch, owned-by-person), so a chunked record can no longer be counted N times OR shown
+ * N times as separate rows by any of them — see qdrantScroll.js's getBusinessEntityKey/
+ * uniqueBusinessEntities for why Qdrant points aren't business records. */
 export function applyStructuredFilters(items, { personFilter, containerFilter, statusFilter, overdueRequested, dateFilter }) {
   let out = items;
   if (personFilter.resolvedName) out = out.filter((i) => (i.owner || '') === personFilter.resolvedName);
@@ -615,7 +625,7 @@ export function applyStructuredFilters(items, { personFilter, containerFilter, s
   if (statusFilter.requested) out = out.filter((i) => statusFilter.match(i.status));
   if (overdueRequested) out = out.filter((i) => taskIsOverdue(i));
   if (dateFilter.requested && dateFilter.range) out = applyDateRange(out, dateFilter);
-  return out;
+  return uniqueBusinessEntities(out);
 }
 
 /** Human-readable "for X in Y (dueDate Z)" scope suffix built from the SAME resolved filters used
