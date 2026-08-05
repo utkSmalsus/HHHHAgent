@@ -13,6 +13,93 @@ import { groupByEntity, toCandidates, tsOf } from '../utils/disambiguate.js';
 
 const DEBUG_RAG = process.env.DEBUG_RAG !== 'false';
 
+// ---------------------------------------------------------------------------
+// Operator-vocabulary vs. entity-reference text (Phase 12). A question's OPERATOR words (what to
+// count/list, which date range, which type) routinely collide with a real title's own words in a
+// 750+-item corpus ("Overdue Projects", "Annex Updated", "Week Task Distribution", a portfolio
+// with "Meetings" in its name) — resolveContainerAnchor's keyword-overlap scoring can't otherwise
+// tell "the question is ABOUT this operator" from "the question NAMES this real entity". Centralized
+// here (not duplicated per caller) because that's exactly how this collided before: structuredFilters
+// .js's resolveContainerFilter sanitized before calling resolveContainerAnchor, but structuralRetrieve()
+// below called it directly on the raw question — the hierarchy/recent-work branches never got the
+// same protection the count/overdue/date-list branches did.
+const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|today|yesterday|tomorrow|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
+const STATUS_VOCAB_RE = /\b(overdue|past due|late|behind schedule|completed|done|finished|pending|in progress|working on it|active)\b/gi;
+const ENTITY_TYPE_VOCAB_RE = /\b(portfolios?|projects?|tasks?|meetings?|time ?entr(?:y|ies)|timesheets?)\b/gi;
+const BARE_NUMBER_RE = /\b\d{3,}\b/g;
+
+/** Strips OPERATOR vocabulary (temporal/status/entity-type/bare-number) that names WHAT KIND of
+ *  question this is, not WHICH real entity it's about — the same collision class as "Overdue
+ *  Projects" being a real title while "overdue" is also this app's own filter-trigger word. */
+export function sanitizeForEntityResolution(question) {
+  return String(question || '')
+    .replace(TEMPORAL_VOCAB_RE, ' ')
+    .replace(STATUS_VOCAB_RE, ' ')
+    .replace(ENTITY_TYPE_VOCAB_RE, ' ')
+    .replace(BARE_NUMBER_RE, ' ');
+}
+
+// Words that carry essentially no identifying signal ON THEIR OWN — they're either question
+// scaffolding or generic product vocabulary that happens to appear inside MANY unrelated real
+// titles ("Leave Management Tool", "Team Management Tools", "Development Team Management System"
+// all share "management"/"team"/"system"/"tool"/"development"). A single overlapping token from
+// this set must never be enough to win a match by itself (Phase 12 step 4) — but several of them
+// together, or one alongside a real distinguishing word, still legitimately identify a real title
+// that's actually named using this vocabulary (many real titles genuinely are "Team Management...").
+// So these are DOWNWEIGHTED in scoring, not stripped outright, unlike the operator vocabulary above.
+const GENERIC_SCAFFOLD_WORDS = new Set([
+  'what', 'is', 'are', 'was', 'were', 'the', 'a', 'an', 'most', 'any', 'all', 'some', 'new', 'top',
+  'which', 'who', 'how', 'many', 'much', 'of', 'in', 'on', 'for', 'to', 'with', 'show', 'me', 'list',
+  'does', 'have', 'has', 'had', 'happening', 'happened', 'happen', 'going', 'this', 'that', 'these',
+  'those', 'there', 'been', 'and', 'did',
+]);
+export const GENERIC_ENTITY_WORDS = new Set([
+  'team', 'management', 'system', 'systems', 'tool', 'tools', 'development', 'module', 'modules',
+  'app', 'apps', 'application', 'applications', 'platform', 'component', 'components',
+]);
+const GENERIC_WORD_WEIGHT = 0.3; // ponytail: empirically-picked downweight, not tuned to any one question — revisit with real click-through data if it under/over-triggers ambiguity.
+
+// True edit distance <= 1 (insertion/deletion/substitution) — cheap enough not to need a library.
+function withinOneEdit(a, b) {
+  if (a === b) return true;
+  const la = a.length, lb = b.length;
+  if (Math.abs(la - lb) > 1) return false;
+  let i = 0, j = 0, edits = 0;
+  while (i < la && j < lb) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (la === lb) { i++; j++; } else if (la > lb) { i++; } else { j++; }
+  }
+  return edits + (la - i) + (lb - j) <= 1;
+}
+
+// Generic words are downweighted so ONE coincidental overlap can't win a match — but that
+// protection silently evaporated for a misspelled generic word, since exact Set membership can't
+// tell "managment" from "management". Verified live: a real portfolio is itself titled "Leave
+// managment tool" (the SAME typo as a typo'd real question, "portfoilo managment") — matching
+// exactly on the misspelling, weight=1 (full, non-generic), won outright with no other candidate
+// close behind. A misspelling of generic vocabulary is if anything LESS reliable as a signal than
+// the correctly-spelled word, not more — fuzzy-match (edit distance <= 1) against the generic list
+// too, not just literal words that happen to still be spelled correctly. Length-gated (>=6) so
+// short real words don't accidentally fuzzy-collide with an unrelated short generic word.
+function isGenericWord(w) {
+  if (GENERIC_ENTITY_WORDS.has(w)) return true;
+  if (w.length < 6) return false;
+  for (const g of GENERIC_ENTITY_WORDS) {
+    if (g.length >= 6 && withinOneEdit(w, g)) return true;
+  }
+  return false;
+}
+
+/** True once ANY non-scaffolding, non-purely-generic word remains — i.e. the question actually
+ *  names something, as opposed to being pure operator/filler text with nothing to entity-resolve
+ *  at all ("how many meetings happened this week" sanitizes down to nothing; "team management
+ *  tools" survives because content remains even though every word is individually generic). */
+export function hasRealContentWords(sanitizedQuestion) {
+  const words = sanitizedQuestion.toLowerCase().match(/[a-z]{3,}/g) || [];
+  return words.some((w) => !GENERIC_SCAFFOLD_WORDS.has(w));
+}
+
 // "belongs? to" was previously a trigger here too, but it's genuinely ambiguous — "which tasks
 // belong to Deepak Trivedi" means OWNERSHIP (a person), not CONTAINMENT (a project/portfolio),
 // and this regex only knows the latter. Tested live: it walked the descendant tree of an unrelated
@@ -89,16 +176,31 @@ export function descendantContainerIds(anchorId, containerItems) {
   return descendantIds;
 }
 
+/** True when the question/title overlap is more than a single coincidental generic-word hit — see
+ *  the matching `hasNonGenericMatch` logic in resolveContainerAnchor below for why 2+ generic
+ *  words matching together still counts (a real multi-word title, unlike one stray token). */
+export function hasNonGenericTitleOverlap(sanitizedQuestion, title) {
+  const qWords = extractKeywords(sanitizedQuestion);
+  const titleWords = new Set(queryTokens(title));
+  const matched = qWords.filter((w) => titleWords.has(w));
+  return matched.length >= 2 || matched.some((w) => !isGenericWord(w));
+}
+
 export function resolveContainerAnchor(question, containerItems) {
-  const qWords = extractKeywords(question);
+  const sanitized = sanitizeForEntityResolution(question);
+  if (!hasRealContentWords(sanitized)) return { anchor: null };
+
+  const qWords = extractKeywords(sanitized);
   if (!qWords.length) return { anchor: null };
+
+  const weight = (w) => (isGenericWord(w) ? GENERIC_WORD_WEIGHT : 1);
 
   const groups = groupByEntity(containerItems);
   const scored = groups
     .map((g) => {
       const titleTokens = queryTokens(g.title);
       const titleWords = new Set(titleTokens);
-      const score = qWords.reduce((s, w) => s + (titleWords.has(w) ? 1 : 0), 0);
+      const matched = qWords.filter((w) => titleWords.has(w));
       // Precision matters as much as raw overlap count: "SmartFilters" (1 word, 1 match — a
       // near-exact name match) must beat "Share SmartFilters" or "Full Dynamic SmartFilters
       // Approach" (also 1 match each, but buried among 1-3 OTHER words the question never asked
@@ -106,8 +208,18 @@ export function resolveContainerAnchor(question, containerItems) {
       // merely happen to contain the same one word. Found via a direct regression check on
       // "what's under SmartFilters portfolio", which real data has 6 different real titles
       // containing the word "smartfilters".
+      // Matches are WEIGHTED, not counted 1-for-1: a purely-generic word ("management") counts for
+      // much less than a distinguishing one, so one coincidental generic overlap can't outscore (or
+      // tie) a title that shares zero real content with the question (Phase 12 step 4).
+      const score = matched.reduce((s, w) => s + weight(w), 0);
       const ratio = titleTokens.length ? score / titleTokens.length : 0;
-      return { group: g, score, ratio };
+      // "Real signal" means either a genuinely distinguishing word matched, OR several generic
+      // words matched TOGETHER as a phrase (e.g. "Team Management Tools" — every word is
+      // individually generic, but a real, unique, multi-word title made entirely of them is still
+      // a legitimate match). What must never win is a SINGLE stray generic word overlapping an
+      // otherwise-unrelated title — that's the "one generic token" case Phase 12 step 4 targets.
+      const hasNonGenericMatch = matched.length >= 2 || matched.some((w) => !isGenericWord(w));
+      return { group: g, score, ratio, hasNonGenericMatch };
     })
     .filter((s) => s.score > 0)
     .sort((a, b) => b.score - a.score);
@@ -115,7 +227,25 @@ export function resolveContainerAnchor(question, containerItems) {
   if (!scored.length) return { anchor: null };
 
   const topScore = scored[0].score;
-  let tied = scored.filter((s) => s.score === topScore);
+  let tied = scored.filter((s) => Math.abs(s.score - topScore) < 1e-9);
+
+  // The top tier matched ONLY on generic vocabulary — every candidate that scored at all did so
+  // purely via words like "team"/"management"/"system"/"tools", which are exactly as likely to
+  // coincidentally appear in an unrelated title as in the one actually meant. Refuse rather than
+  // confidently pick one; the caller falls back to general retrieval instead of a wrong entity.
+  if (!tied.some((s) => s.hasNonGenericMatch)) return { anchor: null };
+
+  // Near-ties, not just exact ties, are genuine ambiguity: a runner-up within ~20% of the winner's
+  // weighted score (and itself backed by real, non-generic content — not just noise) is a real
+  // second candidate a human would also plausibly mean, even though the deterministic tiebreaks
+  // below would otherwise silently pick the top one. (Phase 12 step 5 — margin, not exact-tie-only.)
+  if (tied.length === 1) {
+    const NEAR_TIE_MARGIN = 0.8; // ponytail: runner-up within 80% of the winner's score counts as close; not tuned to one question.
+    const closeSecond = scored.find(
+      (s) => s !== tied[0] && s.hasNonGenericMatch && s.score >= topScore * NEAR_TIE_MARGIN
+    );
+    if (closeSecond) tied = [tied[0], closeSecond];
+  }
 
   // Among candidates tied on raw keyword overlap, a dormant placeholder ("Not Started", never
   // touched) shouldn't silently outrank one that's actually being worked on just because its
@@ -199,6 +329,45 @@ export function resolveContainerAnchor(question, containerItems) {
 }
 
 /**
+ * Adapts a resolveContainerAnchor()-shaped result ({anchor}|{ambiguous,candidates}|{anchor:null})
+ * into the canonical entity-resolution contract (Phase 12): {queryText, expectedType, candidates,
+ * resolution}. Existing call sites keep reading anchor/ambiguous directly (no behavior change) —
+ * this is for callers/tests that want the explicit resolution-state shape instead of re-deriving
+ * "confident vs ambiguous vs not_found" from which fields happen to be set.
+ */
+export function toEntityResolution(question, expectedType, result) {
+  if (result.anchor) {
+    return {
+      queryText: question,
+      expectedType,
+      candidates: [{
+        id: result.anchor.sharePointItemId ?? null,
+        title: result.anchor.title,
+        type: result.anchor.type,
+        score: 1,
+        matchReason: 'resolved',
+      }],
+      resolution: 'confident',
+    };
+  }
+  if (result.ambiguous) {
+    return {
+      queryText: question,
+      expectedType,
+      candidates: result.candidates.map((c) => ({
+        id: c.sharePointItemId ?? null,
+        title: c.title,
+        type: c.type,
+        score: c.count || 1,
+        matchReason: 'ambiguous',
+      })),
+      resolution: 'ambiguous',
+    };
+  }
+  return { queryText: question, expectedType, candidates: [], resolution: 'not_found' };
+}
+
+/**
  * Recency-aware resolution for temporal-intent questions ("latest X", "X updated yesterday").
  * `tied` are candidates that already tied on raw keyword-overlap SCORE (equally relevant by that
  * measure) — the only thing separating them here is title length/precision (ratio). Rather than
@@ -277,17 +446,44 @@ export async function structuralRetrieve(question, { anchorOverride } = {}) {
     anchor = resolved.anchor;
 
     if (!anchor) {
-      // Anchor = the container the user named. Restrict the vector search to portfolio/project types
-      // first: real data can have dozens of near-identically-worded TASKS (e.g. many "Team Management
-      // Tool ..." tasks), which can outrank the one actual project/portfolio in an unrestricted top-8
-      // search, leaving the "anchor" as a task with no real descendants. Only fall back to an
-      // unrestricted search if nothing scores as a portfolio/project at all.
-      const containerFilter = { should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }] };
-      const containerHits = await searchKnowledge(question, 5, containerFilter).catch(() => []);
-      const hits = containerHits.length ? containerHits : await searchKnowledge(question, 8);
-      anchor =
-        (hits.find((h) => h.payload && (h.payload.type === 'portfolio' || h.payload.type === 'project'))
-          || hits[0])?.payload;
+      // The keyword resolver above found ZERO real-title overlap — before trusting embedding
+      // similarity (which tolerates typos/paraphrase but has NO disambiguation of its own and no
+      // way to say "I'm not sure"), require the question to actually name something distinguishing
+      // at all. A pure operator/scaffolding question, or one whose only "content" is itself generic
+      // vocabulary, has nothing to entity-resolve — semantic search on it just returns whatever the
+      // embedding happens to sit closest to, confidently and wrongly. Verified live: a typo'd
+      // "what is happening with portfoilo managment" resolved to an unrelated "Leave management
+      // tool" this way — the keyword resolver correctly found nothing, but the fallback below used
+      // to trust vector top-1 unconditionally regardless. Falling through to `anchor: null` here
+      // defers to the caller's general-retrieval path instead (the same behavior this question got
+      // before the hierarchy branch was widened to catch "what's happening with X" questions).
+      const sanitized = sanitizeForEntityResolution(question);
+      if (hasRealContentWords(sanitized)) {
+        // Anchor = the container the user named. Restrict the vector search to portfolio/project types
+        // first: real data can have dozens of near-identically-worded TASKS (e.g. many "Team Management
+        // Tool ..." tasks), which can outrank the one actual project/portfolio in an unrestricted top-8
+        // search, leaving the "anchor" as a task with no real descendants. Only fall back to an
+        // unrestricted search if nothing scores as a portfolio/project at all.
+        const containerFilter = { should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }] };
+        const containerHits = (await searchKnowledge(question, 5, containerFilter).catch(() => [])).filter((h) => h.payload);
+        const hits = containerHits.length ? containerHits : (await searchKnowledge(question, 8).catch(() => [])).filter((h) => h.payload);
+        const isContainer = (h) => h.payload.type === 'portfolio' || h.payload.type === 'project';
+        const top = hits.find(isContainer) || hits[0];
+        const runnerUp = hits.find((h) => h !== top && isContainer(h));
+
+        // A semantic top-1 is only trustworthy when it clearly beats the runner-up (several close
+        // scores mean several plausible real entities, not one obvious answer — same principle as
+        // the keyword resolver's near-tie ambiguity check above) AND it actually shares a real,
+        // non-generic word with the question rather than winning on embedding-space proximity to
+        // generic vocabulary alone ("management"/"team"/"tool"/"system" are common to dozens of
+        // unrelated real titles, so semantic closeness on those words alone proves nothing).
+        const SEMANTIC_MARGIN = 1.15; // ponytail: top must beat the runner-up by >=15%, empirically picked, not tuned to one question.
+        const dominant = !runnerUp || (top?.score || 0) >= (runnerUp?.score || 0) * SEMANTIC_MARGIN;
+        const titleShares = top && hasNonGenericTitleOverlap(sanitized, top.payload.title);
+        if (top && dominant && titleShares) {
+          anchor = top.payload;
+        }
+      }
     }
   }
   const anchorId = num(anchor?.sharePointItemId);

@@ -51,6 +51,8 @@ const TYPE_WORDS = {
   timeentries: 'timeentry',
   timesheet: 'timeentry',
   timesheets: 'timeentry',
+  meeting: 'meeting',
+  meetings: 'meeting',
 };
 
 export function normalizeText(value) {
@@ -89,19 +91,7 @@ export function hasTemporalIntent(question) {
 export function extractKeywords(question) {
   const tokens = queryTokens(question);
   const acronyms = acronymTokens(question);
-  const typeWords = new Set([
-    ...Object.keys(TYPE_WORDS),
-    'portfolio',
-    'portfolios',
-    'project',
-    'projects',
-    'task',
-    'tasks',
-    'timeentry',
-    'timeentries',
-    'timesheet',
-    'timesheets',
-  ]);
+  const typeWords = new Set(Object.keys(TYPE_WORDS));
   const filtered = tokens.filter((t) => !typeWords.has(t));
   return Array.from(new Set([...acronyms, ...filtered]));
 }

@@ -19,7 +19,12 @@
  */
 import * as chrono from 'chrono-node';
 import { scrollPayloads } from './qdrantScroll.js';
-import { resolveContainerAnchor, descendantContainerIds } from './structuralRetrieve.js';
+import {
+  resolveContainerAnchor,
+  descendantContainerIds,
+  sanitizeForEntityResolution,
+  hasRealContentWords,
+} from './structuralRetrieve.js';
 import { parseDateRange } from './meetingQuery.js';
 import { buildDisambiguationAnswer, buildDisambiguationSuggestions } from '../utils/disambiguate.js';
 
@@ -242,70 +247,21 @@ const num = (v) => {
  * @returns {Promise<{ requested: boolean, resolved: {id:number,title:string,type:string,taskIds:Set<number>}|null,
  *   ambiguous: object[]|null, candidateText: string|null }>}
  */
-// Words that mean something TEMPORAL in a question ("most recently UPDATED project") but can
-// ALSO be a literal substring of a real title (found live: a real portfolio is named "Annex
-// Updated") — resolveContainerAnchor's keyword-overlap scoring doesn't know the difference, so it
-// wrongly anchored a pure recency-sort question ("what is the most recently updated project?") to
-// that one unrelated portfolio via generic word overlap, same class of bug as the earlier
-// "teams"≠"team" stemming gap. Stripped only for the container-resolution input, not from the
-// original question used everywhere else (date parsing, the final answer text, etc.) — these
-// words carry essentially no naming signal on their own, so removing them is a safe general
-// policy rather than a fix aimed at "Annex Updated" specifically.
-// Second real collision found the same way: "this WEEK" stripped "updated" fine but left "week",
-// which is itself a real portfolio's title ("Week Task Distribution"). Time-UNIT nouns are exactly
-// as content-free as the recency verbs above — extended to cover them generically rather than
-// patching this one collision, since the underlying problem (any common English word can
-// coincidentally BE a real title in a 750+-item corpus) isn't specific to "week".
-const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|today|yesterday|tomorrow|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
-
-// Third collision, same pattern: "how many OVERDUE tasks are there" matched a real portfolio
-// literally titled "Overdue Projects" — "overdue" isn't temporal vocabulary, it's THIS module's
-// own status/overdue filter-trigger vocabulary, equally at risk of coincidentally being a real
-// title in a 750+-item corpus. Strips both the single-word and multi-word status triggers this
-// module itself recognizes (see isOverdueRequested/resolveStatusFilter above) so a question using
-// its OWN filter vocabulary can't accidentally anchor container resolution to an unrelated record.
-const STATUS_VOCAB_RE = /\b(overdue|past due|late|behind schedule|completed|done|finished|pending|in progress|working on it|active)\b/gi;
-
-// Fourth collision, same pattern again: "tasks due on 02/08/2026" matched a real project literally
-// titled "Annex II 2026" — the bare year "2026" (4+ digits survive queryTokens' length>2 filter
-// where 2-digit day/month tokens don't) coincidentally overlapped a real title's own embedded year.
-// Standalone digit runs of 3+ are almost never sufficient identifying content for a container match
-// on their own (a real title WITH a number, like "Annex II 2026", still needs "Annex"/"II" to also
-// match for a legitimate resolution) — stripped for the same reason the vocab above is.
-const BARE_NUMBER_RE = /\b\d{3,}\b/g;
-
-// A pure recency-meta-question ("what is the MOST recently updated project?") has essentially NO
-// real entity-naming content once question-scaffolding and temporal vocabulary are stripped — but
-// resolveContainerAnchor's keyword-overlap scoring will still happily anchor on whatever common
-// word is left over (found live: "most" alone matched a real portfolio literally titled "...to get
-// most relevant items on top", becoming the SOLE score>0 candidate and winning outright, since a
-// single unopposed match skips the ratio/precision tiebreak entirely). Local to this module only —
-// deliberately NOT added to the shared STOP_WORDS/extractKeywords() in textMatch.js, since that
-// feeds BM25/reranking elsewhere and is out of scope here. If nothing but scaffolding words remain,
-// skip container resolution entirely rather than risk a coincidental one-word match.
-const GENERIC_SCAFFOLD_WORDS = new Set([
-  'what', 'is', 'are', 'the', 'a', 'an', 'most', 'any', 'all', 'some', 'new', 'top', 'which',
-  'who', 'how', 'many', 'much', 'of', 'in', 'on', 'for', 'to', 'with', 'project', 'projects',
-  'portfolio', 'portfolios', 'task', 'tasks', 'show', 'me', 'list', 'does', 'have', 'has',
-]);
-
-function hasRealContentWords(sanitizedQuestion) {
-  const words = sanitizedQuestion.toLowerCase().match(/[a-z]{3,}/g) || [];
-  return words.some((w) => !GENERIC_SCAFFOLD_WORDS.has(w));
-}
-
+// Operator-vs-entity-reference sanitization (temporal/status/entity-type/bare-number vocabulary,
+// e.g. "Annex Updated"/"Week Task Distribution"/"Overdue Projects"/"Annex II 2026" all being real
+// titles that coincidentally collide with this app's own filter-trigger words) and the "nothing
+// but scaffolding left" gate now live centrally in structuralRetrieve.js's resolveContainerAnchor —
+// it sanitizes internally, so every caller (this one, and structuralRetrieve() itself calling it
+// directly) gets the same protection instead of each caller needing its own copy. See that
+// module's own comments for the full history of collisions this fixes.
 export async function resolveContainerFilter(question, { getContainerItems = defaultContainerItems, personCandidateText = null } = {}) {
   const items = await getContainerItems();
-  const sanitizedQuestion = String(question || '')
-    .replace(TEMPORAL_VOCAB_RE, ' ')
-    .replace(STATUS_VOCAB_RE, ' ')
-    .replace(BARE_NUMBER_RE, ' ');
 
-  if (!hasRealContentWords(sanitizedQuestion)) {
+  if (!hasRealContentWords(sanitizeForEntityResolution(question))) {
     return { requested: false, resolved: null, ambiguous: null, candidateText: null };
   }
 
-  const primary = resolveContainerAnchor(sanitizedQuestion, items);
+  const primary = resolveContainerAnchor(question, items);
 
   if (primary.ambiguous) {
     return { requested: true, resolved: null, ambiguous: primary.candidates, candidateText: null };
