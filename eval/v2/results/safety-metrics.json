@@ -1,0 +1,32 @@
+{
+  "CONFIDENT_WRONG_ANSWER": 24,
+  "CONFIDENT_WRONG_ANSWER_ids": [
+    "PROJ_009",
+    "TASK_001",
+    "TASK_015",
+    "TASK_019",
+    "TASK_030",
+    "CNT_001",
+    "CNT_004",
+    "CNT_012",
+    "CNT_015",
+    "CNT_018",
+    "CNT_019",
+    "DATE_007",
+    "DATE_019",
+    "MEET_017",
+    "TRANS_003",
+    "TRANS_005",
+    "TRANS_009",
+    "TRANS_019",
+    "HI_004",
+    "TYPO_003",
+    "TYPO_007",
+    "NEG_002",
+    "NEG_006",
+    "NEG_007"
+  ],
+  "CONFIDENT_WRONG_ENTITY": 2,
+  "HALLUCINATION": 8,
+  "UNSAFE_GLOBAL_FALLBACK": 1
+}

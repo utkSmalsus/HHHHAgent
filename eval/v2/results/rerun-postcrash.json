@@ -1,0 +1,590 @@
+[
+  {
+    "id": "MEET_020",
+    "question": "What type of meeting was \"Scrum 4/08/2026\" — a stand-up, a review, or something else?",
+    "answer": "According to the meeting record, \"Scrum 4/08/2026\" was a team stand-up and project status meeting.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 8709
+  },
+  {
+    "id": "TRANS_001",
+    "question": "What was the \"AWSTesting\" meeting about?",
+    "answer": "The \"AWSTesting\" meeting was about testing the AWS Lambda API agent on the accuracy of the matching portfolio. The team demonstrated AI-powered meeting transcript analysis and task creation capabilities, showcasing a workflow that automatically generates meeting summaries, extracts action items, and creates tasks with portfolio matching using Claude API.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 10827
+  },
+  {
+    "id": "TRANS_002",
+    "question": "What data-export problem was raised in the middle of the \"AWSTesting\" meeting?",
+    "answer": "According to the meeting transcript, the data-export problem raised was: \"...we can't, if we export this data and then we run it in Perplexity, it will not help us to match the right task.\" This issue is related to incomplete data exports from the PXC database (missing task descriptions, timesheet details, and comments), which makes AI matching unreliable.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 12897
+  },
+  {
+    "id": "TRANS_003",
+    "question": "Near the end of the \"AWSTesting\" meeting, what did the team say about the QA agent?",
+    "answer": "Near the end of the \"AWSTesting\" meeting, there was no discussion about the QA agent. The conversation focused on the Meeting Tool project, its challenges, and the team's plans to improve data quality, project structure, and AI functionality. The QA agent was mentioned briefly in the context of creating feedback tasks when a task reaches 80% completion, but it was not a main topic of discussion during this meeting.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 17973
+  },
+  {
+    "id": "TRANS_004",
+    "question": "Which API was used in the \"AWSTesting\" meeting's demo for meeting analysis?",
+    "answer": "According to the meeting record, the API used in the \"AWSTesting\" meeting's demo for meeting analysis was Claude API.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 9831
+  },
+  {
+    "id": "TRANS_005",
+    "question": "What did Deepak Trivedi say about AI near the end of the \"SCRUM - 25/06/2026\" meeting?",
+    "answer": "According to the transcript of the \"SCRUM - 25/06/2026\" meeting, Deepak Trivedi did not mention AI near the end of the meeting. The meeting record only shows a discussion about time-sheet discrepancies and streamlining development processes by adopting new workflows, but there is no mention of AI in this context.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 18543
+  },
+  {
+    "id": "TRANS_006",
+    "question": "In the middle of the \"SCRUM - 25/06/2026\" meeting, what were Anshu Mishra and Deepak Trivedi discussing?",
+    "answer": "According to the transcript of the \"SCRUM - 25/06/2026\" meeting, Anshu Mishra and Deepak Trivedi were discussing the following topics: At around 00:14:00, Anshu Mishra mentioned that they would set up automatic deployment for a secret project. Deepak Trivedi responded with \"हाँ, हाँ\" (yes, yes) and discussed the importance of not changing their actual code files. Later, at around 00:15:04, Deepak Trivedi mentioned that after deploying to the server, they wouldn't need to do anything else. Anshu Mishra agreed with \"नहीं फिर भी चाहिए\" (no, we don't need it).",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 27791
+  },
+  {
+    "id": "TRANS_007",
+    "question": "What blockers were mentioned in the \"Scrum 4/08/2026\" meeting?",
+    "answer": "According to the meeting record, the major blockers mentioned in the \"Scrum 4/08/2026\" meeting are: Incomplete design verification Hardcoded values in popups Custom CSS classes not being properly removed from components",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 9222
+  },
+  {
+    "id": "TRANS_008",
+    "question": "How did the team plan to divide the SPA shared packages work?",
+    "answer": "The team planned to divide the SPA shared packages work by acknowledging and working on various tasks related to knowledge sharing, best practices, implementing table components, and architecture for SPA solutions. Specifically, they recognized the importance of \"SPA Shared Package Knowledge Sharing and Best Practices\" and \"Implement Shared Packages Architecture for SPA Solutions\", which are currently in progress. Additionally, they have already started working on \"Implement the Team Management Solution as a Single Page Application (SPA)\" and \"Implement SPA Table Components\". These tasks demonstrate the team's focus on developing the core UI components and navigation structure within the Single Page Application (SPA) architecture.",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 18775
+  },
+  {
+    "id": "TRANS_009",
+    "question": "What did the AWSTesting meeting say about the AI agent going on a page automatically?",
+    "answer": "This meeting record does not mention anything about an AI agent going on a page automatically. The discussion in this meeting is focused on the Meeting Tool project, specifically the AI-powered meeting transcript analysis and task creation capabilities, as well as the challenges and action items related to improving data quality, project structure, and portfolio matching. There is no mention of an AI agent taking any specific actions or going on a page automatically.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 13699
+  },
+  {
+    "id": "TRANS_010",
+    "question": "Did the \"AWSTesting\" meeting mention anything about a QA agent checking requirements automatically? What did it say the completion threshold was?",
+    "answer": "According to the meeting record, the \"AWSTesting\" meeting mentioned that when a task reaches 80% completion, automatically trigger QA agent to validate against original requirements and generate feedback tasks if issues are found.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 16591
+  },
+  {
+    "id": "TRANS_011",
+    "question": "What comments or feedback exist on the \"AWSTesting\" meeting record?",
+    "answer": "There are no specific comments or feedback on the \"AWSTesting\" meeting record regarding the AI task creation tool, as it is not mentioned in the transcript or summary of this meeting. The meeting appears to be a follow-up discussion about the Meeting Tool project and its challenges, with no direct mention of the AI task creation tool.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 15467
+  },
+  {
+    "id": "TRANS_012",
+    "question": "What did Deepak Trivedi say about AI?",
+    "answer": "Deepak Trivedi's discussions about AI are scattered across several time entries. He had a conversation with Stefan on Lovable AI and SDC Migration project structure, mentioning AI Agents and API integrations. In another instance, he discussed AI usage in ILF with Robert. Additionally, he talked to Stefan about AI followup and PSE changes, as well as the progress of AI Agents.",
+    "intent": "summary",
+    "confidence": 0.28,
+    "ms": 17704
+  },
+  {
+    "id": "TRANS_013",
+    "question": "What did Ranu Trivedi say in the \"SCRUM - 25/06/2026\" meeting about the timesheet discrepancy?",
+    "answer": "According to the transcript of the \"SCRUM - 25/06/2026\" meeting, Ranu Trivedi said: \"उसका हो गया\" (meaning \"it happened\") when discussing a timesheet discrepancy involving Stephen. \"मैंने उसकी वर्जिन हिस्टरी सारी सब जगह जाके चेक किया\" (meaning \"I checked the virgin history everywhere\") to verify the issue. \"उसने 17 तारीख को टाइम भरा है, बट टाइम भरा है 23 तारीख का\" (meaning \"he filled in the time on 17th date, but the time is actually for 23rd date\"). \"भरी\" (meaning \"filled\") when discussing the issue further.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 26660
+  },
+  {
+    "id": "TRANS_014",
+    "question": "What tool did the team evaluate for automating deployment pipelines in the \"SCRUM - 25/06/2026\" meeting?",
+    "answer": "According to the meeting record for \"SCRUM - 25/06/2026\", the team evaluated Lovable for development tasks and explored ways to automate deployment pipelines for more efficient delivery.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 17684
+  },
+  {
+    "id": "TRANS_015",
+    "question": "Did anyone discuss removing unused JSON properties in any meeting? Which one?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "summary",
+    "confidence": 0,
+    "ms": 2487
+  },
+  {
+    "id": "TRANS_016",
+    "question": "What is the \"Content Management and Search\" project about?",
+    "answer": "The \"Content Management and Search\" project is focused on improving content management and search capabilities. The main theme of this project is to enhance the search functionality, particularly in Single Page Applications (SPAs). This includes migrating OOTB Search to a SPA and optimizing it for better performance. Additionally, there are tasks related to SEO optimization for the public site, as well as bug fixing and improvement efforts for various features within the content management system.",
+    "intent": "summary",
+    "confidence": 0.5,
+    "ms": 20219
+  },
+  {
+    "id": "TRANS_017",
+    "question": "What did the transcript of the \"Loveable KT\" meeting say Lovable connects to besides SharePoint?",
+    "answer": "According to the transcript of the \"Loveable KT\" meeting, besides SharePoint, Lovable connects to GitHub via GitHub Actions, creating an automated CI/CD pipeline that pushes code changes directly to the App Catalog and SharePoint sites.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 14065
+  },
+  {
+    "id": "TRANS_018",
+    "question": "What did the \"AWSTesting\" meeting say about a meeting that never happened?",
+    "answer": "This meeting record does not mention a meeting that never happened. The summary and transcript only discuss the AWSTesting meeting itself, its goals, challenges, and action items. There is no mention of a non-existent meeting or any discussion about such a topic.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 12330
+  },
+  {
+    "id": "TRANS_019",
+    "question": "Summarize the \"Webstudio Team Meeting\".",
+    "answer": "The \"Webstudio Team Meeting\" was held on July 21, 2026, from 13:30 to 15:30 Zulu time. The participants were Deepak Trivedi, Umang Kumar, Kamal Kishore, Kamal Singh, Ranu Trivedi, Umesh Kumar, Thordis Jacobs, and Kristina Kovach. The meeting focused on discussing new ideas implemented in AIS and Claude, with a specific emphasis on Kamal's suggestions. Stefan Hochhuth started the transcription of the call, which lasted for 2 hours and 0 minutes.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 19600
+  },
+  {
+    "id": "TRANS_020",
+    "question": "What did Kamal say in the \"SPA Shared Packages Discussion\" meeting about AI tools?",
+    "answer": "According to the meeting record, Kamal mentioned AI tools such as Google Studio, Bolt AI, Cursor, or Antigravity can be used to assist with design and code generation for component refactoring, targeting 80% design match initially, with remaining 20% handled by designers in final touches.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 11383
+  },
+  {
+    "id": "HI_001",
+    "question": "Ranu ke overdue tasks kitne hain?",
+    "answer": "29 tasks are overdue for Ranu Trivedi:\n\n- Smartmetadata selection — due 2021-02-25 [Acknowledged]\n- Configure anonymous pages of foundation hhhh site in online HHHH site — due 2022-04-03 [In Progress]\n- Apply Batch Processing approach in this tool — due 2022-08-14 [In Progress]\n- Feedback - Last Modified Items 12-08-2022 — due 2022-08-20 [In QA Review]\n- Understand the code — due 2022-08-28 [working on it]\n- Time sheet creation bug — due 2023-05-19 [For Review]\n- Bug - Task Profile Page — due 2023-05-24 [Acknowledged]\n- Feedback - Feedback Tool — due 2023-05-25 [Acknowledged]\n- Bug - Dienstreisen Bern SDC HQ — due 2023-06-20 [Acknowledged]\n- Development - Root Task Management — due 2023-06-28 [Acknowledged]\n- Investigate - Auto Refresh latest updates in portfolio — due 2023-07-08 [working on it]\n- Implement Time Entries tool to SPFx technology — due 2023-07-08 [working on it]\n- Development - Root Task Management Group By Portfolios — due 2023-07-10 [Acknowledged]\n- Bug - Main Folder — due 2023-07-13\n- Development - Root Task Management - Apply SmartFilters — due 2023-07-13 [Acknowledged]\n- Bug - Main Folder — due 2023-07-14\n- Development -Task Summary Header — due 2023-07-17 [working on it]\n- Development -Team Calendar — due 2023-07-17 [working on it]\n- Task Priority Change Approvals — due 2023-07-20 [working on it]\n- Development - Latest Acivities — due 2023-07-30 [For Approval]\n- Development -Team Timesheet Summary — due 2023-07-30 [working on it]\n- Development - Todays Team Tasks Distribution — due 2023-07-30 [working on it]\n- Development -Team Tasks Distribution — due 2023-07-30 [working on it]\n- PnP Provisioning Request Form — due 2023-07-31 [working on it]\n- Development - ManageSmartMetadata — due 2023-08-07 [working on it]\n- IndexDB - Data loading Improvements — due 2025-05-22 [working on it]\n- Connect Github to Perplexity — due 2026-05-12 [Re-Open]\n- Investigation - How to use Codex for creating Agents — due 2026-06-22 [working on it]\n- Bug - OMT Date View — due 2026-06-25 [Acknowledged]",
+    "intent": "overdue",
+    "confidence": 0.95,
+    "ms": 1836
+  },
+  {
+    "id": "HI_002",
+    "question": "kal ki meeting me kya discuss hua?",
+    "answer": "That matches 2 different items in your data — which one did you mean?\n\n- **HHHH SPA discussion** (meeting) — updated 2026-07-03\n- **Team Discussion: AI Enhancement for Team Members** (task) — updated 2025-12-15",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 2255
+  },
+  {
+    "id": "HI_003",
+    "question": "Team Management Tools ka status kya hai?",
+    "answer": "The team management tools project is currently in progress, with a significant focus on developing new team management tools as per AIS. Two tasks, \"Development - New Team Management Tool as per AIS\" and \"Development - Team Management tool in Single Page Application (SPA)\", are actively being worked on, with the former having multiple iterations already completed. Additionally, one task, \"Provide KT- On Asset Management Tool\", has been marked as complete. Overall, the project is making progress towards its goals, with a mix of tasks in various stages of completion.",
+    "intent": "status",
+    "confidence": 0.9,
+    "ms": 19295
+  },
+  {
+    "id": "HI_004",
+    "question": "Deepak Trivedi ne SCRUM - 25/06/2026 meeting me AI ke bare me kya bola tha?",
+    "answer": "According to the meeting record, Deepak Trivedi did not discuss AI with Prashant Kumar in this SCRUM meeting on 25/06/2026.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 20648
+  },
+  {
+    "id": "HI_005",
+    "question": "Stefan Hochhuth ke paas kitne tasks hain?",
+    "answer": "That matches 4 different items in your data — which one did you mean?\n\n- **Stefan Hochhuth — 0h — no date** (timeentry) — updated 2026-06-17\n- **Stefan Hochhuth — 3h — 24/04/2026** (timeentry) — updated 24/04/2026\n- **Stefan Hochhuth — 0.5h — 23/06/2026** (timeentry) — updated 23/06/2026\n- **Stefan Hochhuth — 0.5h — 14/04/2026** (timeentry) — updated 14/04/2026",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 2060
+  },
+  {
+    "id": "HI_006",
+    "question": "kitni meetings is hafte hui hain?",
+    "answer": "Based on the available evidence, it appears that there are multiple meetings happening in the given timeframe. Specifically, tasks such as \"HHHH Public site Meet\" and time entries like \"HR and Asset Management Tool Review Meeting\" suggest that meetings are being conducted regularly. Additionally, time entries like \"Coordination with team on meeting tool integration on main HHHH solution\" and \"ILF and HHHH team meeting\" indicate that meetings are taking place to discuss various topics related to the HHHH solution. Currently, there seem to be several meetings in progress or recently completed, as evidenced by tasks like \"Meeting of JTMs and QA lead with Prashant\" and time entries like \"Ankush Das logged 3h.",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 26122
+  },
+  {
+    "id": "HI_007",
+    "question": "kya Ranu Trivedi ke koi overdue tasks hain?",
+    "answer": "29 tasks are overdue for Ranu Trivedi:\n\n- Smartmetadata selection — due 2021-02-25 [Acknowledged]\n- Configure anonymous pages of foundation hhhh site in online HHHH site — due 2022-04-03 [In Progress]\n- Apply Batch Processing approach in this tool — due 2022-08-14 [In Progress]\n- Feedback - Last Modified Items 12-08-2022 — due 2022-08-20 [In QA Review]\n- Understand the code — due 2022-08-28 [working on it]\n- Time sheet creation bug — due 2023-05-19 [For Review]\n- Bug - Task Profile Page — due 2023-05-24 [Acknowledged]\n- Feedback - Feedback Tool — due 2023-05-25 [Acknowledged]\n- Bug - Dienstreisen Bern SDC HQ — due 2023-06-20 [Acknowledged]\n- Development - Root Task Management — due 2023-06-28 [Acknowledged]\n- Investigate - Auto Refresh latest updates in portfolio — due 2023-07-08 [working on it]\n- Implement Time Entries tool to SPFx technology — due 2023-07-08 [working on it]\n- Development - Root Task Management Group By Portfolios — due 2023-07-10 [Acknowledged]\n- Bug - Main Folder — due 2023-07-13\n- Development - Root Task Management - Apply SmartFilters — due 2023-07-13 [Acknowledged]\n- Bug - Main Folder — due 2023-07-14\n- Development -Task Summary Header — due 2023-07-17 [working on it]\n- Development -Team Calendar — due 2023-07-17 [working on it]\n- Task Priority Change Approvals — due 2023-07-20 [working on it]\n- Development - Latest Acivities — due 2023-07-30 [For Approval]\n- Development -Team Timesheet Summary — due 2023-07-30 [working on it]\n- Development - Todays Team Tasks Distribution — due 2023-07-30 [working on it]\n- Development -Team Tasks Distribution — due 2023-07-30 [working on it]\n- PnP Provisioning Request Form — due 2023-07-31 [working on it]\n- Development - ManageSmartMetadata — due 2023-08-07 [working on it]\n- IndexDB - Data loading Improvements — due 2025-05-22 [working on it]\n- Connect Github to Perplexity — due 2026-05-12 [Re-Open]\n- Investigation - How to use Codex for creating Agents — due 2026-06-22 [working on it]\n- Bug - OMT Date View — due 2026-06-25 [Acknowledged]",
+    "intent": "overdue",
+    "confidence": 0.95,
+    "ms": 2043
+  },
+  {
+    "id": "HI_008",
+    "question": "\"SharePoint Framework - SPFx Improvement\" project me kitne tasks hain?",
+    "answer": "Based on the evidence, I can summarize that the \"SharePoint Framework - SPFx Improvement\" project has a total of 4 projects and 7 tasks. The main focus areas are improving the SharePoint Framework and implementing new features. Currently, there are two projects in progress: \"SharePoint Framework - SPFx Improvement\" (status: In Progress) and \"Recruitment Landing Page - Development/ Implementation / Improvement/ Bug\" (status: working on it). One project is not started yet: \"Sharepoint Framework - SPFx Implementation\" (status: Not Started).",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 22784
+  },
+  {
+    "id": "HI_009",
+    "question": "\"HHHH Automation\" project ka status kya hai?",
+    "answer": "The \"HHHH Automation\" project is currently in progress, with a completion percentage of 10%. There are several tasks already completed, including setup automation scripts on ios, prepare the Automation script of Task Profile page, and prepare Automation script of Structure Tool. Additionally, there are two ongoing tasks: Improvement- Design in Power Automate Flow and Implement Public API for Mobile App Using Power Automate, both with a status of \"working on it\".",
+    "intent": "status",
+    "confidence": 0.27,
+    "ms": 16393
+  },
+  {
+    "id": "HI_010",
+    "question": "pichle hafte kitni meetings hui thi?",
+    "answer": "In the past week, there have been several meetings that took place. As per the time entries, Amit Kumar attended multiple scrum meetings with his team members regarding daily tasks on various dates, including 09/03/2026, 16/03/2026, 17/03/2026, 18/03/2026, 19/03/2026, 20/03/2026, 24/03/2026, 25/03/2026, and 27/03/2026. These meetings were logged as 0.5 hour entries each.",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 20298
+  },
+  {
+    "id": "HI_011",
+    "question": "Ranu Trivedi ke Team Management Tools me kitne tasks hain?",
+    "answer": "The main focus of Ranu Trivedi's team management tools is on task coordination and portfolio management. Currently, there are 5 tasks in progress, with 1 task completed and 1 task awaiting approval. The majority of these tasks are related to feedback and verification, indicating a strong emphasis on quality control and assurance. Two notable examples of tasks in progress include \"Feedback - PX Management\" and \"Development - Latest Acivities\", which demonstrate Ranu Trivedi's involvement in both project management and team coordination.",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 24041
+  },
+  {
+    "id": "HI_012",
+    "question": "total kitne projects hain hamare data me?",
+    "answer": "Based on the provided evidence, there is only one project mentioned, which is \"Projects\" under the portfolio item \"Add and Connect Tool > Projects\". This project has a status of \"Not Started\", indicating that it has not been initiated yet. There are no other projects mentioned in the time entries or tasks, suggesting that this is the only project present in the data.",
+    "intent": "count",
+    "confidence": 0.9,
+    "ms": 17550
+  },
+  {
+    "id": "HI_013",
+    "question": "Kamal ke kitne tasks hain?",
+    "answer": "That matches 6 different items in your data — which one did you mean?\n\n- **Kamal Singh — 0.25h — 18/06/2026** (timeentry) — updated 18/06/2026\n- **Kamal Singh — 0.25h — 22/07/2026** (timeentry) — updated 22/07/2026\n- **Kamal Singh — 0.25h — 16/06/2026** (timeentry) — updated 16/06/2026\n- **Kamal Singh — 0.25h — 22/06/2026** (timeentry) — updated 22/06/2026\n- **Kamal Singh — 0.25h — 31/07/2026** (timeentry) — updated 31/07/2026\n- **Kamal Singh — 0.25h — 30/07/2026** (timeentry) — updated 30/07/2026",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 2031
+  },
+  {
+    "id": "HI_014",
+    "question": "Priya Malhotra ke tasks batao.",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "summary",
+    "confidence": 0,
+    "ms": 1936
+  },
+  {
+    "id": "HI_015",
+    "question": "SCRUM - 25/06/2026 meeting me kaun kaun tha?",
+    "answer": "According to the meeting record, the participants were: Prashant Kumar Deepak Trivedi Ranu Trivedi Ankush Das Anshu Mishra Utkarsh Srivastava Kamal Kishore Kamal Singh Atul Kumar Umang Kumar",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 19918
+  },
+  {
+    "id": "TYPO_001",
+    "question": "How many tasks does Team Managment Tools have?",
+    "answer": "I couldn't confidently match \"Managment Tools\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+    "intent": "unresolved-person-filter",
+    "confidence": 0.2,
+    "ms": 1480
+  },
+  {
+    "id": "TYPO_002",
+    "question": "What is happening with portfoilo managment?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "summary",
+    "confidence": 0,
+    "ms": 3244
+  },
+  {
+    "id": "TYPO_003",
+    "question": "Give me the devlopment status of the Team Management System portfolio.",
+    "answer": "The development status of the \"Status Overview Migration\" project is that both tasks under it have been completed, with one task marked as \"Task completed\" and the other as \"Acknowledged\".",
+    "intent": "hierarchy",
+    "confidence": 0.9,
+    "ms": 4366
+  },
+  {
+    "id": "TYPO_004",
+    "question": "What happened in the scrm meeting on 25/06/2026?",
+    "answer": "According to the meeting record, there was a time-sheet discrepancy involving Stephen and the team discussed ways to resolve it. Specifically, Ranu Trivedi mentioned that Stephen had submitted a timesheet with 17th date but the screenshot showed 23rd date, which led to confusion. The team decided to investigate and fix the issue. Additionally, the meeting focused on streamlining development process by adopting new AI-integrated workflows.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 22487
+  },
+  {
+    "id": "TYPO_005",
+    "question": "How many taks does Ranu Trivedi have?",
+    "answer": "There are 0 portfolio items, 2 projects, 672 tasks, 0 meetings, 0 time entries for Ranu Trivedi in the indexed knowledge base.",
+    "intent": "count",
+    "confidence": 0.95,
+    "ms": 1937
+  },
+  {
+    "id": "TYPO_006",
+    "question": "whats going on with that thing we talked about",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "summary",
+    "confidence": 0,
+    "ms": 2948
+  },
+  {
+    "id": "TYPO_007",
+    "question": "Whats the lattest update on HHHH Automaton?",
+    "answer": "The latest update on HHHH Automaton is that MS Power Automate and HHHH Power Automate are both in progress, while ILF Power Automate has not started yet. Additionally, there are 175 tasks under this project, with some of them being worked on or in QA review.",
+    "intent": "hierarchy",
+    "confidence": 0.9,
+    "ms": 13207
+  },
+  {
+    "id": "TYPO_008",
+    "question": "status of hhhh automaton project?",
+    "answer": "The status of the \"HHHH Automation\" project is unknown, as it does not have a specific status assigned to it in this structure. However, some of its sub-components and tasks are listed below: MS Power Automate (status: In Progress) Generic Automation script of Task Management tools (status: Acknowledged) ILF Power Automate (status: Not Started) HHHH Power Automate (status: In Progress) As for the tasks under this project, there are 175 total.",
+    "intent": "hierarchy",
+    "confidence": 0.9,
+    "ms": 16831
+  },
+  {
+    "id": "TYPO_009",
+    "question": "hows the developmnet team managment system doing",
+    "answer": "That matches 4 different items in your data — which one did you mean?\n\n- **Development Team Management System** (project) — updated 2026-07-22\n- **Development - New Team Management Tool as per AIS** (task) — updated 2026-06-03\n- **Development - Team Management System (Hardware Software Licenses)** (task) — updated 2026-05-05\n- **Team management System** (project) — updated 2026-05-05",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 2621
+  },
+  {
+    "id": "TYPO_010",
+    "question": "overdue taks for stefan hochhuth?",
+    "answer": "Stefan Hochhuth has several tasks in progress, with a focus on preparation and coordination activities. As of the latest recorded time entries, there are no completed tasks from Stefan Hochhuth, indicating that all his tasks are either ongoing or overdue. The most recent task logged by Stefan Hochhuth was on 09/07/2026, which is an indication that some tasks may be pending completion.",
+    "intent": "risk",
+    "confidence": 0.3,
+    "ms": 17251
+  },
+  {
+    "id": "NEG_001",
+    "question": "How many tasks does Quantum Marketing Portal have?",
+    "answer": "I couldn't confidently match \"Quantum Marketing Portal\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+    "intent": "unresolved-person-filter",
+    "confidence": 0.2,
+    "ms": 1497
+  },
+  {
+    "id": "NEG_002",
+    "question": "What is the status of the \"Neural Compliance Dashboard\" project?",
+    "answer": "The status of the \"Neural Compliance Dashboard\" project is Not Started, as indicated by its sub-components/projects under it. The project has no tasks with a status other than Not Started.",
+    "intent": "hierarchy",
+    "confidence": 0.9,
+    "ms": 12995
+  },
+  {
+    "id": "NEG_003",
+    "question": "Does the \"Titan Payroll Bridge\" portfolio have any overdue tasks?",
+    "answer": "I couldn't confidently match \"Titan Payroll Bridge\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+    "intent": "unresolved-person-filter",
+    "confidence": 0.2,
+    "ms": 1458
+  },
+  {
+    "id": "NEG_004",
+    "question": "How many tasks does Priya Malhotra have?",
+    "answer": "I couldn't confidently match \"Priya Malhotra\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+    "intent": "unresolved-person-filter",
+    "confidence": 0.2,
+    "ms": 1392
+  },
+  {
+    "id": "NEG_005",
+    "question": "What was decided in the \"Quarterly Board Strategy Offsite\" meeting?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "summary",
+    "confidence": 0,
+    "ms": 2315
+  },
+  {
+    "id": "NEG_006",
+    "question": "What is the due date of \"Development - Tasks By Team View\"'s successor task?",
+    "answer": "The Development - Tasks By Team View task has been completed, but its successor task's due date is not explicitly mentioned in the provided evidence. However, we can infer that the Development - Todays Working Tasks and Bug - PX Landing Page tasks are likely related to the same project or portfolio as they share similar paths and sites. The Development - Todays Team Tasks Distribution task also appears to be part of the same lead dashboard, but its due date is mentioned as 2023-07-30.",
+    "intent": "summary",
+    "confidence": 0.9,
+    "ms": 15769
+  },
+  {
+    "id": "NEG_007",
+    "question": "When was \"SharePoint Framework - SPFx Improvement\" created?",
+    "answer": "The \"SharePoint Framework - SPFx Improvement\" project has been actively worked on, with multiple tasks completed and ongoing. The earliest task completion date found is for \"Feedback - Portfolio Profile Page 10-07-2023\", which was updated in 2024-04-18. This suggests that the project was created sometime before July 2023, but the exact creation date is not explicitly stated in the evidence provided.",
+    "intent": "summary",
+    "confidence": 0.38,
+    "ms": 15588
+  },
+  {
+    "id": "NEG_008",
+    "question": "How many tasks does the \"Titan Payroll Bridge\" project have in Team Management Tools?",
+    "answer": "I couldn't confidently match \"Titan Payroll Bridge\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+    "intent": "unresolved-person-filter",
+    "confidence": 0.2,
+    "ms": 1472
+  },
+  {
+    "id": "NEG_009",
+    "question": "What did Priya Malhotra say in the \"SCRUM - 25/06/2026\" meeting?",
+    "answer": "Priya Malhotra did not speak in this \"SCRUM - 25/06/2026\" meeting. None of the participants mentioned her name or any comments she may have made during the meeting.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 19365
+  },
+  {
+    "id": "NEG_010",
+    "question": "How many meetings happened on 31/02/2026?",
+    "answer": "I couldn't reliably resolve the date in that question, so I can't give a scoped answer (would have filtered by start). Try an explicit date like \"31/07/2026\", or \"today\"/\"yesterday\"/\"this week\"/\"last week\"/\"this month\".",
+    "intent": "unresolved-date-filter",
+    "confidence": 0.2,
+    "ms": 413
+  },
+  {
+    "id": "CMP_001",
+    "question": "Which is more recently updated, Team Management Tools or Development Team Management System?",
+    "answer": "\"Development Team Management System (Assets Accounts Permissions)\" was updated more recently (2026-08-03, Modified-or-Created) than \"Team Management Tools\" (2026-07-16).",
+    "intent": "comparison",
+    "confidence": 0.9,
+    "ms": 692
+  },
+  {
+    "id": "CMP_002",
+    "question": "Which has more tasks, Team Management Tools or Development Team Management System?",
+    "answer": "\"Development Team Management System (Assets Accounts Permissions)\" has more tasks (113) than \"Team Management Tools\" (53).",
+    "intent": "comparison",
+    "confidence": 0.9,
+    "ms": 1539
+  },
+  {
+    "id": "CMP_003",
+    "question": "Compare \"SharePoint Framework - SPFx Improvement\" and \"Content Management and Search\".",
+    "answer": "Here's what's on record for each:\n\n- **SharePoint Framework - SPFx Improvement** (project) — status: In Progress, updated: 2026-07-10\n- **Content Management and Search** (project) — status: In Progress, updated: 2026-08-03",
+    "intent": "comparison",
+    "confidence": 0.9,
+    "ms": 737
+  },
+  {
+    "id": "CMP_004",
+    "question": "Compare \"Team Management Tools\" and \"Quantum Marketing Portal\".",
+    "answer": "\"\"Quantum Marketing Portal\"\" matches 2 different items in your data — which one did you mean?\n\n- **HR Management Portal New** (project)\n- **Development- Appraisal Portal** (project)",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 739
+  },
+  {
+    "id": "CMP_005",
+    "question": "Compare \"Team Management\" and \"Development Team Management System\".",
+    "answer": "\"\"Team Management\"\" matches 2 different items in your data — which one did you mean?\n\n- **Team Task Management** (project)\n- **Team Portfolio Management** (portfolio)",
+    "intent": "disambiguation",
+    "confidence": 0,
+    "ms": 702
+  },
+  {
+    "id": "CONV_A_T1",
+    "conversationId": "A",
+    "turn": 1,
+    "question": "Tell me about Team Management Tools.",
+    "answer": "The team management tools project is actively ongoing, with multiple tasks in various stages of development and completion. The main focus areas are the development of a new team management tool as per AIS and the investigation of mockups for the same system. Three important tasks that support this summary are: \"Development - New Team Management Tool as per AIS\", which is currently in QA review, \"Investigate the Mockup for Team Management System\", which is actively being worked on, and \"User Guide for Asset Management Tool\", which has already been completed. Additionally, there is also a task related to providing knowledge transfer on asset management tools, which has also been completed.",
+    "intent": "summary",
+    "confidence": 0.53,
+    "ms": 17644
+  },
+  {
+    "id": "CONV_A_T2",
+    "conversationId": "A",
+    "turn": 2,
+    "question": "Who owns it?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "who",
+    "confidence": 0,
+    "ms": 4370
+  },
+  {
+    "id": "CONV_A_T3",
+    "conversationId": "A",
+    "turn": 3,
+    "question": "What tasks are pending?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "who",
+    "confidence": 0,
+    "ms": 2190
+  },
+  {
+    "id": "CONV_A_T4",
+    "conversationId": "A",
+    "turn": 4,
+    "question": "Any overdue ones?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "time",
+    "confidence": 0,
+    "ms": 2104
+  },
+  {
+    "id": "CONV_A_T5",
+    "conversationId": "A",
+    "turn": 5,
+    "question": "What about the other project?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "time",
+    "confidence": 0,
+    "ms": 2091
+  },
+  {
+    "id": "CONV_B_T1",
+    "conversationId": "B",
+    "turn": 1,
+    "question": "What happened in the SCRUM - 25/06/2026 meeting?",
+    "answer": "According to the SCRUM - 25/06/2026 meeting record, there is no specific discussion or action item related to \"SCRUM\" in general. The meeting focused on resolving a time-sheet discrepancy involving Stephen and streamlining the development process by adopting new AI-integrated workflows. The team discussed the necessity of removing unused JSON properties and keeping data structures clean to improve performance and clarity. They also emphasized maintaining high-quality documentation, with management mandating that all technical and operational discussions be recorded via transcripts to facilitate better AI context and knowledge retrieval.",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 25349
+  },
+  {
+    "id": "CONV_B_T2",
+    "conversationId": "B",
+    "turn": 2,
+    "question": "Who was there?",
+    "answer": "According to the SCRUM - 25/06/2026 meeting record, the participants were: Prashant Kumar Deepak Trivedi Ranu Trivedi Ankush Das Anshu Mishra Utkarsh Srivastava Kamal Kishore Kamal Singh Atul Kumar Umang Kumar",
+    "intent": "meeting-detail",
+    "confidence": 0.9,
+    "ms": 20598
+  },
+  {
+    "id": "CONV_B_T3",
+    "conversationId": "B",
+    "turn": 3,
+    "question": "What did Deepak say?",
+    "answer": "I can only answer from your indexed OMT data — portfolio items, projects, tasks, time entries and meetings — and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+    "intent": "who",
+    "confidence": 0,
+    "ms": 2800
+  },
+  {
+    "id": "CONV_C_T1",
+    "conversationId": "C",
+    "turn": 1,
+    "question": "How many tasks does Ranu Trivedi have?",
+    "answer": "There are 672 tasks for Ranu Trivedi in the indexed knowledge base.",
+    "intent": "count",
+    "confidence": 0.95,
+    "ms": 1685
+  },
+  {
+    "id": "CONV_C_T2",
+    "conversationId": "C",
+    "turn": 2,
+    "question": "How many of those are overdue?",
+    "answer": "There are 0 portfolio items, 0 projects, 1089 tasks, 0 meetings, 0 time entries in the indexed knowledge base.",
+    "intent": "count",
+    "confidence": 0.95,
+    "ms": 1163
+  }
+]

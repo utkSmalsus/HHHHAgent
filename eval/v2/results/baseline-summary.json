@@ -1,0 +1,147 @@
+{
+  "overall": {
+    "PASS": 115,
+    "PARTIAL": 16,
+    "FAIL": 54
+  },
+  "flagCounts": {
+    "GROUNDING_FAILURE": 22,
+    "WRONG_ENTITY": 2,
+    "RETRIEVAL_FAILURE": 10,
+    "AMBIGUITY_FAILURE": 6,
+    "WRONG_SCOPE": 8,
+    "STRUCTURED_QUERY_FAILURE": 20,
+    "HALLUCINATION": 8,
+    "MULTILINGUAL_FAILURE": 8,
+    "CONVERSATION_CONTEXT_FAILURE": 5,
+    "UNSAFE_GLOBAL_FALLBACK": 1
+  },
+  "failSeverity": {
+    "CRITICAL": 22,
+    "HIGH": 23,
+    "MEDIUM": 9,
+    "LOW": 0
+  },
+  "byCategory": {
+    "projects_portfolios": {
+      "PASS": 15,
+      "PARTIAL": 8,
+      "FAIL": 2,
+      "total": 25
+    },
+    "tasks_people_owners": {
+      "PASS": 24,
+      "PARTIAL": 1,
+      "FAIL": 7,
+      "total": 32
+    },
+    "counts_status_overdue": {
+      "PASS": 8,
+      "PARTIAL": 0,
+      "FAIL": 11,
+      "total": 19
+    },
+    "dates_latest_sorting": {
+      "PASS": 12,
+      "PARTIAL": 1,
+      "FAIL": 6,
+      "total": 19
+    },
+    "meetings": {
+      "PASS": 19,
+      "PARTIAL": 0,
+      "FAIL": 1,
+      "total": 20
+    },
+    "transcript_semantic": {
+      "PASS": 10,
+      "PARTIAL": 4,
+      "FAIL": 6,
+      "total": 20
+    },
+    "hindi_hinglish": {
+      "PASS": 7,
+      "PARTIAL": 0,
+      "FAIL": 8,
+      "total": 15
+    },
+    "typo_vague": {
+      "PASS": 5,
+      "PARTIAL": 0,
+      "FAIL": 5,
+      "total": 10
+    },
+    "conversation": {
+      "PASS": 4,
+      "PARTIAL": 1,
+      "FAIL": 5,
+      "total": 10
+    },
+    "negative_fail_closed": {
+      "PASS": 7,
+      "PARTIAL": 0,
+      "FAIL": 3,
+      "total": 10
+    },
+    "comparison": {
+      "PASS": 4,
+      "PARTIAL": 1,
+      "FAIL": 0,
+      "total": 5
+    }
+  },
+  "byDifficulty": {
+    "easy": {
+      "PASS": 31,
+      "PARTIAL": 6,
+      "FAIL": 11,
+      "total": 48
+    },
+    "medium": {
+      "PASS": 49,
+      "PARTIAL": 6,
+      "FAIL": 18,
+      "total": 73
+    },
+    "hard": {
+      "PASS": 35,
+      "PARTIAL": 4,
+      "FAIL": 25,
+      "total": 64
+    }
+  },
+  "manuallyReviewed": 127,
+  "total": 185,
+  "safetyMetrics": {
+    "CONFIDENT_WRONG_ANSWER": 24,
+    "CONFIDENT_WRONG_ANSWER_ids": [
+      "PROJ_009",
+      "TASK_001",
+      "TASK_015",
+      "TASK_019",
+      "TASK_030",
+      "CNT_001",
+      "CNT_004",
+      "CNT_012",
+      "CNT_015",
+      "CNT_018",
+      "CNT_019",
+      "DATE_007",
+      "DATE_019",
+      "MEET_017",
+      "TRANS_003",
+      "TRANS_005",
+      "TRANS_009",
+      "TRANS_019",
+      "HI_004",
+      "TYPO_003",
+      "TYPO_007",
+      "NEG_002",
+      "NEG_006",
+      "NEG_007"
+    ],
+    "CONFIDENT_WRONG_ENTITY": 2,
+    "HALLUCINATION": 8,
+    "UNSAFE_GLOBAL_FALLBACK": 1
+  }
+}

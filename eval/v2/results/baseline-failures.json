@@ -1,0 +1,1247 @@
+{
+  "total": 54,
+  "failures": [
+    {
+      "id": "TASK_001",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Stefan Hochhuth have?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "count": 1795
+      },
+      "actual": "There are 0 tasks for Stefan Hochhuth in Test Meeting with Stefan in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "NEW FINDING, live-confirmed: person name 'Stefan' (substring of 'Stefan Hochhuth') literally collides with a real portfolio titled 'Test Meeting with Stefan'. Container resolution matches on the word 'Stefan' from within the PERSON's own name, silently corrupting the count from 1795 to 0. Root cause: container-anchor keyword scoring runs on the whole question including words already consumed by person-name matching."
+    },
+    {
+      "id": "TASK_015",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many in-progress tasks does Deepak Trivedi have?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Deepak Trivedi",
+        "status": "in progress",
+        "count": 71
+      },
+      "actual": "There are 0 tasks for Deepak Trivedi in QA Team - Process management and Tools verification Progress Tracking in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "NEW FINDING, live-confirmed: 'in-progress' (hyphenated) does not match STATUS_VOCAB_RE's literal 'in progress' (space-separated) pattern, so 'progress' survives as real content and collides with a real project titled '...Progress Tracking', corrupting the count from 71 to 0."
+    },
+    {
+      "id": "CNT_001",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are there in total?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "count": 14181
+      },
+      "actual": "There are 18 tasks in SmartTime Total in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "NEW FINDING: 'in total' \u2014 the word 'Total' collides with a real project literally titled 'SmartTime Total', corrupting the GLOBAL task count (14181 -> 18)."
+    },
+    {
+      "id": "CNT_004",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many meetings are there in total?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "count": 146
+      },
+      "actual": "There are 0 meetings in SmartTime Total in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same 'total' collision, corrupting the global meeting count (146 -> 0)."
+    },
+    {
+      "id": "CNT_006",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are currently marked \"Not Started\"?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Not Started",
+        "count": 857
+      },
+      "actual": "I couldn't confidently match \"Not Started\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "NEW FINDING: a quoted STATUS VALUE ('Not Started', Title-Case) is misdetected as a PERSON NAME candidate by the capitalized-phrase heuristic, then fails closed as 'unresolved person' \u2014 never even attempting status-filter interpretation. resolveStatusFilter also has no trigger for this literal status string in the first place."
+    },
+    {
+      "id": "CNT_007",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are in \"In QA Review\"?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "In QA Review",
+        "count": 550
+      },
+      "actual": "I couldn't confidently match \"In QA Review\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same pattern for 'In QA Review'."
+    },
+    {
+      "id": "CNT_009",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are \"Acknowledged\"?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Acknowledged",
+        "count": 507
+      },
+      "actual": "I couldn't confidently match \"Acknowledged\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same pattern for 'Acknowledged'."
+    },
+    {
+      "id": "CNT_010",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks are \"Deployment Pending\"?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Deployment Pending",
+        "count": 117
+      },
+      "actual": "I couldn't confidently match \"Deployment Pending\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same pattern for 'Deployment Pending'."
+    },
+    {
+      "id": "CNT_011",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks are in \"Re-Open\" status?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Re-Open",
+        "count": 129
+      },
+      "actual": "I couldn't confidently match \"Re-Open\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same pattern for 'Re-Open'."
+    },
+    {
+      "id": "CNT_012",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many tasks are overdue in total?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "overdue": true,
+        "count": 1089
+      },
+      "actual": "There is 1 tasks in SmartTime Total in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same 'total' collision, corrupting the global overdue count (1089 -> 1)."
+    },
+    {
+      "id": "CNT_019",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many time entries has Ranu Trivedi logged?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "timeentry",
+        "person": "Ranu Trivedi",
+        "count": 423
+      },
+      "actual": "There are 0 time entries for Ranu Trivedi in Not logged in message in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "'logged' collides with a real record 'Not logged in message'."
+    },
+    {
+      "id": "HI_005",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Stefan Hochhuth ke paas kitne tasks hain?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "count": 1795,
+        "language": "Hinglish"
+      },
+      "actual": "That matches 4 different items in your data \u2014 which one did you mean?\n\n- **Stefan Hochhuth \u2014 0h \u2014 no date** (timeentry) \u2014 updated 2026-06-17\n- **Stefan Hochhuth \u2014 3h \u2014 24/04/2026** (timeentry) \u2014 updated 24/04/2026\n- **Stefan Hochhuth \u2014 0.5h \u2014 23/06/2026** (timeentry) \u2014 updated 23/06/2026\n- **Stefan Hochhuth \u2014 0.5h \u2014 14/04/2026** (timeentry) \u2014 updated 14/04/2026",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "'kitne...hain' (Hindi count phrasing) never triggers COUNT_RE (English-only), so falls through to general retrieval disambiguation over unrelated timeentries."
+    },
+    {
+      "id": "HI_006",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "kitni meetings is hafte hui hain?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "this week",
+        "count": 2,
+        "language": "Hindi/Hinglish"
+      },
+      "actual": "Based on the available evidence, it appears that there are multiple meetings happening in the given timeframe. Specifically, tasks such as \"HHHH Public site Meet\" and time entries like \"HR and Asset Management Tool Review Meeting\" suggest that meetings are being conducted regularly. Additionally, time entries like \"Coordination with team on meeting tool integration on main HHHH solution\" and \"ILF and HHHH team meeting\" indicate that meetings are taking place to discuss various topics related to the HHHH solution. Currently, there seem to be several meetings in progress or recently completed, as evidenced by tasks like \"Meeting of JTMs and QA lead with Prashant\" and time entries like \"Ankush Das logged 3h.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "chunk-inflation risk applies equally to Hinglish phrasing"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same Hindi count-phrase gap; meeting count never resolves deterministically."
+    },
+    {
+      "id": "HI_008",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "\"SharePoint Framework - SPFx Improvement\" project me kitne tasks hain?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "SharePoint Framework - SPFx Improvement",
+        "count": 1213,
+        "language": "Hinglish"
+      },
+      "actual": "Based on the evidence, I can summarize that the \"SharePoint Framework - SPFx Improvement\" project has a total of 4 projects and 7 tasks. The main focus areas are improving the SharePoint Framework and implementing new features. Currently, there are two projects in progress: \"SharePoint Framework - SPFx Improvement\" (status: In Progress) and \"Recruitment Landing Page - Development/ Implementation / Improvement/ Bug\" (status: working on it). One project is not started yet: \"Sharepoint Framework - SPFx Implementation\" (status: Not Started).",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Hinglish container-scoped count question never reaches the deterministic count branch."
+    },
+    {
+      "id": "HI_010",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "pichle hafte kitni meetings hui thi?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "last week",
+        "count": 6,
+        "language": "Hindi"
+      },
+      "actual": "In the past week, there have been several meetings that took place. As per the time entries, Amit Kumar attended multiple scrum meetings with his team members regarding daily tasks on various dates, including 09/03/2026, 16/03/2026, 17/03/2026, 18/03/2026, 19/03/2026, 20/03/2026, 24/03/2026, 25/03/2026, and 27/03/2026. These meetings were logged as 0.5 hour entries each.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same Hindi count-phrase gap for 'last week' meetings."
+    },
+    {
+      "id": "HI_011",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Ranu Trivedi ke Team Management Tools me kitne tasks hain?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "containerTitle": "Team Management Tools",
+        "language": "Hinglish",
+        "count": 0
+      },
+      "actual": "The main focus of Ranu Trivedi's team management tools is on task coordination and portfolio management. Currently, there are 5 tasks in progress, with 1 task completed and 1 task awaiting approval. The majority of these tasks are related to feedback and verification, indicating a strong emphasis on quality control and assurance. Two notable examples of tasks in progress include \"Feedback - PX Management\" and \"Development - Latest Acivities\", which demonstrate Ranu Trivedi's involvement in both project management and team coordination.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Hinglish person+container composed count never reaches the deterministic branch."
+    },
+    {
+      "id": "HI_012",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "total kitne projects hain hamare data me?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "project",
+        "count": 746,
+        "language": "Hinglish"
+      },
+      "actual": "Based on the provided evidence, there is only one project mentioned, which is \"Projects\" under the portfolio item \"Add and Connect Tool > Projects\". This project has a status of \"Not Started\", indicating that it has not been initiated yet. There are no other projects mentioned in the time entries or tasks, suggesting that this is the only project present in the data.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "'total kitne projects' \u2014 global count in Hinglish never triggers COUNT_RE."
+    },
+    {
+      "id": "CONV_A_T2",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "Who owns it?",
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "referent": "Team Management Tools",
+        "expectedFacts": [
+          "Stefan Hochhuth",
+          "Aditi Mishra",
+          "Ankush Das"
+        ]
+      },
+      "actual": "I can only answer from your indexed OMT data \u2014 portfolio items, projects, tasks, time entries and meetings \u2014 and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "CONVERSATION_CONTEXT_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "'Who owns it?' completely fails to resolve 'it' to Team Management Tools from turn 1; falls to the generic not-found fallback."
+    },
+    {
+      "id": "CONV_A_T3",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "What tasks are pending?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Team Management Tools",
+        "status": "pending",
+        "count": 12
+      },
+      "actual": "I can only answer from your indexed OMT data \u2014 portfolio items, projects, tasks, time entries and meetings \u2014 and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "CONVERSATION_CONTEXT_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Same context loss continues \u2014 'What tasks are pending?' has no referent at all."
+    },
+    {
+      "id": "CONV_A_T4",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "Any overdue ones?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Team Management Tools",
+        "overdue": true,
+        "count": 9
+      },
+      "actual": "I can only answer from your indexed OMT data \u2014 portfolio items, projects, tasks, time entries and meetings \u2014 and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "CONVERSATION_CONTEXT_FAILURE"
+      ],
+      "severity": "CRITICAL",
+      "note": "Context loss persists through turn 4."
+    },
+    {
+      "id": "CONV_C_T2",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "How many of those are overdue?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Ranu Trivedi's tasks",
+        "overdue": true,
+        "count": 29
+      },
+      "actual": "There are 0 portfolio items, 0 projects, 1089 tasks, 0 meetings, 0 time entries in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "CONVERSATION_CONTEXT_FAILURE",
+        "UNSAFE_GLOBAL_FALLBACK"
+      ],
+      "severity": "CRITICAL",
+      "note": "'How many of those are overdue?' completely drops the Ranu Trivedi referent from turn 1 and returns the GLOBAL overdue count (1089) instead \u2014 exactly the CRITICAL-severity pattern named in the task spec (global count after dropping a named-person constraint)."
+    },
+    {
+      "id": "NEG_002",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "What is the status of the \"Neural Compliance Dashboard\" project?",
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "verified nonexistent project name"
+      },
+      "actual": "The status of the \"Neural Compliance Dashboard\" project is Not Started, as indicated by its sub-components/projects under it. The project has no tasks with a status other than Not Started.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "HALLUCINATION"
+      ],
+      "severity": "CRITICAL",
+      "note": "Confidently invents a 'Not Started' status for a verified-nonexistent project."
+    },
+    {
+      "id": "PROJ_009",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "When was \"Development Team Management System (Assets Accounts Permissions)\" last updated?",
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Development Team Management System (Assets Accounts Permissions)",
+        "field": "timestamp",
+        "value": "2026-08-03T12:17:27Z",
+        "note": "field is Modified-or-Created, no separate Created field exists"
+      },
+      "actual": "The \"Development Team Management System (Assets Accounts Permissions)\" was last updated on May 8, 2026, as indicated by task \" Bug - Team Management System (Hardware/Software and Licenses)\". This system is currently being actively worked on, with multiple tasks in various stages of development.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "States 'last updated May 8, 2026' \u2014 real value is 2026-08-03. Confident, specific, wrong date."
+    },
+    {
+      "id": "PROJ_011",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of the \"Loveable AI\" portfolio?",
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Loveable AI",
+        "field": "status",
+        "value": "Not Started"
+      },
+      "actual": "The status of the \"Loveable AI\" portfolio is not mentioned in the provided structure, as it's a different entity altogether. However, I can tell you that the \"Status Overview Migration\" project has two tasks under it: \"Development - Migrate Status overview from SDC to SP Online \" which is completed, and another task with the same name but acknowledged status.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_ENTITY",
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Discusses an unrelated 'Status Overview Migration' project instead of the named 'Loveable AI' portfolio."
+    },
+    {
+      "id": "TASK_016",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Who is the owner of the \"Development - Tasks By Team View\" task?",
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Development - Tasks By Team View",
+        "field": "owner",
+        "value": "Ranu Trivedi"
+      },
+      "actual": "The owner of the \"Development - Tasks By Team View\" task is not explicitly mentioned in the provided evidence records. However, it's worth noting that this task has already been completed, as indicated by its status being \"Task completed.\"",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE",
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Real owner (Ranu Trivedi) exists on this task but the answer claims it's not mentioned."
+    },
+    {
+      "id": "TASK_021",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "What tasks are assigned to Kamal Darani?",
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "person": "Kamal Darani",
+        "count": 152
+      },
+      "actual": "Kamal Darani is currently working on two tasks, both of which are in progress. The first task, \"Feedback - Home Page 25-11-2022\", is acknowledged and has a completion percentage of 5%. This task requires setting up a dashboard on the Home Page. The second task, \"Feedback - Contract Management Popup 20-10-2022\", is re-opened and has a completion percentage of 70%.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Live-confirmed known gap (documented since Phase 11/12): 'tasks ARE assigned to X' \u2014 the extra word 'are' breaks OWNED_BY_RE's grammar trigger, so this never reaches the deterministic full-scan branch and falls to general retrieval (found only 2 of 152 real tasks)."
+    },
+    {
+      "id": "TASK_029",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "What tasks are owned by Mattis Hahn?",
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "person": "Mattis Hahn",
+        "count": 22
+      },
+      "actual": "Mattis Hahn is the owner of one task, which is \"Task Management - Priority Levels\" with a status of Completed and a completion percentage of 100%. This task is part of the Task Management portfolio and has been updated on September 8, 2023.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Same 'tasks ARE owned by X' grammar gap as TASK_021."
+    },
+    {
+      "id": "CNT_015",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many distinct people own at least one task?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "person",
+        "count": 62
+      },
+      "actual": "There are 2 tasks in Development- People Picker in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE"
+      ],
+      "severity": "HIGH",
+      "note": "'distinct people' collides with a real project 'Development- People Picker' via the word 'People'."
+    },
+    {
+      "id": "CNT_018",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks have no due date recorded?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "count": 7959
+      },
+      "actual": "There are 23 tasks in Improvement - Date format in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_SCOPE"
+      ],
+      "severity": "HIGH",
+      "note": "'no due date' collides with a real project 'Improvement - Date format' via the word 'Date'."
+    },
+    {
+      "id": "DATE_003",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which portfolio was updated most recently?",
+      "expected": {
+        "answerType": "fact",
+        "entityType": "portfolio",
+        "answerContains": [
+          "Test component 1"
+        ],
+        "field": "timestamp",
+        "value": "2026-08-03T06:42:29Z"
+      },
+      "actual": "That matches 4 different items in your data \u2014 which one did you mean?\n\n- **Bug - Updated Portfolio color is not changed** (task) \u2014 updated 2025-03-05\n- **Bug - Updated Status from Portfolio popup not reflected on Portfolio profile Page** (task) \u2014 updated 2024-07-11\n- **Improvement on Smartmetadata tool** (task) \u2014 updated 2024-05-27\n- **Develop tool to show portfolio items which was tagged with wrong parent** (task) \u2014 updated 2024-05-19",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "RETRIEVAL_FAILURE",
+        "AMBIGUITY_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "'which portfolio was updated most recently' (single-entity recency, no comparison 'or') did not route to the deterministic recency path; landed in irrelevant task-title disambiguation."
+    },
+    {
+      "id": "DATE_007",
+      "category": "dates_latest_sorting",
+      "difficulty": "easy",
+      "question": "What is the due date of \"Development - Tasks By Team View\"?",
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Development - Tasks By Team View",
+        "field": "dueDate",
+        "value": "2023-06-16"
+      },
+      "actual": "The main focus area for this set of tasks is project management and development, with a specific emphasis on team-based views and calendar integration. The majority of these tasks are completed, indicating that the projects have made significant progress. As for \"Development - Tasks By Team View\", its due date is not explicitly stated in the evidence records. However, we can look at task , which has the same name and status as \"completed\".",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Never states the real due date (2023-06-16); narrates unrelated project-level completion."
+    },
+    {
+      "id": "DATE_010",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which project was updated most recently?",
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "HHHH Solution Migration to Single Page Application (SPA)"
+        ],
+        "note": "word-reordered phrasing of the previous question \u2014 regression check for #16-class phrasing gaps"
+      },
+      "actual": "That matches 2 different items in your data \u2014 which one did you mean?\n\n- **Information Request- Questions related to SP Gruene Public site** (task) \u2014 updated 2025-12-17\n- **Setup Gruene-Washington Sharepoint** (project) \u2014 updated 2025-03-17",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Confirms the known #16-class regex gap (word-reordered 'was updated most recently' phrasing) is STILL present post-Phase-12: same irrelevant disambiguation as DATE_003."
+    },
+    {
+      "id": "MEET_017",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "What did the \"SCRUM - 25/06/2026\" meeting decide about AI?",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "management mandated that discussions be recorded via transcripts to facilitate better AI context and knowledge retrieval",
+          "streamlining the development process by adopting new AI-integrated workflows"
+        ]
+      },
+      "actual": "The \"SCRUM - 25/06/2026\" meeting did not discuss AI specifically. The meeting focused on resolving a time-sheet discrepancy involving Stephen and streamlining the development process by adopting new workflows. There was no mention of AI or its integration in this meeting record.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "flags": [
+        "HALLUCINATION",
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Confidently states 'the meeting did not discuss AI... no mention of AI' \u2014 the real transcript's own summary explicitly discusses AI-integrated workflows and AI-context transcript recording. A confident denial of real content ('hallucination of absence')."
+    },
+    {
+      "id": "TRANS_003",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "Near the end of the \"AWSTesting\" meeting, what did the team say about the QA agent?",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "when a task reaches 80% completion, the QA agent automatically checks the original requirements",
+          "this can be done automatically without anybody doing it manually"
+        ]
+      },
+      "actual": "Near the end of the \"AWSTesting\" meeting, there was no discussion about the QA agent. The conversation focused on the Meeting Tool project, its challenges, and the team's plans to improve data quality, project structure, and AI functionality. The QA agent was mentioned briefly in the context of creating feedback tasks when a task reaches 80% completion, but it was not a main topic of discussion during this meeting.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 18,
+        "totalChunks": 19,
+        "region": "end"
+      },
+      "flags": [
+        "HALLUCINATION",
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Confirmed via live transcript check: real, extensive QA-agent discussion exists in exactly this late-transcript region; answer denies it entirely."
+    },
+    {
+      "id": "TRANS_005",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Deepak Trivedi say about AI near the end of the \"SCRUM - 25/06/2026\" meeting?",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "Deepak Trivedi mentioned AI tools (\"development AI\") can help with testing",
+          "he said he would look into it in more detail and report back"
+        ]
+      },
+      "actual": "According to the transcript of the \"SCRUM - 25/06/2026\" meeting, Deepak Trivedi did not mention AI near the end of the meeting. The meeting record only shows a discussion about time-sheet discrepancies and streamlining development processes by adopting new workflows, but there is no mention of AI in this context.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 53,
+        "totalChunks": 54,
+        "region": "end",
+        "language": "Hindi transcript"
+      },
+      "flags": [
+        "HALLUCINATION",
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Same late-transcript denial pattern as TRANS_003/MEET_017 \u2014 real content confirmed present, agent denies it."
+    },
+    {
+      "id": "TRANS_009",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did the AWSTesting meeting say about the AI agent going on a page automatically?",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "the QA agent should go on a page and check whether timesheet data and other details were done"
+        ]
+      },
+      "actual": "This meeting record does not mention anything about an AI agent going on a page automatically. The discussion in this meeting is focused on the Meeting Tool project, specifically the AI-powered meeting transcript analysis and task creation capabilities, as well as the challenges and action items related to improving data quality, project structure, and portfolio matching. There is no mention of an AI agent taking any specific actions or going on a page automatically.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 18,
+        "totalChunks": 19,
+        "region": "end"
+      },
+      "flags": [
+        "HALLUCINATION",
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Same late-transcript denial pattern."
+    },
+    {
+      "id": "TRANS_019",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "Summarize the \"Webstudio Team Meeting\".",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "Webstudio Team Meeting",
+        "requiredBehavior": "UNKNOWN_OR_SPARSE",
+        "note": "this real meeting record has an empty Description field and Status \"Scheduled\" \u2014 a correct answer should not fabricate discussion content it doesn't have"
+      },
+      "actual": "The \"Webstudio Team Meeting\" was held on July 21, 2026, from 13:30 to 15:30 Zulu time. The participants were Deepak Trivedi, Umang Kumar, Kamal Kishore, Kamal Singh, Ranu Trivedi, Umesh Kumar, Thordis Jacobs, and Kristina Kovach. The meeting focused on discussing new ideas implemented in AIS and Claude, with a specific emphasis on Kamal's suggestions. Stefan Hochhuth started the transcription of the call, which lasted for 2 hours and 0 minutes.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:167:meeting",
+        "chunkIndex": 0
+      },
+      "flags": [
+        "HALLUCINATION"
+      ],
+      "severity": "HIGH",
+      "note": "Fabricates specific meeting content ('new ideas implemented in AIS and Claude') for a real record whose Description field is verified empty."
+    },
+    {
+      "id": "HI_002",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "kal ki meeting me kya discuss hua?",
+      "expected": {
+        "answerType": "semantic",
+        "dateScope": "yesterday",
+        "answerContains": [
+          "Scrum 4/08/2026"
+        ],
+        "language": "Hinglish",
+        "expectedFacts": [
+          "team standup and project status meeting covering SharePoint package deployment, design fixes, component verification, and urgent deadline pressures"
+        ]
+      },
+      "actual": "That matches 2 different items in your data \u2014 which one did you mean?\n\n- **HHHH SPA discussion** (meeting) \u2014 updated 2026-07-03\n- **Team Discussion: AI Enhancement for Team Members** (task) \u2014 updated 2025-12-15",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:201:meeting",
+        "chunkIndex": 0
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "'kal ki meeting' (yesterday's meeting) not recognized as a meeting-date question in Hinglish; falls to irrelevant disambiguation."
+    },
+    {
+      "id": "HI_004",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Deepak Trivedi ne SCRUM - 25/06/2026 meeting me AI ke bare me kya bola tha?",
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "person": "Deepak Trivedi",
+        "language": "Hinglish",
+        "expectedFacts": [
+          "Deepak Trivedi mentioned AI tools can help with testing near the end of the meeting"
+        ]
+      },
+      "actual": "According to the meeting record, Deepak Trivedi did not discuss AI with Prashant Kumar in this SCRUM meeting on 25/06/2026.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 53,
+        "region": "end"
+      },
+      "flags": [
+        "MULTILINGUAL_FAILURE",
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Denies Deepak discussed AI in this meeting (real content confirmed present) \u2014 same denial pattern as TRANS_005, compounded with Hinglish phrasing."
+    },
+    {
+      "id": "TYPO_001",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "How many tasks does Team Managment Tools have?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Team Management Tools",
+        "count": 53,
+        "note": "\"Managment\" typo of \"Management\""
+      },
+      "actual": "I couldn't confidently match \"Managment Tools\" to a real person in the indexed data, so I can't give a scoped answer. Try the exact name as it appears in a task's Owner field.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "STRUCTURED_QUERY_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "'Managment Tools' (typo) is tried as a PERSON candidate and fails closed as 'unresolved person' before container resolution gets a chance \u2014 the container-title-exclusion check requires an exact (typo-intolerant) substring match."
+    },
+    {
+      "id": "TYPO_003",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "Give me the devlopment status of the Team Management System portfolio.",
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Team Management System (Hardware/Software and Licenses)",
+        "field": "status",
+        "value": "In Progress",
+        "note": "\"devlopment\" typo of \"development\""
+      },
+      "actual": "The development status of the \"Status Overview Migration\" project is that both tasks under it have been completed, with one task marked as \"Task completed\" and the other as \"Acknowledged\".",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "WRONG_ENTITY"
+      ],
+      "severity": "HIGH",
+      "note": "'devlopment...managment' double typo resolves to an unrelated 'Status Overview Migration' project."
+    },
+    {
+      "id": "TYPO_010",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "overdue taks for stefan hochhuth?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "overdue": true,
+        "count": 164,
+        "note": "\"taks\" typo, lowercase name, fragment phrasing"
+      },
+      "actual": "Stefan Hochhuth has several tasks in progress, with a focus on preparation and coordination activities. As of the latest recorded time entries, there are no completed tasks from Stefan Hochhuth, indicating that all his tasks are either ongoing or overdue. The most recent task logged by Stefan Hochhuth was on 09/07/2026, which is an indication that some tasks may be pending completion.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE",
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "Fragment phrasing + typo + lowercase name never produces a real overdue count; vague narrative instead."
+    },
+    {
+      "id": "CONV_B_T3",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "What did Deepak say?",
+      "expected": {
+        "answerType": "semantic",
+        "referent": "SCRUM - 25/06/2026",
+        "person": "Deepak Trivedi",
+        "expectedFacts": [
+          "Deepak Trivedi asked about the resolution of Stephen's timesheet problem",
+          "Deepak Trivedi mentioned AI tools can help with testing"
+        ]
+      },
+      "actual": "I can only answer from your indexed OMT data \u2014 portfolio items, projects, tasks, time entries and meetings \u2014 and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting"
+      },
+      "flags": [
+        "CONVERSATION_CONTEXT_FAILURE"
+      ],
+      "severity": "HIGH",
+      "note": "'What did Deepak say?' (bare first name + implicit meeting referent) fails completely, unlike turn 2's pronoun resolution \u2014 first-name-only person references in follow-ups are not matched."
+    },
+    {
+      "id": "NEG_006",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "What is the due date of \"Development - Tasks By Team View\"'s successor task?",
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "no \"successor task\" relationship exists in this schema at all \u2014 trap for inventing a relationship that was never asked about in real data"
+      },
+      "actual": "The Development - Tasks By Team View task has been completed, but its successor task's due date is not explicitly mentioned in the provided evidence. However, we can infer that the Development - Todays Working Tasks and Bug - PX Landing Page tasks are likely related to the same project or portfolio as they share similar paths and sites. The Development - Todays Team Tasks Distribution task also appears to be part of the same lead dashboard, but its due date is mentioned as 2023-07-30.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "HALLUCINATION"
+      ],
+      "severity": "HIGH",
+      "note": "Invents a 'successor task' relationship that does not exist in this schema at all."
+    },
+    {
+      "id": "NEG_007",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "When was \"SharePoint Framework - SPFx Improvement\" created?",
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "UNSUPPORTED",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "no true \"Created\" field exists in the ingested schema, only Modified-or-Created; a correct answer discloses this rather than asserting a fabricated creation date"
+      },
+      "actual": "The \"SharePoint Framework - SPFx Improvement\" project has been actively worked on, with multiple tasks completed and ongoing. The earliest task completion date found is for \"Feedback - Portfolio Profile Page 10-07-2023\", which was updated in 2024-04-18. This suggests that the project was created sometime before July 2023, but the exact creation date is not explicitly stated in the evidence provided.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "HALLUCINATION"
+      ],
+      "severity": "HIGH",
+      "note": "Infers a fabricated creation-date proxy from unrelated task-completion dates instead of disclosing the unsupported-field limitation."
+    },
+    {
+      "id": "TASK_019",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "Does Ranu Trivedi have any overdue tasks in Team Management Tools?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "overdue": true,
+        "containerTitle": "Team Management Tools",
+        "count": 0
+      },
+      "actual": "None of the matching indexed tasks for Ranu Trivedi in Team Management Tools have a due date recorded, so I can't determine overdue status for them.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Live-verified: Ranu Trivedi has ZERO real tasks in Team Management Tools at all (not 'tasks without due dates' as the answer implies). Answer's premise is subtly wrong even though the practical outcome (no overdue tasks reported) matches."
+    },
+    {
+      "id": "TASK_030",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "How many tasks does Utkarsh Srivastava have that are Acknowledged?",
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Utkarsh Srivastava",
+        "status": "Acknowledged",
+        "count": 12
+      },
+      "actual": "There are 21 tasks for Utkarsh Srivastava in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Reports 21 tasks total for the person, never isolates the 'Acknowledged' status subset (expected 12) \u2014 status constraint silently dropped in general retrieval."
+    },
+    {
+      "id": "DATE_016",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Was the \"Design\" project created in 2026?",
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "UNSUPPORTED",
+        "note": "no true \"Created\" field is tracked in the ingested schema \u2014 only Modified-or-Created timestamp; a correct answer discloses this limitation rather than asserting a real creation date"
+      },
+      "actual": "That matches 8 different items in your data \u2014 which one did you mean?\n\n- **Kamal Kishore \u2014 5h \u2014 10/07/2026** (timeentry) \u2014 updated 10/07/2026\n- **Kamal Kishore \u2014 5h \u2014 09/07/2026** (timeentry) \u2014 updated 09/07/2026\n- **Vivekanand \u2014 7.25h \u2014 02/07/2026** (timeentry) \u2014 updated 02/07/2026\n- **Nikky Jha \u2014 3h \u2014 02/07/2026** (timeentry) \u2014 updated 02/07/2026\n- **Nikky Jha \u2014 1.25h \u2014 01/07/2026** (timeentry) \u2014 updated 01/07/2026\n- **Kamal Kishore \u2014 5h \u2014 15/07/2026** (timeentry) \u2014 updated 15/07/2026\n- **Kamal Kishore \u2014 5h \u2014 13/07/2026** (timeentry) \u2014 updated 13/07/2026\n- **Kamal Kishore \u2014 5h \u2014 14/07/2026** (timeentry) \u2014 updated 14/07/2026",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Does not disclose the unsupported-Created-field limitation; instead returns an irrelevant timeentry disambiguation list. Not a fabricated date (so not HALLUCINATION), but not the required disclosure either."
+    },
+    {
+      "id": "DATE_017",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "What tasks are due in 2026?",
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "count": 290,
+        "note": "bare-year query \u2014 must not resolve \"2026\" as an entity name collision (e.g. a title containing 2026)"
+      },
+      "actual": "That matches 2 different items in your data \u2014 which one did you mean?\n\n- **Nikky Jha \u2014 6h \u2014 21/07/2026** (timeentry) \u2014 updated 21/07/2026\n- **Umesh Kumar \u2014 0.25h \u2014 19/06/2026** (timeentry) \u2014 updated 19/06/2026",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Bare-year '2026' resolved into an irrelevant timeentry disambiguation instead of the real 290-task due-in-2026 list."
+    },
+    {
+      "id": "DATE_019",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "What is the earliest due date among Ranu Trivedi's tasks?",
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "field": "dueDate",
+        "value": "2021-02-25T18:30:00.000Z"
+      },
+      "actual": "Ranu Trivedi has no tasks matching that in the indexed knowledge base.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Says 'no tasks matching' when a real earliest-due-date task exists (2021-02-25)."
+    },
+    {
+      "id": "TRANS_015",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "Did anyone discuss removing unused JSON properties in any meeting? Which one?",
+      "expected": {
+        "answerType": "semantic",
+        "answerContains": [
+          "SCRUM - 25/06/2026"
+        ],
+        "expectedFacts": [
+          "the team discussed removing unused JSON properties from time-sheet entries to improve performance and clarity"
+        ]
+      },
+      "actual": "I can only answer from your indexed OMT data \u2014 portfolio items, projects, tasks, time entries and meetings \u2014 and I couldn't find anything matching that. Try naming a specific project, task, or meeting.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "flags": [
+        "RETRIEVAL_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Honest 'couldn't find' rather than a wrong guess, but the fact IS real and findable (SCRUM - 25/06/2026's action items) \u2014 a genuine retrieval miss, safe failure mode."
+    },
+    {
+      "id": "TRANS_020",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Kamal say in the \"SPA Shared Packages Discussion\" meeting about AI tools?",
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "AMBIGUOUS_OR_QUALIFIED",
+        "note": "Kamal Singh AND Kamal Kishore are both real participants in this meeting \u2014 a bare \"Kamal\" is ambiguous between them; answer must not silently attribute a quote to the wrong one"
+      },
+      "actual": "According to the meeting record, Kamal mentioned AI tools such as Google Studio, Bolt AI, Cursor, or Antigravity can be used to assist with design and code generation for component refactoring, targeting 80% design match initially, with remaining 20% handled by designers in final touches.",
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:198:meeting"
+      },
+      "flags": [
+        "AMBIGUITY_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Attributes a quote to bare 'Kamal' without disambiguating between two real same-first-name participants \u2014 the Phase 12 entity-resolution safety work doesn't extend to in-generation person attribution from transcript text."
+    },
+    {
+      "id": "TYPO_007",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "Whats the lattest update on HHHH Automaton?",
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "timestamp",
+        "value": "2026-08-04T06:44:04Z",
+        "note": "\"lattest\"/\"Automaton\" typos of \"latest\"/\"Automation\""
+      },
+      "actual": "The latest update on HHHH Automaton is that MS Power Automate and HHHH Power Automate are both in progress, while ILF Power Automate has not started yet. Additionally, there are 175 tasks under this project, with some of them being worked on or in QA review.",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "GROUNDING_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Never states the container's own timestamp; narrates sub-project statuses instead (same pattern as PROJ status questions)."
+    },
+    {
+      "id": "TYPO_009",
+      "category": "typo_vague",
+      "difficulty": "hard",
+      "question": "hows the developmnet team managment system doing",
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Development Team Management System (Assets Accounts Permissions)",
+        "field": "status",
+        "value": "In Progress",
+        "note": "double typo + vague \"how's X doing\" phrasing"
+      },
+      "actual": "That matches 4 different items in your data \u2014 which one did you mean?\n\n- **Development Team Management System** (project) \u2014 updated 2026-07-22\n- **Development - New Team Management Tool as per AIS** (task) \u2014 updated 2026-06-03\n- **Development - Team Management System (Hardware Software Licenses)** (task) \u2014 updated 2026-05-05\n- **Team management System** (project) \u2014 updated 2026-05-05",
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "flags": [
+        "AMBIGUITY_FAILURE"
+      ],
+      "severity": "MEDIUM",
+      "note": "Double typo prevents exact-title resolution, falls to a 4-way disambiguation (safe, but should have resolved given the close variant match)."
+    }
+  ]
+}

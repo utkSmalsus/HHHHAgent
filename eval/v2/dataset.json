@@ -1,0 +1,1973 @@
+{
+  "version": "v2.0",
+  "generatedAt": "2026-08-05T11:31:45.121Z",
+  "totalQuestions": 185,
+  "items": [
+    {
+      "id": "PROJ_001",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of \"SharePoint Framework - SPFx Improvement\"?",
+      "tags": [
+        "project",
+        "status",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "PROJ_002",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "Is \"Team Management System (Hardware/Software and Licenses)\" a project or a portfolio?",
+      "tags": [
+        "type-lookup"
+      ]
+    },
+    {
+      "id": "PROJ_003",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "How many tasks does \"SharePoint Framework - SPFx Improvement\" have?",
+      "tags": [
+        "count",
+        "container"
+      ]
+    },
+    {
+      "id": "PROJ_004",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of \"Content Management and Search\"?",
+      "tags": [
+        "project",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_005",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "Is \"MCP Server\" a project or a portfolio?",
+      "tags": [
+        "type-lookup"
+      ]
+    },
+    {
+      "id": "PROJ_006",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "What portfolio is \"MCP Server\" a part of?",
+      "tags": [
+        "hierarchy",
+        "parent"
+      ]
+    },
+    {
+      "id": "PROJ_007",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "How many direct sub-items does the \"Contact Database\" portfolio have?",
+      "tags": [
+        "hierarchy",
+        "count"
+      ]
+    },
+    {
+      "id": "PROJ_008",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of \"HHHH Automation\"?",
+      "tags": [
+        "project",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_009",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "When was \"Development Team Management System (Assets Accounts Permissions)\" last updated?",
+      "tags": [
+        "date",
+        "timestamp"
+      ]
+    },
+    {
+      "id": "PROJ_010",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "Which project is a child of \"HHHH Solution Migration to Single Page Application (SPA)\"?",
+      "tags": [
+        "hierarchy"
+      ]
+    },
+    {
+      "id": "PROJ_011",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of the \"Loveable AI\" portfolio?",
+      "tags": [
+        "portfolio",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_012",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "How many tasks are there under \"Timesheet - SPFx Issues and Bug fixing\"?",
+      "tags": [
+        "count",
+        "container"
+      ]
+    },
+    {
+      "id": "PROJ_013",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the current status of \"GitHub Backup Automation\"?",
+      "tags": [
+        "portfolio",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_014",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "Tell me about \"Create Mailweaver Tool\" — what's its current status?",
+      "tags": [
+        "vague-phrasing",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_015",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "What is the parent project of \"Task Management SPA\"?",
+      "tags": [
+        "hierarchy",
+        "parent"
+      ]
+    },
+    {
+      "id": "PROJ_016",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "How many tasks does \"Portfolio Tool - SPFx Issues and Bug fixing\" have?",
+      "tags": [
+        "count",
+        "container"
+      ]
+    },
+    {
+      "id": "PROJ_017",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of \"AI Compatible Project for HHHH Components\"?",
+      "tags": [
+        "project",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_018",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "Which portfolio contains \"Scrum Agent\"?",
+      "tags": [
+        "hierarchy",
+        "parent"
+      ]
+    },
+    {
+      "id": "PROJ_019",
+      "category": "projects_portfolios",
+      "difficulty": "hard",
+      "question": "What's under the \"Webstudio - SP & Public Site (Backend)\" portfolio?",
+      "tags": [
+        "hierarchy",
+        "structural"
+      ]
+    },
+    {
+      "id": "PROJ_020",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "How many tasks does \"Dynamic Dashboard development / improvements\" have?",
+      "tags": [
+        "count",
+        "container"
+      ]
+    },
+    {
+      "id": "PROJ_021",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of the \"SharePoint Backup Automation\" portfolio?",
+      "tags": [
+        "portfolio",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_022",
+      "category": "projects_portfolios",
+      "difficulty": "hard",
+      "question": "Give me the structure of the \"Design\" project — what's under it?",
+      "tags": [
+        "hierarchy",
+        "structural"
+      ]
+    },
+    {
+      "id": "PROJ_023",
+      "category": "projects_portfolios",
+      "difficulty": "easy",
+      "question": "What is the status of \"Webstudio - SP & Public Site UI/UX\"?",
+      "tags": [
+        "project",
+        "status"
+      ]
+    },
+    {
+      "id": "PROJ_024",
+      "category": "projects_portfolios",
+      "difficulty": "hard",
+      "question": "What is the most recently updated project?",
+      "tags": [
+        "recency",
+        "single-entity"
+      ]
+    },
+    {
+      "id": "PROJ_025",
+      "category": "projects_portfolios",
+      "difficulty": "medium",
+      "question": "Which projects were updated yesterday?",
+      "tags": [
+        "date-list",
+        "temporal"
+      ]
+    },
+    {
+      "id": "TASK_001",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Stefan Hochhuth have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_002",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Deepak Trivedi have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_003",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Kamal Darani have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_004",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Pravesh Kumar have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_005",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "How many tasks does Ankita Pandit have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_006",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Anshika Chaudhary have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_007",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Robert Ungethuem have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_008",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Kristina Kovach have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_009",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Thordis Jacobs have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_010",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Garima Arya have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_011",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "Does Ranu Trivedi have any overdue tasks?",
+      "tags": [
+        "person-filter",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_012",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "Does Deepak Trivedi have any overdue tasks?",
+      "tags": [
+        "person-filter",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_013",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "Does Ankita Pandit have any overdue tasks?",
+      "tags": [
+        "person-filter",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_014",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many completed tasks does Ranu Trivedi have?",
+      "tags": [
+        "person-filter",
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_015",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many in-progress tasks does Deepak Trivedi have?",
+      "tags": [
+        "person-filter",
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_016",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Who is the owner of the \"Development - Tasks By Team View\" task?",
+      "tags": [
+        "owner-lookup",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "TASK_017",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Who is working on \"Team Management System (Hardware/Software and Licenses)\"?",
+      "tags": [
+        "who-works-on"
+      ]
+    },
+    {
+      "id": "TASK_018",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "How many tasks does Ranu Trivedi have in Team Management Tools?",
+      "tags": [
+        "person-filter",
+        "container-filter",
+        "count",
+        "composition"
+      ]
+    },
+    {
+      "id": "TASK_019",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "Does Ranu Trivedi have any overdue tasks in Team Management Tools?",
+      "tags": [
+        "person-filter",
+        "container-filter",
+        "overdue",
+        "count",
+        "composition"
+      ]
+    },
+    {
+      "id": "TASK_020",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "How many tasks does Kamal have?",
+      "tags": [
+        "ambiguity",
+        "person-filter"
+      ]
+    },
+    {
+      "id": "TASK_021",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "What tasks are assigned to Kamal Darani?",
+      "tags": [
+        "person-filter",
+        "owned-by"
+      ]
+    },
+    {
+      "id": "TASK_022",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "What tasks belong to Piyoosh Bhardwaj?",
+      "tags": [
+        "person-filter",
+        "owned-by"
+      ]
+    },
+    {
+      "id": "TASK_023",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Whose tasks include \"Bug - All Time Entry\"?",
+      "tags": [
+        "owner-lookup"
+      ]
+    },
+    {
+      "id": "TASK_024",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "Sonal Choudhary's tasks — how many are there?",
+      "tags": [
+        "person-filter",
+        "possessive-phrasing",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_025",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "Aditi Mishra's overdue tasks — how many?",
+      "tags": [
+        "person-filter",
+        "possessive-phrasing",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_026",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "Which of Satyendra Kumar's tasks are still In QA Review?",
+      "tags": [
+        "person-filter",
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_027",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Who owns \"Excel contact data base + payroll template\"?",
+      "tags": [
+        "owner-lookup"
+      ]
+    },
+    {
+      "id": "TASK_028",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "How many tasks does Divyanshu Kumar currently have?",
+      "tags": [
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_029",
+      "category": "tasks_people_owners",
+      "difficulty": "medium",
+      "question": "What tasks are owned by Mattis Hahn?",
+      "tags": [
+        "person-filter",
+        "owned-by"
+      ]
+    },
+    {
+      "id": "TASK_030",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "How many tasks does Utkarsh Srivastava have that are Acknowledged?",
+      "tags": [
+        "person-filter",
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_031",
+      "category": "tasks_people_owners",
+      "difficulty": "easy",
+      "question": "Does Anshu Mishra have any overdue tasks?",
+      "tags": [
+        "person-filter",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "TASK_032",
+      "category": "tasks_people_owners",
+      "difficulty": "hard",
+      "question": "How many tasks does Priya Malhotra have?",
+      "tags": [
+        "negative",
+        "nonexistent-person"
+      ]
+    },
+    {
+      "id": "CNT_001",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are there in total?",
+      "tags": [
+        "global-count"
+      ]
+    },
+    {
+      "id": "CNT_002",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many projects are there?",
+      "tags": [
+        "global-count"
+      ]
+    },
+    {
+      "id": "CNT_003",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many portfolios are there?",
+      "tags": [
+        "global-count"
+      ]
+    },
+    {
+      "id": "CNT_004",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many meetings are there in total?",
+      "tags": [
+        "global-count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "CNT_005",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many time entries are there?",
+      "tags": [
+        "global-count"
+      ]
+    },
+    {
+      "id": "CNT_006",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are currently marked \"Not Started\"?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_007",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are in \"In QA Review\"?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_008",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks have been completed?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_009",
+      "category": "counts_status_overdue",
+      "difficulty": "easy",
+      "question": "How many tasks are \"Acknowledged\"?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_010",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks are \"Deployment Pending\"?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_011",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks are in \"Re-Open\" status?",
+      "tags": [
+        "status",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_012",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many tasks are overdue in total?",
+      "tags": [
+        "overdue",
+        "global-count"
+      ]
+    },
+    {
+      "id": "CNT_013",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks does Team Management Tools have?",
+      "tags": [
+        "container-filter",
+        "count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "CNT_014",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many overdue tasks does Team Management Tools have?",
+      "tags": [
+        "container-filter",
+        "overdue",
+        "count",
+        "composition"
+      ]
+    },
+    {
+      "id": "CNT_015",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many distinct people own at least one task?",
+      "tags": [
+        "aggregate",
+        "people"
+      ]
+    },
+    {
+      "id": "CNT_016",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks does \"Task Popup - SPFx Issues and Bug fixing\" have?",
+      "tags": [
+        "container-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_017",
+      "category": "counts_status_overdue",
+      "difficulty": "hard",
+      "question": "How many completed tasks does \"SharePoint Framework - SPFx Improvement\" have?",
+      "tags": [
+        "container-filter",
+        "status",
+        "count",
+        "composition"
+      ]
+    },
+    {
+      "id": "CNT_018",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many tasks have no due date recorded?",
+      "tags": [
+        "data-quality",
+        "count"
+      ]
+    },
+    {
+      "id": "CNT_019",
+      "category": "counts_status_overdue",
+      "difficulty": "medium",
+      "question": "How many time entries has Ranu Trivedi logged?",
+      "tags": [
+        "timeentry",
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "DATE_001",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Show the latest 5 projects.",
+      "tags": [
+        "recency",
+        "list",
+        "sort"
+      ]
+    },
+    {
+      "id": "DATE_002",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "What are the 5 most recently updated portfolios?",
+      "tags": [
+        "recency",
+        "list",
+        "sort"
+      ]
+    },
+    {
+      "id": "DATE_003",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which portfolio was updated most recently?",
+      "tags": [
+        "recency",
+        "single-entity"
+      ]
+    },
+    {
+      "id": "DATE_004",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Which tasks were due yesterday?",
+      "tags": [
+        "due-date",
+        "temporal",
+        "list"
+      ]
+    },
+    {
+      "id": "DATE_005",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Which tasks are due this week?",
+      "tags": [
+        "due-date",
+        "temporal",
+        "list"
+      ]
+    },
+    {
+      "id": "DATE_006",
+      "category": "dates_latest_sorting",
+      "difficulty": "easy",
+      "question": "What tasks are due on 16/06/2026?",
+      "tags": [
+        "due-date",
+        "explicit-date",
+        "locale"
+      ]
+    },
+    {
+      "id": "DATE_007",
+      "category": "dates_latest_sorting",
+      "difficulty": "easy",
+      "question": "What is the due date of \"Development - Tasks By Team View\"?",
+      "tags": [
+        "due-date",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "DATE_008",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which overdue task has been overdue the longest?",
+      "tags": [
+        "overdue",
+        "sort",
+        "hard"
+      ]
+    },
+    {
+      "id": "DATE_009",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "What is the most recently updated project?",
+      "tags": [
+        "recency",
+        "single-entity",
+        "duplicate-phrasing-check"
+      ]
+    },
+    {
+      "id": "DATE_010",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which project was updated most recently?",
+      "tags": [
+        "recency",
+        "single-entity",
+        "phrasing-variant"
+      ]
+    },
+    {
+      "id": "DATE_011",
+      "category": "dates_latest_sorting",
+      "difficulty": "easy",
+      "question": "When was \"HHHH Automation\" last updated?",
+      "tags": [
+        "date-lookup"
+      ]
+    },
+    {
+      "id": "DATE_012",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Which projects were updated today?",
+      "tags": [
+        "temporal",
+        "list"
+      ]
+    },
+    {
+      "id": "DATE_013",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Which portfolios were updated this week?",
+      "tags": [
+        "temporal",
+        "list"
+      ]
+    },
+    {
+      "id": "DATE_014",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "Which tasks are overdue and due before 01/01/2023?",
+      "tags": [
+        "overdue",
+        "date-range",
+        "composition"
+      ]
+    },
+    {
+      "id": "DATE_015",
+      "category": "dates_latest_sorting",
+      "difficulty": "easy",
+      "question": "Show the top 3 latest projects.",
+      "tags": [
+        "recency",
+        "list",
+        "limit"
+      ]
+    },
+    {
+      "id": "DATE_016",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "Was the \"Design\" project created in 2026?",
+      "tags": [
+        "unsupported-field",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "DATE_017",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "What tasks are due in 2026?",
+      "tags": [
+        "bare-number",
+        "vocabulary-collision"
+      ]
+    },
+    {
+      "id": "DATE_018",
+      "category": "dates_latest_sorting",
+      "difficulty": "hard",
+      "question": "How many tasks were due last month?",
+      "tags": [
+        "due-date",
+        "temporal",
+        "count"
+      ]
+    },
+    {
+      "id": "DATE_019",
+      "category": "dates_latest_sorting",
+      "difficulty": "medium",
+      "question": "What is the earliest due date among Ranu Trivedi's tasks?",
+      "tags": [
+        "person-filter",
+        "sort",
+        "composition"
+      ]
+    },
+    {
+      "id": "MEET_001",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "When did the \"SCRUM - 25/06/2026\" meeting happen?",
+      "tags": [
+        "meeting-date",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "MEET_002",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "Who participated in the \"SCRUM - 25/06/2026\" meeting?",
+      "tags": [
+        "meeting-participants",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "MEET_003",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "What were the action items from the \"SCRUM - 25/06/2026\" meeting?",
+      "tags": [
+        "action-items",
+        "semantic"
+      ]
+    },
+    {
+      "id": "MEET_004",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "Who attended the \"Loveable KT\" meeting?",
+      "tags": [
+        "meeting-participants"
+      ]
+    },
+    {
+      "id": "MEET_005",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "What was discussed in the \"Loveable KT\" meeting?",
+      "tags": [
+        "topic",
+        "semantic"
+      ]
+    },
+    {
+      "id": "MEET_006",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "Who was in the \"SPA Shared Packages Discussion\" meeting?",
+      "tags": [
+        "meeting-participants"
+      ]
+    },
+    {
+      "id": "MEET_007",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "What key decisions came out of the \"SPA Shared Packages Discussion\" meeting?",
+      "tags": [
+        "decisions",
+        "semantic"
+      ]
+    },
+    {
+      "id": "MEET_008",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "Did any meetings happen today?",
+      "tags": [
+        "meeting-date",
+        "temporal",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "MEET_009",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "What meeting happened yesterday?",
+      "tags": [
+        "meeting-date",
+        "temporal"
+      ]
+    },
+    {
+      "id": "MEET_010",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "How many meetings happened this week?",
+      "tags": [
+        "meeting-date",
+        "temporal",
+        "count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "MEET_011",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "How many meetings happened last week?",
+      "tags": [
+        "meeting-date",
+        "temporal",
+        "count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "MEET_012",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "What meetings happened last week?",
+      "tags": [
+        "meeting-date",
+        "temporal",
+        "list"
+      ]
+    },
+    {
+      "id": "MEET_013",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "What meeting happened on 25/06/2026?",
+      "tags": [
+        "meeting-date",
+        "explicit-date",
+        "locale"
+      ]
+    },
+    {
+      "id": "MEET_014",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "Tell me about the \"Scrum 3/08/2026\" meeting.",
+      "tags": [
+        "meeting-detail",
+        "exact-title"
+      ]
+    },
+    {
+      "id": "MEET_015",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "Was Ranu Trivedi at the \"Scrum 4/08/2026\" meeting?",
+      "tags": [
+        "attendance",
+        "person"
+      ]
+    },
+    {
+      "id": "MEET_016",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "Was Stefan Hochhuth at the \"Scrum 4/08/2026\" meeting?",
+      "tags": [
+        "attendance",
+        "person",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "MEET_017",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "What did the \"SCRUM - 25/06/2026\" meeting decide about AI?",
+      "tags": [
+        "topic",
+        "ai",
+        "semantic"
+      ]
+    },
+    {
+      "id": "MEET_018",
+      "category": "meetings",
+      "difficulty": "medium",
+      "question": "Was there a meeting called \"Quarterly Board Strategy Offsite\"?",
+      "tags": [
+        "negative",
+        "nonexistent-meeting",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "MEET_019",
+      "category": "meetings",
+      "difficulty": "hard",
+      "question": "What time did the \"SCRUM - 25/06/2026\" meeting end?",
+      "tags": [
+        "meeting-detail",
+        "exact-fact"
+      ]
+    },
+    {
+      "id": "MEET_020",
+      "category": "meetings",
+      "difficulty": "easy",
+      "question": "What type of meeting was \"Scrum 4/08/2026\" — a stand-up, a review, or something else?",
+      "tags": [
+        "meeting-detail"
+      ]
+    },
+    {
+      "id": "TRANS_001",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "What was the \"AWSTesting\" meeting about?",
+      "tags": [
+        "semantic",
+        "topic",
+        "transcript-beginning"
+      ]
+    },
+    {
+      "id": "TRANS_002",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What data-export problem was raised in the middle of the \"AWSTesting\" meeting?",
+      "tags": [
+        "semantic",
+        "transcript-middle",
+        "hard-region"
+      ]
+    },
+    {
+      "id": "TRANS_003",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "Near the end of the \"AWSTesting\" meeting, what did the team say about the QA agent?",
+      "tags": [
+        "semantic",
+        "transcript-end",
+        "hard-region"
+      ]
+    },
+    {
+      "id": "TRANS_004",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "Which API was used in the \"AWSTesting\" meeting's demo for meeting analysis?",
+      "tags": [
+        "semantic",
+        "exact-fact",
+        "transcript-beginning"
+      ]
+    },
+    {
+      "id": "TRANS_005",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Deepak Trivedi say about AI near the end of the \"SCRUM - 25/06/2026\" meeting?",
+      "tags": [
+        "semantic",
+        "transcript-end",
+        "hard-region",
+        "hindi-source"
+      ]
+    },
+    {
+      "id": "TRANS_006",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "In the middle of the \"SCRUM - 25/06/2026\" meeting, what were Anshu Mishra and Deepak Trivedi discussing?",
+      "tags": [
+        "semantic",
+        "transcript-middle",
+        "hindi-source"
+      ]
+    },
+    {
+      "id": "TRANS_007",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "What blockers were mentioned in the \"Scrum 4/08/2026\" meeting?",
+      "tags": [
+        "semantic",
+        "blockers"
+      ]
+    },
+    {
+      "id": "TRANS_008",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "How did the team plan to divide the SPA shared packages work?",
+      "tags": [
+        "semantic",
+        "decisions"
+      ]
+    },
+    {
+      "id": "TRANS_009",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did the AWSTesting meeting say about the AI agent going on a page automatically?",
+      "tags": [
+        "semantic",
+        "transcript-end",
+        "paraphrase"
+      ]
+    },
+    {
+      "id": "TRANS_010",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "Did the \"AWSTesting\" meeting mention anything about a QA agent checking requirements automatically? What did it say the completion threshold was?",
+      "tags": [
+        "semantic",
+        "transcript-end",
+        "exact-fact"
+      ]
+    },
+    {
+      "id": "TRANS_011",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "What comments or feedback exist on the \"AWSTesting\" meeting record?",
+      "tags": [
+        "exact-lookup",
+        "verbatim"
+      ]
+    },
+    {
+      "id": "TRANS_012",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Deepak Trivedi say about AI?",
+      "tags": [
+        "semantic",
+        "vague-scope",
+        "ai"
+      ]
+    },
+    {
+      "id": "TRANS_013",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Ranu Trivedi say in the \"SCRUM - 25/06/2026\" meeting about the timesheet discrepancy?",
+      "tags": [
+        "semantic",
+        "person-attribution",
+        "hindi-source"
+      ]
+    },
+    {
+      "id": "TRANS_014",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "What tool did the team evaluate for automating deployment pipelines in the \"SCRUM - 25/06/2026\" meeting?",
+      "tags": [
+        "semantic",
+        "exact-fact"
+      ]
+    },
+    {
+      "id": "TRANS_015",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "Did anyone discuss removing unused JSON properties in any meeting? Which one?",
+      "tags": [
+        "semantic",
+        "cross-meeting-search"
+      ]
+    },
+    {
+      "id": "TRANS_016",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "What is the \"Content Management and Search\" project about?",
+      "tags": [
+        "semantic",
+        "project-summary"
+      ]
+    },
+    {
+      "id": "TRANS_017",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did the transcript of the \"Loveable KT\" meeting say Lovable connects to besides SharePoint?",
+      "tags": [
+        "semantic",
+        "exact-fact"
+      ]
+    },
+    {
+      "id": "TRANS_018",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did the \"AWSTesting\" meeting say about a meeting that never happened?",
+      "tags": [
+        "hallucination-trap",
+        "negative"
+      ]
+    },
+    {
+      "id": "TRANS_019",
+      "category": "transcript_semantic",
+      "difficulty": "medium",
+      "question": "Summarize the \"Webstudio Team Meeting\".",
+      "tags": [
+        "hallucination-trap",
+        "sparse-record"
+      ]
+    },
+    {
+      "id": "TRANS_020",
+      "category": "transcript_semantic",
+      "difficulty": "hard",
+      "question": "What did Kamal say in the \"SPA Shared Packages Discussion\" meeting about AI tools?",
+      "tags": [
+        "ambiguity",
+        "person-attribution",
+        "semantic"
+      ]
+    },
+    {
+      "id": "HI_001",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Ranu ke overdue tasks kitne hain?",
+      "tags": [
+        "hinglish",
+        "person-filter",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "HI_002",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "kal ki meeting me kya discuss hua?",
+      "tags": [
+        "hinglish",
+        "meeting-date",
+        "semantic"
+      ]
+    },
+    {
+      "id": "HI_003",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "Team Management Tools ka status kya hai?",
+      "tags": [
+        "hinglish",
+        "status"
+      ]
+    },
+    {
+      "id": "HI_004",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Deepak Trivedi ne SCRUM - 25/06/2026 meeting me AI ke bare me kya bola tha?",
+      "tags": [
+        "hinglish",
+        "semantic",
+        "transcript-end"
+      ]
+    },
+    {
+      "id": "HI_005",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Stefan Hochhuth ke paas kitne tasks hain?",
+      "tags": [
+        "hinglish",
+        "person-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "HI_006",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "kitni meetings is hafte hui hain?",
+      "tags": [
+        "hinglish",
+        "meeting-date",
+        "count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "HI_007",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "kya Ranu Trivedi ke koi overdue tasks hain?",
+      "tags": [
+        "hinglish",
+        "overdue"
+      ]
+    },
+    {
+      "id": "HI_008",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "\"SharePoint Framework - SPFx Improvement\" project me kitne tasks hain?",
+      "tags": [
+        "hinglish",
+        "container-filter",
+        "count"
+      ]
+    },
+    {
+      "id": "HI_009",
+      "category": "hindi_hinglish",
+      "difficulty": "easy",
+      "question": "\"HHHH Automation\" project ka status kya hai?",
+      "tags": [
+        "hinglish",
+        "status"
+      ]
+    },
+    {
+      "id": "HI_010",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "pichle hafte kitni meetings hui thi?",
+      "tags": [
+        "hindi",
+        "meeting-date",
+        "count",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "HI_011",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Ranu Trivedi ke Team Management Tools me kitne tasks hain?",
+      "tags": [
+        "hinglish",
+        "composition",
+        "count"
+      ]
+    },
+    {
+      "id": "HI_012",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "total kitne projects hain hamare data me?",
+      "tags": [
+        "hinglish",
+        "global-count"
+      ]
+    },
+    {
+      "id": "HI_013",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Kamal ke kitne tasks hain?",
+      "tags": [
+        "hinglish",
+        "ambiguity"
+      ]
+    },
+    {
+      "id": "HI_014",
+      "category": "hindi_hinglish",
+      "difficulty": "hard",
+      "question": "Priya Malhotra ke tasks batao.",
+      "tags": [
+        "hinglish",
+        "negative",
+        "nonexistent-person"
+      ]
+    },
+    {
+      "id": "HI_015",
+      "category": "hindi_hinglish",
+      "difficulty": "medium",
+      "question": "SCRUM - 25/06/2026 meeting me kaun kaun tha?",
+      "tags": [
+        "hinglish",
+        "meeting-participants"
+      ]
+    },
+    {
+      "id": "TYPO_001",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "How many tasks does Team Managment Tools have?",
+      "tags": [
+        "typo",
+        "count",
+        "container-filter"
+      ]
+    },
+    {
+      "id": "TYPO_002",
+      "category": "typo_vague",
+      "difficulty": "hard",
+      "question": "What is happening with portfoilo managment?",
+      "tags": [
+        "typo",
+        "vocabulary-collision",
+        "regression-fixture"
+      ]
+    },
+    {
+      "id": "TYPO_003",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "Give me the devlopment status of the Team Management System portfolio.",
+      "tags": [
+        "typo",
+        "status"
+      ]
+    },
+    {
+      "id": "TYPO_004",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "What happened in the scrm meeting on 25/06/2026?",
+      "tags": [
+        "typo",
+        "meeting-lookup"
+      ]
+    },
+    {
+      "id": "TYPO_005",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "How many taks does Ranu Trivedi have?",
+      "tags": [
+        "typo",
+        "count"
+      ]
+    },
+    {
+      "id": "TYPO_006",
+      "category": "typo_vague",
+      "difficulty": "hard",
+      "question": "whats going on with that thing we talked about",
+      "tags": [
+        "vague-phrasing",
+        "no-context"
+      ]
+    },
+    {
+      "id": "TYPO_007",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "Whats the lattest update on HHHH Automaton?",
+      "tags": [
+        "typo",
+        "date-lookup"
+      ]
+    },
+    {
+      "id": "TYPO_008",
+      "category": "typo_vague",
+      "difficulty": "easy",
+      "question": "status of hhhh automaton project?",
+      "tags": [
+        "typo",
+        "vague-phrasing",
+        "status"
+      ]
+    },
+    {
+      "id": "TYPO_009",
+      "category": "typo_vague",
+      "difficulty": "hard",
+      "question": "hows the developmnet team managment system doing",
+      "tags": [
+        "typo",
+        "vague-phrasing",
+        "status"
+      ]
+    },
+    {
+      "id": "TYPO_010",
+      "category": "typo_vague",
+      "difficulty": "medium",
+      "question": "overdue taks for stefan hochhuth?",
+      "tags": [
+        "typo",
+        "overdue",
+        "count"
+      ]
+    },
+    {
+      "id": "CONV_A_T1",
+      "category": "conversation",
+      "difficulty": "easy",
+      "question": "Tell me about Team Management Tools.",
+      "tags": [
+        "conversation",
+        "conv-A",
+        "turn-1",
+        "grounding"
+      ],
+      "conversationId": "A",
+      "turn": 1
+    },
+    {
+      "id": "CONV_A_T2",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "Who owns it?",
+      "tags": [
+        "conversation",
+        "conv-A",
+        "turn-2",
+        "pronoun-it",
+        "context-resolution"
+      ],
+      "conversationId": "A",
+      "turn": 2
+    },
+    {
+      "id": "CONV_A_T3",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "What tasks are pending?",
+      "tags": [
+        "conversation",
+        "conv-A",
+        "turn-3",
+        "implicit-referent",
+        "context-resolution"
+      ],
+      "conversationId": "A",
+      "turn": 3
+    },
+    {
+      "id": "CONV_A_T4",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "Any overdue ones?",
+      "tags": [
+        "conversation",
+        "conv-A",
+        "turn-4",
+        "pronoun-ones",
+        "context-resolution"
+      ],
+      "conversationId": "A",
+      "turn": 4
+    },
+    {
+      "id": "CONV_A_T5",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "What about the other project?",
+      "tags": [
+        "conversation",
+        "conv-A",
+        "turn-5",
+        "ambiguous-referent",
+        "context-resolution"
+      ],
+      "conversationId": "A",
+      "turn": 5
+    },
+    {
+      "id": "CONV_B_T1",
+      "category": "conversation",
+      "difficulty": "easy",
+      "question": "What happened in the SCRUM - 25/06/2026 meeting?",
+      "tags": [
+        "conversation",
+        "conv-B",
+        "turn-1",
+        "grounding"
+      ],
+      "conversationId": "B",
+      "turn": 1
+    },
+    {
+      "id": "CONV_B_T2",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "Who was there?",
+      "tags": [
+        "conversation",
+        "conv-B",
+        "turn-2",
+        "pronoun-there",
+        "context-resolution"
+      ],
+      "conversationId": "B",
+      "turn": 2
+    },
+    {
+      "id": "CONV_B_T3",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "What did Deepak say?",
+      "tags": [
+        "conversation",
+        "conv-B",
+        "turn-3",
+        "implicit-referent",
+        "first-name-only",
+        "context-resolution"
+      ],
+      "conversationId": "B",
+      "turn": 3
+    },
+    {
+      "id": "CONV_C_T1",
+      "category": "conversation",
+      "difficulty": "easy",
+      "question": "How many tasks does Ranu Trivedi have?",
+      "tags": [
+        "conversation",
+        "conv-C",
+        "turn-1",
+        "grounding"
+      ],
+      "conversationId": "C",
+      "turn": 1
+    },
+    {
+      "id": "CONV_C_T2",
+      "category": "conversation",
+      "difficulty": "hard",
+      "question": "How many of those are overdue?",
+      "tags": [
+        "conversation",
+        "conv-C",
+        "turn-2",
+        "pronoun-those",
+        "context-resolution"
+      ],
+      "conversationId": "C",
+      "turn": 2
+    },
+    {
+      "id": "NEG_001",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "How many tasks does Quantum Marketing Portal have?",
+      "tags": [
+        "negative",
+        "nonexistent-project"
+      ]
+    },
+    {
+      "id": "NEG_002",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "What is the status of the \"Neural Compliance Dashboard\" project?",
+      "tags": [
+        "negative",
+        "nonexistent-project"
+      ]
+    },
+    {
+      "id": "NEG_003",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "Does the \"Titan Payroll Bridge\" portfolio have any overdue tasks?",
+      "tags": [
+        "negative",
+        "nonexistent-container",
+        "composition"
+      ]
+    },
+    {
+      "id": "NEG_004",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "How many tasks does Priya Malhotra have?",
+      "tags": [
+        "negative",
+        "nonexistent-person"
+      ]
+    },
+    {
+      "id": "NEG_005",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "What was decided in the \"Quarterly Board Strategy Offsite\" meeting?",
+      "tags": [
+        "negative",
+        "nonexistent-meeting"
+      ]
+    },
+    {
+      "id": "NEG_006",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "What is the due date of \"Development - Tasks By Team View\"'s successor task?",
+      "tags": [
+        "negative",
+        "unsupported-relationship"
+      ]
+    },
+    {
+      "id": "NEG_007",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "When was \"SharePoint Framework - SPFx Improvement\" created?",
+      "tags": [
+        "negative",
+        "unsupported-field",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "NEG_008",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "How many tasks does the \"Titan Payroll Bridge\" project have in Team Management Tools?",
+      "tags": [
+        "negative",
+        "nonexistent-project",
+        "composition"
+      ]
+    },
+    {
+      "id": "NEG_009",
+      "category": "negative_fail_closed",
+      "difficulty": "medium",
+      "question": "What did Priya Malhotra say in the \"SCRUM - 25/06/2026\" meeting?",
+      "tags": [
+        "negative",
+        "nonexistent-person",
+        "hallucination-trap"
+      ]
+    },
+    {
+      "id": "NEG_010",
+      "category": "negative_fail_closed",
+      "difficulty": "hard",
+      "question": "How many meetings happened on 31/02/2026?",
+      "tags": [
+        "negative",
+        "invalid-date"
+      ]
+    },
+    {
+      "id": "CMP_001",
+      "category": "comparison",
+      "difficulty": "hard",
+      "question": "Which is more recently updated, Team Management Tools or Development Team Management System?",
+      "tags": [
+        "comparison",
+        "recency",
+        "independent-resolution"
+      ]
+    },
+    {
+      "id": "CMP_002",
+      "category": "comparison",
+      "difficulty": "hard",
+      "question": "Which has more tasks, Team Management Tools or Development Team Management System?",
+      "tags": [
+        "comparison",
+        "task-count",
+        "independent-resolution",
+        "chunk-inflation-risk"
+      ]
+    },
+    {
+      "id": "CMP_003",
+      "category": "comparison",
+      "difficulty": "medium",
+      "question": "Compare \"SharePoint Framework - SPFx Improvement\" and \"Content Management and Search\".",
+      "tags": [
+        "comparison",
+        "side-by-side"
+      ]
+    },
+    {
+      "id": "CMP_004",
+      "category": "comparison",
+      "difficulty": "hard",
+      "question": "Compare \"Team Management Tools\" and \"Quantum Marketing Portal\".",
+      "tags": [
+        "comparison",
+        "nonexistent-entity",
+        "fail-closed"
+      ]
+    },
+    {
+      "id": "CMP_005",
+      "category": "comparison",
+      "difficulty": "hard",
+      "question": "Compare \"Team Management\" and \"Development Team Management System\".",
+      "tags": [
+        "comparison",
+        "ambiguity"
+      ]
+    }
+  ]
+}

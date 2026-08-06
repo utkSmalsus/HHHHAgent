@@ -1,0 +1,2592 @@
+{
+  "version": "v2.0",
+  "generatedAt": "2026-08-05T11:31:45.121Z",
+  "groundTruthMethod": "Computed directly from raw Qdrant payloads (enterprise_knowledge) via the app's own verified, unit-tested business-logic functions (taskIsOverdue, descendantContainerIds, uniqueBusinessEntities) — never from the live agent's own answers.",
+  "items": {
+    "PROJ_001": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "entityTitle": "SharePoint Framework - SPFx Improvement",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_002": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Team Management System (Hardware/Software and Licenses)",
+        "field": "type",
+        "value": "portfolio"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "LOW"
+    },
+    "PROJ_003": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "SharePoint Framework - SPFx Improvement",
+        "containerId": 7021,
+        "count": 1213
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_004": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Content Management and Search",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_005": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "MCP Server",
+        "field": "type",
+        "value": "portfolio"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "LOW"
+    },
+    "PROJ_006": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "MCP Server",
+        "field": "parentTitle",
+        "value": "Artificial Intelligence (AI)"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_007": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "portfolio+project",
+        "containerTitle": "Contact Database",
+        "count": 0
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "note": "direct children by parentId, not full descendant tree"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_008": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_009": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Development Team Management System (Assets Accounts Permissions)",
+        "field": "timestamp",
+        "value": "2026-08-03T12:17:27Z",
+        "note": "field is Modified-or-Created, no separate Created field exists"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_010": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "Task Management SPA"
+        ],
+        "note": "multiple valid children exist; Task Management SPA is one correct real answer"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_011": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Loveable AI",
+        "field": "status",
+        "value": "Not Started"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_012": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Timesheet - SPFx Issues and Bug fixing",
+        "count": 299
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_013": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "GitHub Backup Automation",
+        "field": "status",
+        "value": "Not Started"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_014": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Create Mailweaver Tool",
+        "field": "status",
+        "value": "Task completed"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_015": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Task Management SPA",
+        "field": "parentTitle",
+        "value": "HHHH Solution Migration to Single Page Application (SPA)"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_016": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Portfolio Tool - SPFx Issues and Bug fixing",
+        "count": 135
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_017": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "AI Compatible Project for HHHH Components",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_018": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Scrum Agent",
+        "field": "parentTitle",
+        "value": "AI Agents"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_019": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project+task",
+        "containerTitle": "Webstudio - SP & Public Site (Backend)",
+        "requiredBehavior": "must list real sub-items, not a vague summary"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_020": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Dynamic Dashboard development / improvements",
+        "count": 279
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_021": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "SharePoint Backup Automation",
+        "field": "status",
+        "value": "Not Started"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_022": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "containerTitle": "Design",
+        "requiredBehavior": "must reflect real sub-tasks, not invent structure"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_023": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Webstudio - SP & Public Site UI/UX",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "PROJ_024": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "HHHH Solution Migration to Single Page Application (SPA)"
+        ],
+        "field": "timestamp",
+        "value": "2026-08-04T07:16:21Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "PROJ_025": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project",
+        "count": 6,
+        "titles": [
+          "HHHH Automation",
+          "Task Management SPA",
+          "HHHH Solution Migration to Single Page Application (SPA)",
+          "OMT Migration SPA",
+          "MS Power Automate",
+          "HHHH Power Automate"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_001": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "count": 1795
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_002": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Deepak Trivedi",
+        "count": 1023
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_003": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Kamal Darani",
+        "count": 152
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_004": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Pravesh Kumar",
+        "count": 76
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_005": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ankita Pandit",
+        "count": 75
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_006": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Anshika Chaudhary",
+        "count": 43
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_007": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Robert Ungethuem",
+        "count": 32
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_008": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Kristina Kovach",
+        "count": 35
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_009": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Thordis Jacobs",
+        "count": 27
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_010": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Garima Arya",
+        "count": 26
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "exact Owner-field match (sole owner), not any-co-owner"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_011": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "overdue": true,
+        "count": 29
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_012": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Deepak Trivedi",
+        "overdue": true,
+        "count": 85
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_013": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ankita Pandit",
+        "overdue": true,
+        "count": 43
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_014": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "status": "completed",
+        "count": 584
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_015": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Deepak Trivedi",
+        "status": "in progress",
+        "count": 71
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_016": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Development - Tasks By Team View",
+        "field": "owner",
+        "value": "Ranu Trivedi"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_017": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "containerTitle": "Team Management System (Hardware/Software and Licenses)",
+        "requiredBehavior": "must list real distinct owners from tasks under this portfolio"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_018": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "containerTitle": "Team Management Tools",
+        "count": 0
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_019": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "overdue": true,
+        "containerTitle": "Team Management Tools",
+        "count": 0
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_020": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "AMBIGUOUS",
+        "note": "\"Kamal\" matches 3 distinct real people: Kamal Darani, Kamal Singh, Kamal Kishore — must surface ambiguity, never arbitrarily pick one"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_021": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "person": "Kamal Darani",
+        "count": 152
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_022": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "person": "Piyoosh Bhardwaj",
+        "count": 35
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_023": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Bug - All Time Entry",
+        "field": "owner",
+        "value": "Stefan Hochhuth"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_024": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Sonal Choudhary",
+        "count": 34
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_025": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Aditi Mishra",
+        "overdue": true,
+        "count": 7
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_026": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Satyendra Kumar",
+        "status": "In QA Review",
+        "count": 0
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_027": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Excel contact data base + payroll template",
+        "field": "owner",
+        "value": "Pravesh Kumar"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_028": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Divyanshu Kumar",
+        "count": 21
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_029": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "person": "Mattis Hahn",
+        "count": 22
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_030": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Utkarsh Srivastava",
+        "status": "Acknowledged",
+        "count": 12
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TASK_031": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Anshu Mishra",
+        "overdue": true,
+        "count": 7
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TASK_032": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "Priya Malhotra does not exist in the indexed data — verified against all 62 real owner names"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_001": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "count": 14181
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_002": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "project",
+        "count": 746
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_003": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "portfolio",
+        "count": 2666
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_004": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "count": 146
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_005": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "timeentry",
+        "count": 6142
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_006": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Not Started",
+        "count": 857
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_007": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "In QA Review",
+        "count": 550
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_008": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "completed",
+        "count": 10082,
+        "note": "matches \"Task completed\"/\"Completed\"/\"Approved\"/\"Ready to Go\" per the app's own verified DONE_RE definition"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_009": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Acknowledged",
+        "count": 507
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_010": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Deployment Pending",
+        "count": 117
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_011": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "status": "Re-Open",
+        "count": 129
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_012": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "overdue": true,
+        "count": 1089
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_013": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Team Management Tools",
+        "count": 53
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "Phase 14 regression fixture — raw was 61, business-entity count is the value here"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CNT_014": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Team Management Tools",
+        "overdue": true,
+        "count": 9
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_015": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "person",
+        "count": 62
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CNT_016": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Task Popup - SPFx Issues and Bug fixing",
+        "count": 279
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_017": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "SharePoint Framework - SPFx Improvement",
+        "status": "completed",
+        "count": 1074
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CNT_018": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "count": 7959
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CNT_019": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "timeentry",
+        "person": "Ranu Trivedi",
+        "count": 423
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_001": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project",
+        "titles": [
+          "HHHH Solution Migration to Single Page Application (SPA)",
+          "HHHH Automation",
+          "MS Power Automate",
+          "HHHH Power Automate",
+          "Task Management SPA"
+        ],
+        "orderMatters": true
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_002": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "portfolio",
+        "titles": [
+          "Test component 1",
+          "SPA Shared Packages",
+          "MCP Server",
+          "SharePoint Backup Automation",
+          "Team Management System (Hardware/Software and Licenses)"
+        ],
+        "orderMatters": true
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_003": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "portfolio",
+        "answerContains": [
+          "Test component 1"
+        ],
+        "field": "timestamp",
+        "value": "2026-08-03T06:42:29Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_004": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "count": 0,
+        "titles": []
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_005": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "count": 2,
+        "titles": [
+          "Annex SPA UX and navigation improvements",
+          "Portfolio Profile: Date controls do not open calendars"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_006": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "titles": [
+          "Development - Migrate Project Profile from SDC to SP Online"
+        ],
+        "note": "DD/MM/YYYY locale — must not be misread as US MM/DD"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "DATE_007": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "entityTitle": "Development - Tasks By Team View",
+        "field": "dueDate",
+        "value": "2023-06-16"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_008": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "answerContains": [
+          "Feedback - Task Popup"
+        ],
+        "field": "dueDate",
+        "value": "2018-01-24T03:30:00.000Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_009": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "HHHH Solution Migration to Single Page Application (SPA)"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_010": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "HHHH Solution Migration to Single Page Application (SPA)"
+        ],
+        "note": "word-reordered phrasing of the previous question — regression check for #16-class phrasing gaps"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_011": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "timestamp",
+        "value": "2026-08-04T06:44:04Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_012": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project",
+        "requiredBehavior": "must reflect real timestamp filtering for today only, not a stale cached list"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_013": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "portfolio",
+        "requiredBehavior": "must reflect real timestamp filtering for this week only"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_014": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "count": 300
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_015": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project",
+        "titles": [
+          "HHHH Solution Migration to Single Page Application (SPA)",
+          "HHHH Automation",
+          "MS Power Automate"
+        ],
+        "orderMatters": true
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_016": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "UNSUPPORTED",
+        "note": "no true \"Created\" field is tracked in the ingested schema — only Modified-or-Created timestamp; a correct answer discloses this limitation rather than asserting a real creation date"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_017": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "task",
+        "count": 290,
+        "note": "bare-year query — must not resolve \"2026\" as an entity name collision (e.g. a title containing 2026)"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "DATE_018": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "count": 29
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "DATE_019": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "field": "dueDate",
+        "value": "2021-02-25T18:30:00.000Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_001": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "meeting",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "field": "start",
+        "value": "2026-06-25"
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_002": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "Prashant Kumar",
+          "Deepak Trivedi",
+          "Ranu Trivedi",
+          "Ankush Das",
+          "Anshu Mishra",
+          "Utkarsh Srivastava",
+          "Kamal Kishore",
+          "Kamal Singh",
+          "Atul Kumar",
+          "Umang Kumar"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_003": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "Clean up unused properties and fields from time-sheet JSON entries",
+          "Test Lovable tool to create a complex component",
+          "Prepare a guide for requesting and assigning software licenses"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_004": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "entityTitle": "Loveable KT",
+        "expectedFacts": [
+          "Prashant Kumar",
+          "Ranu Trivedi",
+          "Deepak Trivedi",
+          "Vivekanand",
+          "Utkarsh Srivastava"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:122:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_005": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "Loveable KT",
+        "expectedFacts": [
+          "Lovable is an AI-powered development platform",
+          "connected to SharePoint via GitHub",
+          "automated CI/CD pipeline pushing code to the App Catalog"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:122:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_006": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "entityTitle": "SPA Shared Packages Discussion",
+        "expectedFacts": [
+          "Kamal Singh",
+          "Deepak Trivedi",
+          "Anshu Mishra",
+          "Utkarsh Srivastava",
+          "Nikky Jha",
+          "Nitin Chauhan",
+          "Ankush Das",
+          "Kamal Kishore",
+          "Vikas Kumar Yadav"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:198:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_007": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SPA Shared Packages Discussion",
+        "expectedFacts": [
+          "the main solution was divided into six separate packages",
+          "using inline CSS only",
+          "targeting 80% design match initially"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:198:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_008": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "today",
+        "count": 0,
+        "requiredBehavior": "must correctly say zero, not fabricate a meeting"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_009": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "meeting",
+        "answerContains": [
+          "Scrum 4/08/2026"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_010": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "this week",
+        "count": 2,
+        "titles": [
+          "Scrum 4/08/2026",
+          "Scrum 3/08/2026"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "Phase 13/14 regression fixture — must use start field + business-entity dedup, not raw chunk points"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "MEET_011": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "last week",
+        "count": 6
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "MEET_012": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "meeting",
+        "titles": [
+          "Scrum 28/07/2026",
+          "SPA Shared Packages Discussion",
+          "Scrum 31/07/2026",
+          "Scrum 30/07/2026",
+          "Scrum 29/07/2026",
+          "Scrum 27/07/2026"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_013": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "meeting",
+        "answerContains": [
+          "SCRUM - 25/06/2026"
+        ],
+        "note": "DD/MM/YYYY locale"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_014": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Scrum 3/08/2026",
+        "field": "start",
+        "value": "2026-08-03"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_015": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Scrum 4/08/2026",
+        "requiredBehavior": "YES",
+        "note": "Ranu Trivedi is listed in the real participants list"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_016": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Scrum 4/08/2026",
+        "requiredBehavior": "NO",
+        "note": "Stefan Hochhuth is NOT in the real participants list for this meeting — hallucination trap"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "MEET_017": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "management mandated that discussions be recorded via transcripts to facilitate better AI context and knowledge retrieval",
+          "streamlining the development process by adopting new AI-integrated workflows"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_018": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "verified nonexistent — no real meeting has this title"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "MEET_019": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "field": "end",
+        "value": "2026-06-25T07:15:00Z"
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "MEET_020": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Scrum 4/08/2026",
+        "field": "meetingType",
+        "value": "Stand-up"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "LOW"
+    },
+    "TRANS_001": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "demonstrate AI-powered meeting transcript analysis and task creation capabilities",
+          "automatically generates meeting summaries, extracts action items, and creates tasks with portfolio matching using Claude API"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 0,
+        "totalChunks": 19,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_002": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "the export does not include timesheet information or task descriptions",
+          "task titles like \"Back Operational Management Tools\" are not distinguishable when there are ~200 similarly-named tasks"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 9,
+        "totalChunks": 19,
+        "region": "middle"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TRANS_003": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "when a task reaches 80% completion, the QA agent automatically checks the original requirements",
+          "this can be done automatically without anybody doing it manually"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 18,
+        "totalChunks": 19,
+        "region": "end"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TRANS_004": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "AWSTesting",
+        "answerContains": [
+          "Claude API"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_005": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "Deepak Trivedi mentioned AI tools (\"development AI\") can help with testing",
+          "he said he would look into it in more detail and report back"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 53,
+        "totalChunks": 54,
+        "region": "end",
+        "language": "Hindi transcript"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TRANS_006": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "they discussed adding task points that had not been entered before",
+          "a task related to Stephen and email/licensing needed to be created"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 27,
+        "totalChunks": 54,
+        "region": "middle",
+        "language": "Hindi transcript"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_007": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "Scrum 4/08/2026",
+        "expectedFacts": [
+          "incomplete design verification",
+          "hardcoded values in popups",
+          "custom CSS classes not properly removed from components"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:201:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_008": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SPA Shared Packages Discussion",
+        "expectedFacts": [
+          "the main solution was divided into six separate packages to distribute work across developers"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:198:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_009": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "the QA agent should go on a page and check whether timesheet data and other details were done"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 18,
+        "totalChunks": 19,
+        "region": "end"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_010": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "expectedFacts": [
+          "80% completion triggers the QA agent check"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:17:meeting",
+        "chunkIndex": 18,
+        "region": "end"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_011": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "AWSTesting",
+        "requiredBehavior": "verbatim excerpt, not a paraphrase",
+        "note": "exact-lookup style question"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "LOW"
+    },
+    "TRANS_012": {
+      "expected": {
+        "answerType": "semantic",
+        "person": "Deepak Trivedi",
+        "topic": "AI",
+        "expectedFacts": [
+          "Deepak Trivedi discussed AI-integrated workflows and using AI tools for testing across multiple meetings (e.g. SCRUM - 25/06/2026)"
+        ],
+        "note": "broad/vague question with no named meeting — a good answer should ground itself in a real specific meeting, not a generic summary"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_013": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "person": "Ranu Trivedi",
+        "expectedFacts": [
+          "Ranu Trivedi checked the version history and found the user logged time for the 23rd but marked it under the 17th"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning",
+        "language": "Hindi transcript"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_014": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "answerContains": [
+          "Lovable",
+          "Lovable tool"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_015": {
+      "expected": {
+        "answerType": "semantic",
+        "answerContains": [
+          "SCRUM - 25/06/2026"
+        ],
+        "expectedFacts": [
+          "the team discussed removing unused JSON properties from time-sheet entries to improve performance and clarity"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_016": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "Content Management and Search",
+        "requiredBehavior": "must ground the answer in real indexed content, not invent scope"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "LOW"
+    },
+    "TRANS_017": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Loveable KT",
+        "answerContains": [
+          "GitHub"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:122:meeting",
+        "chunkIndex": 0,
+        "region": "beginning"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TRANS_018": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "nonsensical/trap phrasing — nothing in this transcript discusses a meeting that never happened; correct behavior is to say so, not invent content"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TRANS_019": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "Webstudio Team Meeting",
+        "requiredBehavior": "UNKNOWN_OR_SPARSE",
+        "note": "this real meeting record has an empty Description field and Status \"Scheduled\" — a correct answer should not fabricate discussion content it doesn't have"
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:167:meeting",
+        "chunkIndex": 0
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TRANS_020": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "AMBIGUOUS_OR_QUALIFIED",
+        "note": "Kamal Singh AND Kamal Kishore are both real participants in this meeting — a bare \"Kamal\" is ambiguous between them; answer must not silently attribute a quote to the wrong one"
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:198:meeting"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_001": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "overdue": true,
+        "count": 29,
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_002": {
+      "expected": {
+        "answerType": "semantic",
+        "dateScope": "yesterday",
+        "answerContains": [
+          "Scrum 4/08/2026"
+        ],
+        "language": "Hinglish",
+        "expectedFacts": [
+          "team standup and project status meeting covering SharePoint package deployment, design fixes, component verification, and urgent deadline pressures"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:201:meeting",
+        "chunkIndex": 0
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_003": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Team Management Tools",
+        "field": "status",
+        "value": "In Progress",
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "HI_004": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "person": "Deepak Trivedi",
+        "language": "Hinglish",
+        "expectedFacts": [
+          "Deepak Trivedi mentioned AI tools can help with testing near the end of the meeting"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 53,
+        "region": "end"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_005": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "count": 1795,
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_006": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "this week",
+        "count": 2,
+        "language": "Hindi/Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "chunk-inflation risk applies equally to Hinglish phrasing"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_007": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "overdue": true,
+        "count": 29,
+        "language": "Hindi/Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_008": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "SharePoint Framework - SPFx Improvement",
+        "count": 1213,
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "HI_009": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "status",
+        "value": "In Progress",
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "HI_010": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "meeting",
+        "dateScope": "last week",
+        "count": 6,
+        "language": "Hindi"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_011": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "containerTitle": "Team Management Tools",
+        "language": "Hinglish",
+        "count": 0
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_012": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "project",
+        "count": 746,
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_013": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "AMBIGUOUS",
+        "note": "same ambiguity as the English \"Kamal\" question — 3 distinct real people share this first name",
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_014": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "Priya Malhotra is not a real person in this data",
+        "language": "Hinglish"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "HI_015": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "language": "Hinglish",
+        "expectedFacts": [
+          "Prashant Kumar",
+          "Deepak Trivedi",
+          "Ranu Trivedi",
+          "Ankush Das",
+          "Anshu Mishra",
+          "Utkarsh Srivastava",
+          "Kamal Kishore",
+          "Kamal Singh",
+          "Atul Kumar",
+          "Umang Kumar"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TYPO_001": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "containerTitle": "Team Management Tools",
+        "count": 53,
+        "note": "\"Managment\" typo of \"Management\""
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TYPO_002": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "HONEST_NOT_FOUND_OR_CLARIFY",
+        "forbiddenBehaviors": [
+          "CONFIDENT_WRONG_ENTITY"
+        ],
+        "note": "double typo, no real named entity — regression fixture for the #82 fix (Phase 12); must not confidently anchor to an unrelated real entity"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "TYPO_003": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Team Management System (Hardware/Software and Licenses)",
+        "field": "status",
+        "value": "In Progress",
+        "note": "\"devlopment\" typo of \"development\""
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TYPO_004": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "meeting",
+        "answerContains": [
+          "SCRUM - 25/06/2026"
+        ],
+        "note": "\"scrm\" typo of \"scrum\""
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TYPO_005": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "count": 672,
+        "note": "\"taks\" typo of \"tasks\""
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TYPO_006": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "CLARIFY_OR_NOT_FOUND",
+        "forbiddenBehaviors": [
+          "CONFIDENT_WRONG_ENTITY"
+        ],
+        "note": "maximally vague, no entity named, no prior conversation context (single-turn) — must ask for clarification or say it cannot determine what is meant, not guess"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "TYPO_007": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "timestamp",
+        "value": "2026-08-04T06:44:04Z",
+        "note": "\"lattest\"/\"Automaton\" typos of \"latest\"/\"Automation\""
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TYPO_008": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "HHHH Automation",
+        "field": "status",
+        "value": "In Progress",
+        "note": "lowercase + \"automaton\" typo"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TYPO_009": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Development Team Management System (Assets Accounts Permissions)",
+        "field": "status",
+        "value": "In Progress",
+        "note": "double typo + vague \"how's X doing\" phrasing"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "TYPO_010": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Stefan Hochhuth",
+        "overdue": true,
+        "count": 164,
+        "note": "\"taks\" typo, lowercase name, fragment phrasing"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CONV_A_T1": {
+      "expected": {
+        "answerType": "fact",
+        "entityTitle": "Team Management Tools",
+        "field": "status",
+        "value": "In Progress"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CONV_A_T2": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "referent": "Team Management Tools",
+        "expectedFacts": [
+          "Stefan Hochhuth",
+          "Aditi Mishra",
+          "Ankush Das"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CONV_A_T3": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Team Management Tools",
+        "status": "pending",
+        "count": 12
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CONV_A_T4": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Team Management Tools",
+        "overdue": true,
+        "count": 9
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CONV_A_T5": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "CLARIFY",
+        "forbiddenBehaviors": [
+          "CONFIDENT_WRONG_ENTITY"
+        ],
+        "note": "genuinely ambiguous reference — no \"other project\" was ever named in this conversation; correct behavior is to ask which project, not guess one"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CONV_B_T1": {
+      "expected": {
+        "answerType": "semantic",
+        "entityTitle": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "resolving a time-sheet discrepancy",
+          "adopting new AI-integrated workflows"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting",
+        "chunkIndex": 0
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CONV_B_T2": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "person",
+        "referent": "SCRUM - 25/06/2026",
+        "expectedFacts": [
+          "Prashant Kumar",
+          "Deepak Trivedi",
+          "Ranu Trivedi",
+          "Ankush Das",
+          "Anshu Mishra",
+          "Utkarsh Srivastava",
+          "Kamal Kishore",
+          "Kamal Singh",
+          "Atul Kumar",
+          "Umang Kumar"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CONV_B_T3": {
+      "expected": {
+        "answerType": "semantic",
+        "referent": "SCRUM - 25/06/2026",
+        "person": "Deepak Trivedi",
+        "expectedFacts": [
+          "Deepak Trivedi asked about the resolution of Stephen's timesheet problem",
+          "Deepak Trivedi mentioned AI tools can help with testing"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "sourceKey": "hhhhteams.sharepoint.com,7aa2fdb5-d64a-4b3a-9ff0-9f73d34636b0,2f9c54ed-a7d4-4240-839a-e04d664c0e3a:aa164763-722d-442c-b502-a0f094fc7855:105:meeting"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CONV_C_T1": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "person": "Ranu Trivedi",
+        "count": 672
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CONV_C_T2": {
+      "expected": {
+        "answerType": "count",
+        "entityType": "task",
+        "referent": "Ranu Trivedi's tasks",
+        "overdue": true,
+        "count": 29
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_001": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "verified nonexistent project name"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_002": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "verified nonexistent project name"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_003": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "verified nonexistent portfolio name, composed with an overdue filter"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_004": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "verified nonexistent person"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_005": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "verified nonexistent meeting"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_006": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "no \"successor task\" relationship exists in this schema at all — trap for inventing a relationship that was never asked about in real data"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "NEG_007": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "UNSUPPORTED",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "no true \"Created\" field exists in the ingested schema, only Modified-or-Created; a correct answer discloses this rather than asserting a fabricated creation date"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "NEG_008": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "GLOBAL_COUNT",
+          "WRONG_ENTITY_GUESS"
+        ],
+        "note": "nonexistent primary entity even though the container reference (Team Management Tools) is real — must not silently drop the nonexistent-entity problem and answer about the real container instead"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_009": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "NOT_FOUND",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "Priya Malhotra is not a real person and was not a participant in this real meeting"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "NEG_010": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "UNRESOLVABLE_DATE",
+        "forbiddenBehaviors": [
+          "HALLUCINATION"
+        ],
+        "note": "31 February does not exist on any calendar — must recognize the date is invalid, not silently substitute a nearby valid date"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CMP_001": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "Development Team Management System (Assets Accounts Permissions)"
+        ]
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CMP_002": {
+      "expected": {
+        "answerType": "fact",
+        "entityType": "project",
+        "answerContains": [
+          "Development Team Management System (Assets Accounts Permissions)"
+        ],
+        "counts": {
+          "Team Management Tools": 53,
+          "Development Team Management System (Assets Accounts Permissions)": 113
+        }
+      },
+      "evidence": {
+        "source": "qdrant-direct",
+        "businessEntityKey": "sourceKey",
+        "note": "Phase 14 regression fixture — must use business-entity counts, not raw points"
+      },
+      "failureSeverity": "HIGH"
+    },
+    "CMP_003": {
+      "expected": {
+        "answerType": "list",
+        "entityType": "project",
+        "requiredBehavior": "must show real facts (status/updated date) for BOTH named entities independently, no forced winner if no comparison field is specified"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "MEDIUM"
+    },
+    "CMP_004": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "FAIL_CLOSED_ON_UNRESOLVED",
+        "forbiddenBehaviors": [
+          "WRONG_ENTITY_GUESS",
+          "CONFIDENT_WRONG_ENTITY"
+        ],
+        "note": "one real entity + one verified-nonexistent entity — must not substitute a different real entity for the fake one"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "CRITICAL"
+    },
+    "CMP_005": {
+      "expected": {
+        "answerType": "behavior",
+        "requiredBehavior": "AMBIGUOUS",
+        "note": "\"Team Management\" (bare) matches multiple distinct real entities — must surface the ambiguity for that side, never silently pick one"
+      },
+      "evidence": {
+        "source": "qdrant-direct"
+      },
+      "failureSeverity": "HIGH"
+    }
+  }
+}
