@@ -6,7 +6,7 @@ let client;
 
 function getClient() {
   if (!client) {
-    client = new QdrantClient({ url: config.qdrant.url });
+    client = new QdrantClient({ url: config.qdrant.url, apiKey: config.qdrant.apiKey });
   }
   return client;
 }

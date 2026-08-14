@@ -53,7 +53,7 @@ export async function extractUploadedTranscript(file) {
   throw new Error('Unsupported file type. Upload .pdf, .docx, or .txt');
 }
 
-function compactRecord(record, index) {
+export function compactRecord(record, index) {
   const p = record.payload || record;
   const id = p.taskId || p.taskCode || p.meetingId || p.sharePointItemId || '';
   const idLabel = p.type === 'task' || record.type === 'task' ? 'taskId' : 'id';
@@ -225,57 +225,69 @@ async function generateMeetingAnalysis(messages) {
   return answer;
 }
 
-export async function retrieveMeetingAnalysisContext(transcriptText, { limitMeetings = 8, limitTasks = 14, limitContainers = 6 } = {}) {
-  const query = cleanText(transcriptText).slice(0, 4000);
-  const [meetingResults, vectorTaskResults, allTasks, containerResults] = await Promise.all([
-    searchKnowledge(query, limitMeetings, {
-      must: [{ key: 'type', match: { value: 'meeting' } }],
-    }).catch(() => []),
-    searchKnowledge(query, limitTasks, {
-      must: [{ key: 'type', match: { value: 'task' } }],
-    }).catch(() => []),
-    scrollPayloads({ types: ['task'], limit: 15000 }).catch(() => []),
-    // Real portfolio/project candidates for where a NEW action item's task should live — so the
-    // model recommends an EXISTING container it actually found, never an invented project name.
-    searchKnowledge(query, limitContainers, {
-      should: [{ key: 'type', match: { value: 'portfolio' } }, { key: 'type', match: { value: 'project' } }],
-    }).catch(() => []),
-  ]);
+function lexicalScore(query, payload) {
+  const match = scoreRecordMatch(query, payload);
+  const doc = [
+    payload.title,
+    payload.projectName,
+    payload.portfolioName,
+    payload.hierarchyPath,
+    payload.taskId,
+    payload.taskCode,
+    payload.text,
+  ]
+    .filter(Boolean)
+    .join(' ');
+  const bm25 = bm25Score(query, doc);
+  return payloadToResult(payload, {
+    keywordScore: match.score,
+    bm25Score: bm25,
+    combinedScore: match.score + bm25 * 0.2,
+    confidence: match.confidence,
+    matchReason: match.matchReason,
+  });
+}
 
-  const lexicalTaskResults = allTasks
-    .map((payload) => {
-      const match = scoreRecordMatch(query, payload);
-      const doc = [
-        payload.title,
-        payload.projectName,
-        payload.portfolioName,
-        payload.hierarchyPath,
-        payload.taskId,
-        payload.taskCode,
-        payload.text,
-      ]
-        .filter(Boolean)
-        .join(' ');
-      const bm25 = bm25Score(query, doc);
-      return payloadToResult(payload, {
-        keywordScore: match.score,
-        bm25Score: bm25,
-        combinedScore: match.score + bm25 * 0.2,
-        confidence: match.confidence,
-        matchReason: match.matchReason,
-      });
-    })
+/**
+ * `exhaustive: true` scrolls every record of `types` (not just a vector top-K) and ranks it by
+ * keyword/BM25 score before merging with the vector hits — used always for tasks (a task match
+ * must never be missed) and optionally for meetings/containers under "full scan" mode. Plain
+ * vector search alone can miss a match that's relevant but phrased very differently from the
+ * transcript; the exhaustive scan can't, at the cost of pulling the whole collection into memory.
+ */
+async function typeSearch(query, types, limit, { exhaustive = false } = {}) {
+  const filter = types.length === 1
+    ? { must: [{ key: 'type', match: { value: types[0] } }] }
+    : { should: types.map((type) => ({ key: 'type', match: { value: type } })) };
+  const vectorResults = await searchKnowledge(query, limit, filter).catch(() => []);
+  if (!exhaustive) return topRecords(vectorResults, limit);
+
+  const allRecords = await scrollPayloads({ types, limit: 15000 }).catch(() => []);
+  const lexicalResults = allRecords
+    .map((payload) => lexicalScore(query, payload))
     .filter((result) => result.keywordScore > 0.15 || result.bm25Score > 0)
     .sort((a, b) => b.combinedScore - a.combinedScore)
-    .slice(0, limitTasks);
+    .slice(0, limit);
 
-  const taskResults = topRecords([...vectorTaskResults, ...lexicalTaskResults], limitTasks);
+  return topRecords([...vectorResults, ...lexicalResults], limit);
+}
 
-  return {
-    meetings: topRecords(meetingResults, limitMeetings),
-    tasks: taskResults,
-    containers: topRecords(containerResults, limitContainers),
-  };
+export async function retrieveMeetingAnalysisContext(
+  transcriptText,
+  { scanMode = 'quick', limitMeetings = 8, limitTasks = 14, limitContainers = 6 } = {}
+) {
+  const query = cleanText(transcriptText).slice(0, 4000);
+  const full = scanMode === 'full';
+  const meetingsLimit = full ? Math.max(limitMeetings, 20) : limitMeetings;
+  const containersLimit = full ? Math.max(limitContainers, 15) : limitContainers;
+
+  const [meetings, tasks, containers] = await Promise.all([
+    typeSearch(query, ['meeting'], meetingsLimit, { exhaustive: full }),
+    typeSearch(query, ['task'], limitTasks, { exhaustive: true }), // always exhaustive — a task match must never be missed
+    typeSearch(query, ['portfolio', 'project'], containersLimit, { exhaustive: full }),
+  ]);
+
+  return { meetings, tasks, containers, scanMode };
 }
 
 export function buildUploadedMeetingAnalysisMessages({
@@ -331,15 +343,17 @@ export function buildUploadedMeetingAnalysisMessages({
   };
 }
 
-export async function analyzeUploadedTranscript(file, question = '') {
-  const transcriptText = await extractUploadedTranscript(file);
+/** Shared by the web upload (file → extracted text) and the MCP tool (already-plain text) —
+ *  both just need this once the transcript is a string, so neither has to duplicate the
+ *  retrieval + prompt + validation pipeline below. */
+export async function analyzeTranscriptText({ transcriptText, filename = 'transcript', question = '' }) {
   if (!transcriptText) {
-    throw new Error('Could not extract readable text from the uploaded file');
+    throw new Error('Could not extract readable text from the transcript');
   }
 
   const context = await retrieveMeetingAnalysisContext(transcriptText);
   const messages = buildUploadedMeetingAnalysisMessages({
-    filename: file.originalname,
+    filename,
     transcriptText,
     meetings: context.meetings,
     tasks: context.tasks,
@@ -358,7 +372,7 @@ export async function analyzeUploadedTranscript(file, question = '') {
   }
 
   return {
-    filename: file.originalname,
+    filename,
     transcriptChars: transcriptText.length,
     answer,
     hallucinationFlags: flagged,
@@ -384,4 +398,9 @@ export async function analyzeUploadedTranscript(file, question = '') {
       tasks: context.tasks,
     },
   };
+}
+
+export async function analyzeUploadedTranscript(file, question = '') {
+  const transcriptText = await extractUploadedTranscript(file);
+  return analyzeTranscriptText({ transcriptText, filename: file.originalname, question });
 }

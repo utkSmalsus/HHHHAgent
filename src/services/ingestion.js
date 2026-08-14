@@ -3,10 +3,10 @@ import { upsertKnowledge } from './qdrant.js';
 import { clearIngestCache } from './hierarchyIngest.js';
 import * as progress from './ingestProgress.js';
 
-export async function ingestFromSharePoint(listKey, { trackProgress = true } = {}) {
+export async function ingestFromSharePoint(listKey, { trackProgress = true, modifiedSince } = {}) {
   if (trackProgress) progress.setPhase('fetching', listKey);
 
-  const { items, configured, sources } = await fetchListItems(listKey);
+  const { items, configured, sources } = await fetchListItems(listKey, { modifiedSince });
 
   if (!configured) {
     return { ingested: 0, message: 'SharePoint not configured — provide items in request body' };
@@ -93,7 +93,7 @@ export async function ingestManualItems(items) {
   return { ingested: results.length, points: results };
 }
 
-export async function runIngestAll(listKeys) {
+export async function runIngestAll(listKeys, { modifiedSince } = {}) {
   const jobId = `ingest-${Date.now()}`;
   clearIngestCache();
   progress.startJob(jobId, listKeys);
@@ -104,7 +104,9 @@ export async function runIngestAll(listKeys) {
   // timeentries may redundantly re-fetch the same master rows portfolio already cached, but never
   // corrupt each other — JS only yields at `await`, so no torn writes). allSettled (not all) so
   // one list failing doesn't abort the others.
-  const settled = await Promise.allSettled(listKeys.map((listKey) => ingestFromSharePoint(listKey)));
+  const settled = await Promise.allSettled(
+    listKeys.map((listKey) => ingestFromSharePoint(listKey, { modifiedSince }))
+  );
 
   const results = {};
   const combinedAudit = {

@@ -38,6 +38,7 @@ function getClient() {
   if (!client) {
     client = new QdrantClient({
       url: config.qdrant.url,
+      apiKey: config.qdrant.apiKey,
       checkCompatibility: false,
     });
   }
@@ -74,6 +75,27 @@ function chunkPointIdFor(sourceKey, chunkIndex) {
   return sourceKey ? uuidFromHash(`${sourceKey}:chunk:${chunkIndex}`) : randomUUID();
 }
 
+// Managed Qdrant (e.g. Qdrant Cloud) enforces "strict mode" by default — filtering on a payload
+// field with no index outright fails ("Index required but not found"), unlike a local/self-hosted
+// instance which allows unindexed filtering. Every field ever used in a server-side Qdrant filter
+// (see `key: '...'` across services/*.js) needs an index created up front on a fresh collection, or
+// count/list/type-scoped search silently breaks the moment the collection moves to a strict host.
+const REQUIRED_PAYLOAD_INDEXES = [
+  { field_name: 'type', field_schema: 'keyword' },
+  { field_name: 'sourceKey', field_schema: 'keyword' },
+  { field_name: 'chunkIndex', field_schema: 'integer' },
+];
+
+async function ensurePayloadIndexes(qdrant, collection) {
+  for (const index of REQUIRED_PAYLOAD_INDEXES) {
+    await qdrant.createPayloadIndex(collection, index).catch((err) => {
+      // Already exists (re-running against a collection created by an older version of this
+      // function) — safe to ignore; any other failure should still surface.
+      if (!/already exists/i.test(err.message || '')) throw err;
+    });
+  }
+}
+
 export async function ensureCollection() {
   const qdrant = getClient();
   const { collection, vectorSize } = config.qdrant;
@@ -84,6 +106,7 @@ export async function ensureCollection() {
     await qdrant.createCollection(collection, {
       vectors: { size: vectorSize, distance: 'Cosine' },
     });
+    await ensurePayloadIndexes(qdrant, collection);
     return;
   }
 
@@ -97,6 +120,7 @@ export async function ensureCollection() {
     await qdrant.createCollection(collection, {
       vectors: { size: vectorSize, distance: 'Cosine' },
     });
+    await ensurePayloadIndexes(qdrant, collection);
   }
 }
 

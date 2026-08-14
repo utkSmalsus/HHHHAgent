@@ -1,5 +1,6 @@
 node_modules/
 .env
+php-mcp/config.local.php
 .DS_Store
 *.log
 

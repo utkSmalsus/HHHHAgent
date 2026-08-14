@@ -13,7 +13,6 @@ services:
     env_file:
       - .env
     environment:
-      QDRANT_URL: http://qdrant:6333
       PORT: 3000
       OLLAMA_BASE_URL: http://host.docker.internal:11434
       TRANSFORMERS_CACHE: /app/.cache/transformers
@@ -21,10 +20,10 @@ services:
       - "host.docker.internal:host-gateway"
     volumes:
       - transformers_cache:/app/.cache
-    depends_on:
-      - qdrant
+      - ingest_state:/app/.state
     restart: unless-stopped
 
 volumes:
   qdrant_storage:
   transformers_cache:
+  ingest_state:

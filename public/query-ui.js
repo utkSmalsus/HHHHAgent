@@ -315,8 +315,11 @@ function setAttachedFile(picked) {
 
 attachBtn.addEventListener('click', () => file.click());
 file.addEventListener('change', () => {
-  setAttachedFile(file.files[0]);
-  input.focus();
+  const picked = file.files[0];
+  setAttachedFile(picked);
+  // Predefined analysis prompt runs automatically on upload — no typed question required.
+  if (picked) form.requestSubmit();
+  else input.focus();
 });
 fileChipRemove.addEventListener('click', () => {
   file.value = '';

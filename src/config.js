@@ -79,6 +79,7 @@ export const config = {
   },
   qdrant: {
     url: process.env.QDRANT_URL || 'http://localhost:6333',
+    apiKey: process.env.QDRANT_API_KEY || undefined,
     collection: process.env.QDRANT_COLLECTION || 'enterprise_knowledge',
     /** 768 for nomic-embed-text (Ollama), 384 for all-MiniLM-L6-v2 */
     vectorSize: Number(process.env.VECTOR_SIZE) || 768,

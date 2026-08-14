@@ -183,7 +183,7 @@ function filterItemsSince(items, sinceIso) {
   });
 }
 
-async function getAccessToken() {
+export async function getAccessToken() {
   if (cachedToken && Date.now() < tokenExpiresAt) {
     return cachedToken;
   }
@@ -330,6 +330,180 @@ async function fetchGraphListItems(token, siteId, listId, { modifiedSince } = {}
   return filterItemsSince(items, modifiedSince);
 }
 
+/**
+ * Live (uncached) read of the Meetings list — for resolving WHICH real meeting item to write an AI
+ * report back into, where the meeting may have been created/updated moments ago and not yet be in
+ * Qdrant (which only reflects the last ingestion run). Deliberately skips fetchListItems('meetings')'s
+ * per-row transcript download (fetchTranscriptText) — that's expensive and irrelevant here, we only
+ * need id/title/start/status to identify the record, not its content.
+ * ponytail: single page, no pagination — fine at the current ~150-meeting scale; add paging if the
+ * list grows past ~200 items and a truly old meeting needs to be found this way.
+ */
+export async function fetchRecentMeetings({ limit = 10 } = {}) {
+  const token = await getAccessToken();
+  if (!token) return { items: [], configured: false };
+
+  const source = getIngestSource('meetings', config.sharepoint.ingestSources);
+  const params = new URLSearchParams({ $expand: 'fields', $top: '200' });
+  const url = `https://graph.microsoft.com/v1.0/sites/${source.siteId}/lists/${source.listId}/items?${params.toString()}`;
+  const res = await fetch(url, {
+    headers: { Authorization: `Bearer ${token}`, Prefer: 'HonorNonIndexedQueriesWarningMayFailRandomly' },
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Graph meetings list failed: ${res.status} ${body.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  // Unscheduled "Follow-up: ..." placeholder stubs carry a sentinel far-future Start
+  // (2099-12-31) so they'd otherwise sort to the very top as if they were the newest meeting —
+  // same real-data quirk found earlier scanning meetings through Qdrant. Exclude anything more
+  // than a year out; a genuinely scheduled real meeting is never booked that far ahead here.
+  const notPlaceholder = (item) => {
+    const start = item.fields?.Start ? new Date(item.fields.Start) : null;
+    const oneYearOut = Date.now() + 365 * 24 * 60 * 60 * 1000;
+    return !/unscheduled/i.test(item.fields?.Status || '') && (!start || start.getTime() < oneYearOut);
+  };
+  const items = (data.value || [])
+    .filter(notPlaceholder)
+    .map((item) => ({
+      id: item.id,
+      title: item.fields?.Title || 'Untitled',
+      start: item.fields?.Start || null,
+      end: item.fields?.End || null,
+      status: item.fields?.Status || null,
+      meetingType: item.fields?.MeetingType || null,
+    }))
+    .sort((a, b) => new Date(b.start || 0) - new Date(a.start || 0))
+    .slice(0, limit);
+
+  return { items, configured: true };
+}
+
+async function getMeetingItemFields(meetingId, selectFields) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('SharePoint credentials not configured');
+  const source = getIngestSource('meetings', config.sharepoint.ingestSources);
+  const select = selectFields ? `?$select=${selectFields.join(',')}` : '';
+  const url = `https://graph.microsoft.com/v1.0/sites/${source.siteId}/lists/${source.listId}/items/${meetingId}/fields${select}`;
+  const res = await fetch(url, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Graph get meeting fields failed: ${res.status} ${body.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
+async function patchMeetingItemFields(meetingId, fields) {
+  const token = await getAccessToken();
+  if (!token) throw new Error('SharePoint credentials not configured');
+  const source = getIngestSource('meetings', config.sharepoint.ingestSources);
+  const url = `https://graph.microsoft.com/v1.0/sites/${source.siteId}/lists/${source.listId}/items/${meetingId}/fields`;
+  const res = await fetch(url, {
+    method: 'PATCH',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(fields),
+  });
+  if (!res.ok) {
+    const body = await res.text();
+    throw new Error(`Graph update meeting failed: ${res.status} ${body.slice(0, 300)}`);
+  }
+  return res.json();
+}
+
+/**
+ * Writes an AI report back onto a real Meeting item — AISummary is a plain overwrite; both action
+ * item lists are appended into ActionItemJSON (read-modify-write, never a blind overwrite, so this
+ * never erases existing manually-entered items), matching the entry shape confirmed against
+ * TeamsMeetingTool's own source (sharePointDataService.ts normalizeActionItem).
+ *
+ * Deliberately does NOT touch the `Tasks` lookup column at all: that field is owned by an existing
+ * Power Automate flow which auto-creates and links a "meeting task" (with participants as owners)
+ * whenever a meeting is created — confirmed live (see the meetingId=207 test) that a naive write
+ * there overwrote that flow's own linkage. "Already exists, don't duplicate" (Section 4 of the
+ * report) is instead represented the same way a genuinely newly-created task already is elsewhere
+ * in this schema: an ActionItemJSON entry with status "Task Created" and a real omtTaskId — this
+ * is exactly how the sibling app's own "From action item" Linked-Tasks rows already work, so it's
+ * proven safe, not a new mechanism.
+ */
+export async function saveReportToMeeting(meetingId, { summary, newActionItems, existingTaskMatches } = {}) {
+  const results = {};
+
+  if (summary) {
+    await patchMeetingItemFields(meetingId, { AISummary: summary });
+    results.summary = 'updated';
+  }
+
+  // Fail loudly on a malformed item instead of silently writing blank data to a real SharePoint
+  // record. Confirmed live (meeting 211, via the PHP port of this same function): a caller's tool
+  // call omitted/misnamed these fields, and the old `|| ''` fallbacks let it "succeed" with 17 real
+  // ActionItemJSON entries that all had empty description/assignedTo/omtTaskId — a much worse
+  // outcome than a clear rejection the caller could immediately fix and retry.
+  const requireField = (item, field, index, listLabel) => {
+    if (!item[field]) {
+      throw new Error(
+        `${listLabel}[${index}] is missing required field "${field}" — refusing to save a blank ` +
+          'action item. Re-check the exact argument shape against the tool schema.'
+      );
+    }
+  };
+  (newActionItems || []).forEach((item, i) => requireField(item, 'description', i, 'newActionItems'));
+  (existingTaskMatches || []).forEach((item, i) => {
+    requireField(item, 'description', i, 'existingTaskMatches');
+    requireField(item, 'omtTaskId', i, 'existingTaskMatches');
+  });
+
+  const buildEntry = (item, { status, omtTaskId }) => ({
+    meetingId: String(meetingId),
+    description: item.description || '',
+    taskDescription: item.taskDescription || '',
+    sectionId: '',
+    sectionTopic: item.sectionTopic || '',
+    sectionSummary: '',
+    owningTool: item.owningTool || '',
+    mentionedTools: [],
+    discussionIntent: '',
+    discussionContext: item.discussionContext || '',
+    projectHints: item.projectHints || [],
+    assignedTo: item.assignedTo || null,
+    linkedProject: item.linkedProject || null,
+    siteType: 'HHHH',
+    taskType: item.taskType || 'Implementation',
+    priorityRank: String(item.priorityRank || '5'),
+    source: 'AI-Extracted',
+    status,
+    id: `mcp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    dueDate: item.dueDate || '',
+    omtTaskId,
+  });
+
+  if (newActionItems?.length || existingTaskMatches?.length) {
+    const current = await getMeetingItemFields(meetingId, ['ActionItemJSON']);
+    const existing = (() => {
+      try {
+        return JSON.parse(current.ActionItemJSON || '[]');
+      } catch {
+        return [];
+      }
+    })();
+
+    // "Pending Review" (not "Approved") is normalizeActionItem's own real default for an entry
+    // with no explicit status — an AI suggestion isn't the same as a human approving it, so this
+    // must leave the same human-review gate the app already relies on, not silently bypass it.
+    const builtNew = (newActionItems || []).map((item) => buildEntry(item, { status: 'Pending Review', omtTaskId: '' }));
+    const builtExisting = (existingTaskMatches || []).map((item) =>
+      buildEntry(item, { status: 'Task Created', omtTaskId: String(item.omtTaskId) })
+    );
+
+    await patchMeetingItemFields(meetingId, {
+      ActionItemJSON: JSON.stringify([...existing, ...builtNew, ...builtExisting]),
+    });
+    results.newActionItems = builtNew.length;
+    results.linkedExistingTasks = builtExisting.length;
+  }
+
+  return results;
+}
+
 export function getSharePointSitesConfig() {
   return getSharePointConfigSummary(
     config.sharepoint.sites,
@@ -372,7 +546,7 @@ async function ensureTaskLinkIndex(token, taskSource) {
   return taskLinkIndex;
 }
 
-export async function fetchListItems(listKey) {
+export async function fetchListItems(listKey, { modifiedSince } = {}) {
   const token = await getAccessToken();
   if (!token) {
     return { items: [], structured: [], configured: false };
@@ -383,6 +557,11 @@ export async function fetchListItems(listKey) {
   const sourcesUsed = [];
 
   if (listKey === 'portfolio' || listKey === 'projects') {
+    // Deliberately ALWAYS full-fetched, never filtered by modifiedSince — this is the reference
+    // data every task resolves its portfolio/project NAME against (ensureMasterCache below).
+    // Filtering it to "recently changed" would silently break name resolution for every task
+    // under an unchanged portfolio, not just the ones actually skipped. Cheap enough to always
+    // fully re-embed daily (~3,400 records) that this isn't worth the correctness risk.
     const rows = await fetchGraphListItems(token, source.siteId, source.listId);
     setIngestCacheMaster(rows);
     const masterById = getIngestCacheMasterById();
@@ -403,7 +582,7 @@ export async function fetchListItems(listKey) {
       : new Map();
 
     for (const site of source.taskSources) {
-      const rows = await fetchGraphListItems(token, site.siteId, site.listId);
+      const rows = await fetchGraphListItems(token, site.siteId, site.listId, { modifiedSince });
       const parsed = rows.map((row) =>
         taskItemToKnowledge(
           row,
@@ -417,6 +596,7 @@ export async function fetchListItems(listKey) {
         listId: site.listId,
         siteType: site.siteType,
         count: parsed.length,
+        modifiedSince: modifiedSince || null,
       });
     }
 
@@ -427,10 +607,13 @@ export async function fetchListItems(listKey) {
       ? await ensureTaskLinkIndex(token, taskSource)
       : new Map();
 
-    const modifiedSince = monthsAgoIso(config.sharepoint.timeEntriesMonths);
+    // Incremental runs pass a real `modifiedSince` (since the last successful run — typically
+    // ~24h) which is far tighter than the historical-backfill default window; the wider
+    // TIMEENTRIES_MONTHS window is only the fallback for a first/full run with no prior state.
+    const effectiveModifiedSince = modifiedSince || monthsAgoIso(config.sharepoint.timeEntriesMonths);
     for (const sheet of source.timesheetSources) {
       const rows = await fetchGraphListItems(token, source.siteId, sheet.listId, {
-        modifiedSince,
+        modifiedSince: effectiveModifiedSince,
       });
       const parsed = timesheetRowsToKnowledge(
         rows,
@@ -445,11 +628,11 @@ export async function fetchListItems(listKey) {
         label: sheet.label,
         rowsFetched: rows.length,
         slicesIngested: parsed.length,
-        modifiedSince,
+        modifiedSince: effectiveModifiedSince,
       });
     }
   } else if (listKey === 'meetings') {
-    const rows = await fetchGraphListItems(token, source.siteId, source.listId);
+    const rows = await fetchGraphListItems(token, source.siteId, source.listId, { modifiedSince });
     let transcriptsFetched = 0;
     for (const row of rows) {
       const fields = row.fields || {};
@@ -467,9 +650,10 @@ export async function fetchListItems(listKey) {
       listId: source.listId,
       count: allItems.length,
       transcriptsFromFile: transcriptsFetched,
+      modifiedSince: modifiedSince || null,
     });
   } else {
-    const rows = await fetchGraphListItems(token, source.siteId, source.listId);
+    const rows = await fetchGraphListItems(token, source.siteId, source.listId, { modifiedSince });
     const parsed = rows.map((item) => itemToText(item, source.type, source));
     allItems.push(...parsed);
     sourcesUsed.push({

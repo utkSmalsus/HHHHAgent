@@ -8,6 +8,7 @@ import {
 } from '../services/ingestion.js';
 import { getSharePointSitesConfig } from '../services/sharepoint.js';
 import { getProgress, getProgressWithDbState, isRunning, onProgress, requestCancel } from '../services/ingestProgress.js';
+import { getLastIngestAt, setLastIngestAt } from '../services/ingestState.js';
 import { config } from '../config.js';
 
 const router = Router();
@@ -177,6 +178,56 @@ router.post('/all', async (req, res) => {
     });
   } catch (err) {
     console.error('Ingest all error:', err.message);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+/**
+ * For the daily scheduled run — only fetches records modified since the last successful run
+ * (persisted on a Docker volume so it survives container rebuilds), instead of `/all`'s full
+ * re-fetch/re-embed of everything every time. Portfolio/project stay full-fetched regardless (see
+ * fetchListItems's own comment — they're hierarchy reference data, not safe to partially skip).
+ *
+ * ponytail: catches new/updated records only, not deletions — a SharePoint item deleted since the
+ * last run has no "modified" event to be caught by, so its old vector lingers in Qdrant forever.
+ * Fine for daily use; run a full `/all` occasionally (e.g. weekly) to reconcile deletions.
+ */
+router.post('/incremental', async (req, res) => {
+  try {
+    if (isRunning()) {
+      return res.status(409).json({
+        success: false,
+        error: 'Ingest already in progress',
+        progress: getProgress(),
+      });
+    }
+
+    const lastIngestAt = await getLastIngestAt();
+    const modifiedSince = lastIngestAt || new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    const startedAt = new Date().toISOString();
+    const jobId = randomUUID();
+
+    runIngestAll(config.sharepoint.ingestListKeys, { modifiedSince })
+      .then(async (r) => {
+        console.log('Incremental ingest finished:', r.totalIngested);
+        await setLastIngestAt(startedAt); // stamp with when THIS run started, not finished
+      })
+      .catch((e) => console.error('Incremental ingest failed:', e.message));
+
+    res.json({
+      success: true,
+      message: lastIngestAt
+        ? `Incremental ingest started — fetching changes since ${modifiedSince}`
+        : `First incremental run (no prior state) — using a 24h lookback (${modifiedSince})`,
+      jobId,
+      modifiedSince,
+      progressUrl: '/api/ingest/progress',
+      streamUrl: '/api/ingest/progress/stream',
+      uiUrl: '/api/ingest/progress/ui',
+      ...getProgress(),
+    });
+  } catch (err) {
+    console.error('Incremental ingest error:', err.message);
     res.status(500).json({ success: false, error: err.message });
   }
 });
