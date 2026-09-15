@@ -4,8 +4,13 @@ declare(strict_types=1);
 /** Thin cURL-based JSON HTTP helper — no dependency needed for plain REST calls. */
 final class Http
 {
-    /** @return array{status:int, body:mixed, raw:string} */
-    public static function request(string $method, string $url, array $headers = [], ?string $body = null): array
+    /**
+     * @param int $timeoutSeconds confirmed live: 30s (the default) isn't enough for a full-payload
+     *   scroll of a large type like "meeting" (real transcripts included) — investigate_transcript_
+     *   context passes a longer timeout for exactly that call; every other caller keeps the default.
+     * @return array{status:int, body:mixed, raw:string}
+     */
+    public static function request(string $method, string $url, array $headers = [], ?string $body = null, int $timeoutSeconds = 30): array
     {
         $ch = curl_init($url);
         $headerLines = [];
@@ -16,7 +21,7 @@ final class Http
             CURLOPT_CUSTOMREQUEST => $method,
             CURLOPT_HTTPHEADER => $headerLines,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_TIMEOUT => $timeoutSeconds,
         ]);
         if ($body !== null) {
             curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
@@ -36,10 +41,10 @@ final class Http
         return self::request('GET', $url, $headers);
     }
 
-    public static function postJson(string $url, array $headers, array $payload): array
+    public static function postJson(string $url, array $headers, array $payload, int $timeoutSeconds = 30): array
     {
         $headers['Content-Type'] = 'application/json';
-        return self::request('POST', $url, $headers, json_encode($payload));
+        return self::request('POST', $url, $headers, json_encode($payload), $timeoutSeconds);
     }
 
     public static function patchJson(string $url, array $headers, array $payload): array

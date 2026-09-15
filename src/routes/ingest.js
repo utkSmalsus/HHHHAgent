@@ -105,6 +105,7 @@ const TYPE_MAP = {
   tasks: 'task',
   timeentries: 'timeentry',
   meetings: 'meeting',
+  eodreports: 'eodreport',
 };
 
 async function handleIngest(req, res, listKey) {
@@ -151,6 +152,7 @@ router.post('/projects', (req, res) => handleIngest(req, res, 'projects'));
 router.post('/tasks', (req, res) => handleIngest(req, res, 'tasks'));
 router.post('/timeentries', (req, res) => handleIngest(req, res, 'timeentries'));
 router.post('/meetings', (req, res) => handleIngest(req, res, 'meetings'));
+router.post('/eodreports', (req, res) => handleIngest(req, res, 'eodreports'));
 
 router.post('/all', async (req, res) => {
   try {

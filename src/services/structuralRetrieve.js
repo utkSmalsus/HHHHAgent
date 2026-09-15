@@ -28,19 +28,27 @@ const DEBUG_RAG = process.env.DEBUG_RAG !== 'false';
 // SPA" — "last" alone, unweighted and unstripped, won a confident single-word match. Same pattern
 // as every other entry in this list: a common relative-time word that happens to also be someone's
 // real title.
-const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|today|yesterday|tomorrow|last|next|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
+// "logged" added: it's the timeentry equivalent of "due" for tasks (pickDateField's LOGGED_RE
+// trigger for the timeDate field), not an entity reference — but real data has a project literally
+// titled "Not logged in message", so left unstripped it won a confident single-word match on any
+// "time entries logged ..." question, wrongly scoping the count/list to that unrelated project (0
+// results). "total" added the same way: a real portfolio is titled "SmartTime Total", so a bare
+// "how many time entries total" collided with it too.
+const TEMPORAL_VOCAB_RE = /\b(updated|modified|created|latest|newest|recent|recently|due|logged|today|yesterday|tomorrow|last|next|week|weeks|month|months|day|days|year|years|quarter|quarters)\b/gi;
 const STATUS_VOCAB_RE = /\b(overdue|past due|late|behind schedule|completed|done|finished|pending|in progress|working on it|active)\b/gi;
 const ENTITY_TYPE_VOCAB_RE = /\b(portfolios?|projects?|tasks?|meetings?|time ?entr(?:y|ies)|timesheets?)\b/gi;
 const BARE_NUMBER_RE = /\b\d{3,}\b/g;
+const QUANTIFIER_VOCAB_RE = /\b(total|count|number of)\b/gi;
 
-/** Strips OPERATOR vocabulary (temporal/status/entity-type/bare-number) that names WHAT KIND of
- *  question this is, not WHICH real entity it's about — the same collision class as "Overdue
+/** Strips OPERATOR vocabulary (temporal/status/entity-type/quantifier/bare-number) that names WHAT
+ *  KIND of question this is, not WHICH real entity it's about — the same collision class as "Overdue
  *  Projects" being a real title while "overdue" is also this app's own filter-trigger word. */
 export function sanitizeForEntityResolution(question) {
   return String(question || '')
     .replace(TEMPORAL_VOCAB_RE, ' ')
     .replace(STATUS_VOCAB_RE, ' ')
     .replace(ENTITY_TYPE_VOCAB_RE, ' ')
+    .replace(QUANTIFIER_VOCAB_RE, ' ')
     .replace(BARE_NUMBER_RE, ' ');
 }
 
@@ -311,10 +319,19 @@ export function resolveContainerAnchor(question, containerItems) {
 
   const topRatio = Math.max(...tied.map((s) => s.ratio));
   const precise = tied.filter((s) => s.ratio === topRatio);
-  if (precise.length === 1) {
+  // A single top-ratio winner is only trustworthy as a silent, no-questions-asked resolution when
+  // the match is a LARGE fraction of that title (a near-exact/short-title match, like "SmartFilters"
+  // itself at ratio 1.0) — not merely "relatively better than the other tied candidate". Verified
+  // live: bare "SPA" tied a real "...SPA (Sandbox) Environment" (ratio 0.25, a genuinely different
+  // client's project) against the real "...Single Page Application (SPA)" (ratio 0.143) — both
+  // ratios are low, so the higher of two weak ratios isn't decisive; silently picking the shorter
+  // title hid that a second, equally real, differently-scoped entity exists. Below this floor, fall
+  // through to the wantsType/ambiguous handling below instead of resolving alone.
+  const PRECISE_RATIO_FLOOR = 0.5;
+  if (precise.length === 1 && topRatio >= PRECISE_RATIO_FLOOR) {
     return { anchor: precise[0].group.items[0] };
   }
-  tied = precise;
+  if (precise.length > 1) tied = precise;
 
   // Tie among distinct real entities — the question explicitly saying "portfolio" or "project"
   // is a real disambiguating signal that plain keyword-overlap scoring throws away (both words are

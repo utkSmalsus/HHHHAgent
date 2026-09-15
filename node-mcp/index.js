@@ -60,7 +60,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         '"how many meetings happened last week", "how many tasks does Ankush Das have", "how ' +
         'many overdue tasks". Does NOT support scoping by a project/portfolio NAME (e.g. "tasks ' +
         'in Team Management Tools") — say so rather than silently answering unscoped for that. ' +
-        'Never use semantic/vector search for counting.',
+        'Never use semantic/vector search for counting. The returned "count" is exact — report ' +
+        'it verbatim. Never recompute, round, or substitute a different number from memory or a ' +
+        'separate estimate — a wrong reported count when the tool itself returned the right one ' +
+        'is a reporting failure, not a data problem.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -77,7 +80,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         '"which tasks are due this week", "time entries logged by Ankush Das today", "latest 5 ' +
         'projects". Does NOT support scoping by a project/portfolio NAME, and does NOT do ' +
         'keyword/topic search on title or content (e.g. "tasks about SPA") — never claim a topic ' +
-        'match this tool did not actually filter on. Never use semantic/vector search for this.',
+        'match this tool did not actually filter on. Never use semantic/vector search for this. ' +
+        'Every field in the result (owner, projectName, portfolioName, status, dates) is the real ' +
+        'value from SharePoint — quote it EXACTLY in your answer. Never paraphrase, shorten, or ' +
+        'substitute a different-sounding project/portfolio/owner name.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -108,7 +114,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         '(a human must still approve them); existingTaskMatches appends entries with status ' +
         '"Task Created" and the real omtTaskId. Does NOT touch the meeting\'s Tasks lookup ' +
         'column (owned by an existing Power Automate flow). This performs a REAL, VISIBLE write ' +
-        'to production SharePoint data — confirm with the user before calling this.',
+        'to production SharePoint data — confirm with the user before calling this. If a new ' +
+        'action item has no real project/portfolio suggestion (the report says "undetermined" ' +
+        'for it), omit linkedProject entirely for that item — never pass {name: "undetermined"} ' +
+        'or any other placeholder into a real SharePoint field.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -129,7 +138,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         'real PHP remote server), so this is KEYWORD/TEXT matching only, not semantic search — it ' +
         'scans every record and ranks by keyword/BM25 overlap with the transcript. A related record ' +
         'worded very differently from the transcript may not surface here. There is only one mode — ' +
-        'no "quick" option to trade off against, since every call here is already an exhaustive scan.',
+        'no "quick" option to trade off against, since every call here is already an exhaustive scan. ' +
+        'Every field in the returned evidence (owner, projectName, portfolioName, taskId) is the real ' +
+        'value — quote it EXACTLY, never paraphrase or substitute a different-sounding name.',
       inputSchema: {
         type: 'object',
         properties: { transcript: { type: 'string', description: 'Full plain-text content of the meeting transcript' } },

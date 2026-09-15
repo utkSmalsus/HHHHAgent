@@ -1,4 +1,5 @@
 import { fetchListItems } from './sharepoint.js';
+import { fetchEodReports } from './teamsChat.js';
 import { upsertKnowledge } from './qdrant.js';
 import { clearIngestCache } from './hierarchyIngest.js';
 import * as progress from './ingestProgress.js';
@@ -6,10 +7,15 @@ import * as progress from './ingestProgress.js';
 export async function ingestFromSharePoint(listKey, { trackProgress = true, modifiedSince } = {}) {
   if (trackProgress) progress.setPhase('fetching', listKey);
 
-  const { items, configured, sources } = await fetchListItems(listKey, { modifiedSince });
+  // eodreports comes from Teams chat messages, not a SharePoint list — same {items, configured,
+  // sources} shape as fetchListItems() so the rest of this function (embed/store/audit) doesn't
+  // need to know or care where a record came from.
+  const { items, configured, sources } =
+    listKey === 'eodreports' ? await fetchEodReports({ modifiedSince }) : await fetchListItems(listKey, { modifiedSince });
 
   if (!configured) {
-    return { ingested: 0, message: 'SharePoint not configured — provide items in request body' };
+    const reason = listKey === 'eodreports' ? 'Teams login not set up — run scripts/teams-auth-setup.js once' : 'SharePoint not configured — provide items in request body';
+    return { ingested: 0, message: reason };
   }
 
   if (trackProgress) {

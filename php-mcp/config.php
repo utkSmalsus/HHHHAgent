@@ -14,6 +14,10 @@ require_once __DIR__ . '/lib/Env.php';
 load_env(__DIR__ . '/../.env');
 
 return [
+    // Shared-secret bearer token every request must present (see index.php's checkAuth()) — null
+    // means auth is OFF (fails closed to "reject everything" instead, not "allow everything"; see
+    // checkAuth()'s own comment for why a misconfigured deploy must never silently stay open).
+    'authToken' => getenv('MCP_AUTH_TOKEN') ?: null,
     'sharepoint' => [
         'tenantId' => getenv('TENANT_ID') ?: null,
         'clientId' => getenv('CLIENT_ID') ?: null,

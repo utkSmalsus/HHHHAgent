@@ -4,6 +4,10 @@ php-mcp/config.local.php
 .DS_Store
 *.log
 
+# Local ingest/auth state — includes the Teams delegated refresh token (teamsAuth.js), a real
+# secret that must never enter repository history.
+.state/
+
 # Local Qdrant database — binary segment/index files containing ingested enterprise content.
 # Never belongs in Git: huge binary churn, merge conflicts, and it puts real SharePoint data
 # (task text, meeting transcripts) into repository history.

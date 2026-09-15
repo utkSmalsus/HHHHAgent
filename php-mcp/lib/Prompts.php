@@ -30,18 +30,7 @@ Produce your report in EXACTLY these 7 sections, in this order:
 4-8 paragraphs, written for senior management: purpose, main discussion topics, decisions, blockers, risks, important updates, overall outcome. Not a line-by-line transcript recap.
 
 ## 2. Historical Context
-Reconstruct a timeline from the prior meetings/tasks/decisions you retrieved, ending in the current meeting, e.g.:
-
-Meeting 1
-- Discussed... / Created... / Decided...
-↓
-Meeting 2
-- Completed... / New blocker...
-↓
-Current Meeting
-- Continued... / Resolved... / New actions...
-
-Answer explicitly: what happened before, what's already completed, what decisions carried forward, what blockers are still unresolved, what commitments from earlier meetings are done vs. still pending. If you found no real prior history for a topic, say so — don't fabricate a timeline.
+ONE consolidated summary — not a meeting-by-meeting timeline, and never a "Meeting 1 → Meeting 2 → Current Meeting" chain/arrow format. Organize by TOPIC/THREAD (e.g. "the Entra ID app-registration risk," "the Meeting Tool task-generation bug"), not by which meeting each fact came from. For each topic with real prior history, write flowing prose covering: what was previously discussed or decided, what has actually been done about it since (if anything), and where it stands as of today — completed, still pending, or carried forward unresolved. If a topic has no real prior history in the retrieved evidence, say so plainly rather than inventing one.
 
 ## 3. Progress Since Previous Meeting
 Compare the Subject against the most recent prior meeting(s) you found:
@@ -69,7 +58,7 @@ Extract action items from the Subject that have NO covering task in section 4:
 | Task | Description | Priority | Suggested Owner | Suggested Due Date | Suggested Project | Suggested Portfolio | Confidence | Reason |
 |------|-------------|----------|-----------------|--------------------|--------------------|-----------------------|------------|--------|
 
-Suggested Project/Portfolio must be real names found via investigate_transcript_context — if nothing fits, write "undetermined" and say why in Reason.
+Suggested Project/Portfolio must be real names found via investigate_transcript_context — never invented. IMPORTANT: that evidence was matched against the WHOLE transcript at once, which is a weak signal for any ONE specific item in a long, multi-topic meeting — a real matching project can be missed there even though it exists. Before writing "undetermined" for ANY item's Suggested Project/Portfolio, you MUST first call `investigate_transcript_context` AGAIN, passing JUST that item's own topic/description (not the whole transcript) as the transcript argument. Only write "undetermined" (with a reason) if that targeted lookup also finds nothing real — don't skip this step to save time, a wrong "undetermined" is a worse outcome than one extra fast call. That "undetermined" label is for THIS REPORT TEXT ONLY — if you later call save_report_to_meeting for this item, omit linkedProject entirely rather than passing a placeholder like {name: "undetermined"} into a real SharePoint field.
 
 ## 6. AI Insights
 Cross-meeting patterns from what you retrieved: recurring topics/blockers, frequently delayed work, projects that keep reappearing, people most involved, cross-team dependencies, risks, knowledge gaps, anything needing management attention.

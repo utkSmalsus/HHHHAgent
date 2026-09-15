@@ -452,6 +452,21 @@ export async function saveReportToMeeting(meetingId, { summary, newActionItems, 
     requireField(item, 'omtTaskId', i, 'existingTaskMatches');
   });
 
+  // A model can literally write "undetermined" (or similar) as the suggested project/portfolio
+  // NAME when no real match was found — confirmed live in a real generated report. Correct as
+  // report TEXT, but must never land in a real SharePoint field as if it were an actual project
+  // reference — strip it back to null rather than trust the caller followed the "omit it instead"
+  // instruction in the tool description.
+  const PLACEHOLDER_PROJECT_NAMES = new Set([
+    'undetermined', 'unknown', 'unclear', 'n/a', 'na', 'none', 'tbd', 'not determined', 'not applicable', 'not found',
+  ]);
+  const sanitizeLinkedProject = (linkedProject) => {
+    if (!linkedProject) return null;
+    const name = String(linkedProject.name || '').trim().toLowerCase();
+    if (!name || PLACEHOLDER_PROJECT_NAMES.has(name) || name.startsWith('undetermined')) return null;
+    return linkedProject;
+  };
+
   const buildEntry = (item, { status, omtTaskId }) => ({
     meetingId: String(meetingId),
     description: item.description || '',
@@ -465,7 +480,7 @@ export async function saveReportToMeeting(meetingId, { summary, newActionItems, 
     discussionContext: item.discussionContext || '',
     projectHints: item.projectHints || [],
     assignedTo: item.assignedTo || null,
-    linkedProject: item.linkedProject || null,
+    linkedProject: sanitizeLinkedProject(item.linkedProject),
     siteType: 'HHHH',
     taskType: item.taskType || 'Implementation',
     priorityRank: String(item.priorityRank || '5'),

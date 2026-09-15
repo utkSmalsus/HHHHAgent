@@ -164,7 +164,24 @@ final class SharePoint
             $requireField($item, 'omtTaskId', $i, 'existingTaskMatches');
         }
 
-        $buildEntry = function (array $item, string $status, string $omtTaskId) use ($meetingId) {
+        // A model can literally write "undetermined" (or similar) as the suggested project/
+        // portfolio NAME when no real match was found — confirmed live in a real generated report.
+        // Correct as report TEXT, but must never land in a real SharePoint field as if it were an
+        // actual project reference — strip it back to null rather than trust the caller followed
+        // the "omit it instead" instruction in the tool description.
+        $placeholderProjectNames = ['undetermined', 'unknown', 'unclear', 'n/a', 'na', 'none', 'tbd', 'not determined', 'not applicable', 'not found'];
+        $sanitizeLinkedProject = function (?array $linkedProject) use ($placeholderProjectNames): ?array {
+            if (!$linkedProject) {
+                return null;
+            }
+            $name = strtolower(trim((string) ($linkedProject['name'] ?? '')));
+            if ($name === '' || in_array($name, $placeholderProjectNames, true) || str_starts_with($name, 'undetermined')) {
+                return null;
+            }
+            return $linkedProject;
+        };
+
+        $buildEntry = function (array $item, string $status, string $omtTaskId) use ($meetingId, $sanitizeLinkedProject) {
             return [
                 'meetingId' => (string) $meetingId,
                 'description' => $item['description'] ?? '',
@@ -178,7 +195,7 @@ final class SharePoint
                 'discussionContext' => $item['discussionContext'] ?? '',
                 'projectHints' => $item['projectHints'] ?? [],
                 'assignedTo' => $item['assignedTo'] ?? null,
-                'linkedProject' => $item['linkedProject'] ?? null,
+                'linkedProject' => $sanitizeLinkedProject($item['linkedProject'] ?? null),
                 'siteType' => 'HHHH',
                 'taskType' => $item['taskType'] ?? 'Implementation',
                 'priorityRank' => (string) ($item['priorityRank'] ?? '5'),

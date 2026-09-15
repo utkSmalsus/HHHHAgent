@@ -224,10 +224,14 @@ export function getSharePointConfigSummary(sites, ingestSources) {
 }
 
 // meetings only joins the full ingest once SP_MEETINGS is configured (else /all would fail on it).
+// eodreports has no such env-gate — it degrades gracefully instead (ingestFromSharePoint returns
+// {ingested: 0, message: '...run scripts/teams-auth-setup.js once'} until the one-time Teams login
+// has run, same pattern sharepoint.js's own missing-credentials case already uses).
 export const INGEST_LIST_KEYS = [
   'portfolio',
   'projects',
   'tasks',
   'timeentries',
   ...(process.env.SP_MEETINGS ? ['meetings'] : []),
+  'eodreports',
 ];

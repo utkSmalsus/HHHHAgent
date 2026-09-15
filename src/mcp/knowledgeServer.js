@@ -38,14 +38,14 @@ const {
 const { fetchRecentMeetings, saveReportToMeeting } = await import('../services/sharepoint.js');
 const { PROJECT_INTELLIGENCE_REPORT_PROMPT } = await import('./prompts.js');
 
-const RECORD_TYPES = ['portfolio', 'project', 'task', 'meeting', 'timeentry'];
-// NOTE: person-filtering for 'timeentry' still won't match by author — applyStructuredFilters()
-// in structuredFilters.js only ever checks `owner`, never `authorName` (the field timeentries
-// actually use). Confirmed live via the PHP MCP port, which fixes this with a per-type field
-// lookup — porting that fix back here means editing shared core logic query.js's count/overdue/
-// list branches also depend on, so it's deliberately left alone pending an explicit decision to
-// touch that shared file. Date/status/overdue-scoped timeentry listing (no person) works fine.
-const LISTABLE_TYPES = ['portfolio', 'project', 'task', 'timeentry'];
+const RECORD_TYPES = ['portfolio', 'project', 'task', 'meeting', 'timeentry', 'eodreport'];
+// NOTE: person-filtering for 'timeentry'/'eodreport' still won't match by author —
+// applyStructuredFilters() in structuredFilters.js only ever checks `owner`, never `authorName`
+// (the field both actually use). Confirmed live via the PHP MCP port, which fixes this with a
+// per-type field lookup — porting that fix back here means editing shared core logic query.js's
+// count/overdue/list branches also depend on, so it's deliberately left alone pending an explicit
+// decision to touch that shared file. Date/status/overdue-scoped listing (no person) works fine.
+const LISTABLE_TYPES = ['portfolio', 'project', 'task', 'timeentry', 'eodreport'];
 
 const server = new Server(
   { name: 'hhhh-enterprise-knowledge', version: '1.0.0' },
@@ -105,7 +105,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         'for counting — it only returns a capped top-K similarity sample, never a real total, and ' +
         'will silently undercount. This scans the full collection and applies real filters (person, ' +
         'project/portfolio, status, overdue, date range — including phrases like "last week", ' +
-        '"yesterday", "this month", or an explicit date) extracted from the question text.',
+        '"yesterday", "this month", or an explicit date) extracted from the question text. The ' +
+        'returned "count" is exact — report it verbatim in your answer. Never recompute it, round ' +
+        'it, average it with a different call, or substitute a number from memory/estimation — a ' +
+        'wrong reported count when the tool itself returned the right one is a reporting failure, ' +
+        'not a data problem.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -132,7 +136,11 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         'search_knowledge_base for these — it ranks by semantic similarity, not by date/status/owner, ' +
         'and will miss or misorder real matches. This scans the full collection and applies real ' +
         'filters extracted from the question text (person, project/portfolio, status, overdue, date ' +
-        'range/sort).',
+        'range/sort). Every field in the result (owner, projectName, portfolioName, status, dates) is ' +
+        'the real value from SharePoint — quote it EXACTLY in your answer. Never paraphrase, ' +
+        'shorten, or substitute a different-sounding project/portfolio/owner name — confirmed live ' +
+        'that a connected AI did this and reported a task\'s real owner and project incorrectly even ' +
+        'though the tool returned the correct ones.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -183,7 +191,10 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         'Automate flow that auto-links a "meeting task" on creation, and overwriting it was confirmed ' +
         'live to destroy that flow\'s own linkage. This performs a REAL, VISIBLE write to production ' +
         'SharePoint data your whole team sees — confirm with the user before calling this, don\'t ' +
-        'call it automatically just because a report was generated.',
+        'call it automatically just because a report was generated. If a new action item has no real ' +
+        'project/portfolio suggestion (the report says "undetermined" for it), omit linkedProject ' +
+        'entirely for that item — never pass {name: "undetermined"} or any other placeholder into a ' +
+        'real SharePoint field.',
       inputSchema: {
         type: 'object',
         properties: {
@@ -244,7 +255,9 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
         'is much slower (each call is a separate sequential round trip returning large untrimmed text) ' +
         'and is why past reports took 10+ minutes. Only fall back to search_knowledge_base for a ' +
         'narrow, specific follow-up this does not cover (e.g. one named person, or a project not ' +
-        'among the returned containers).',
+        'among the returned containers). Every field in the returned evidence (owner, projectName, ' +
+        'portfolioName, taskId) is the real value — quote it EXACTLY, never paraphrase or substitute ' +
+        'a different-sounding name.',
       inputSchema: {
         type: 'object',
         properties: {

@@ -124,19 +124,10 @@ final class StructuredFilters
         return true;
     }
 
-    /**
-     * Ported from resolvePersonFilter() in structuredFilters.js, minus the container-title cross-
-     * check (container/project-name resolution isn't ported here at all, so there's nothing to
-     * cross-check against yet — a project name mis-tried as a person just fails closed as
-     * "unresolved person" instead of correctly falling through, a less precise but still honest
-     * failure). Matches ONLY against real names actually present in the data, never a fixed list,
-     * so it works for any employee. Fails closed on ambiguity (multiple real people share a first
-     * name) rather than silently picking one.
-     *
-     * @param string[] $realNames Real owner/author names actually present in the scrolled records.
-     * @return array{requested: bool, resolvedName: ?string, candidateText: ?string, ambiguous: ?array}
-     */
-    public static function resolvePersonFilter(string $question, array $realNames): array
+    /** Raw 2-3-word capitalized-phrase candidates from a question, trimmed and stopword-filtered —
+     *  shared by person resolution (below) and ContainerResolver's own unresolved-container fallback,
+     *  so both agree on what counts as a "name-shaped phrase" instead of two separate regex copies. */
+    public static function matchNameCandidates(string $question): array
     {
         $candidates = [];
         if (preg_match_all('/\b([A-Z][\p{L}\'-]+(?:\s+[A-Z][\p{L}\'-]+){1,2})\b/u', $question, $m)) {
@@ -147,6 +138,28 @@ final class StructuredFilters
                 }
             }
         }
+        return $candidates;
+    }
+
+    /**
+     * Ported from resolvePersonFilter() in structuredFilters.js, INCLUDING the container-title
+     * cross-check (added once ContainerResolver.php existed to provide real titles to check
+     * against) — without it, a single-word project name like "SPA" or "OMT" matches the bare-word
+     * fallback regex below and fails closed as "unresolved person" before container resolution
+     * ever gets a chance to run, confirmed live: "what is happening in SPA" blocked entirely on a
+     * bogus person error instead of resolving the real "...Single Page Application (SPA)" project.
+     * Matches ONLY against real names actually present in the data, never a fixed list, so it works
+     * for any employee. Fails closed on ambiguity (multiple real people share a first name) rather
+     * than silently picking one.
+     *
+     * @param string[] $realNames Real owner/author names actually present in the scrolled records.
+     * @param string[] $containerTitles Real project/portfolio titles — a candidate that's a
+     *   substring of one of these is a project reference, not a person, and must not block.
+     * @return array{requested: bool, resolvedName: ?string, candidateText: ?string, ambiguous: ?array}
+     */
+    public static function resolvePersonFilter(string $question, array $realNames, array $containerTitles = []): array
+    {
+        $candidates = self::matchNameCandidates($question);
         // Bare single-name fallback ("does Ankush have...") — a lone first name has no adjacent
         // capitalized word for the 2-3-word regex above to include.
         if (preg_match_all('/\b([A-Z][\p{L}\'-]+)\b/u', $question, $m1)) {
@@ -210,7 +223,28 @@ final class StructuredFilters
             }
         }
 
-        return ['requested' => true, 'resolvedName' => null, 'candidateText' => $candidates[0], 'ambiguous' => null];
+        // Before concluding "a person was named but unresolved", rule out candidates that are
+        // actually a real project/portfolio's title ("how many tasks does SPA have") — checked
+        // PER-CANDIDATE (not "if ANY candidate matches, discard the whole result"), so a genuinely
+        // unresolved OTHER candidate in the same question still fails closed correctly.
+        $titlesLower = array_map('strtolower', $containerTitles);
+        $nonContainerCandidates = array_values(array_filter($candidates, function ($c) use ($titlesLower) {
+            $cLower = strtolower($c);
+            foreach ($titlesLower as $title) {
+                if (str_contains($title, $cLower)) {
+                    return false;
+                }
+            }
+            return true;
+        }));
+        if (!$nonContainerCandidates) {
+            // Every candidate was itself a real container title — not a person question at all.
+            // Project/portfolio-scoped filtering is ContainerResolver's job; this must not fail
+            // closed here, or a valid project question gets wrongly blocked as "no such person".
+            return ['requested' => false, 'resolvedName' => null, 'candidateText' => null, 'ambiguous' => null];
+        }
+
+        return ['requested' => true, 'resolvedName' => null, 'candidateText' => $nonContainerCandidates[0], 'ambiguous' => null];
     }
 
     /** Real names actually present in a set of already-fetched records for one type — reuses data
